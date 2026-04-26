@@ -13,7 +13,6 @@
   - [3.6 Verificacion general en macOS](#36-verificacion-general-en-macos)
   - [3.7 Configuracion del entorno en Windows](#37-configuracion-del-entorno-en-windows)
   - [3.8 Ejecucion y validacion del proyecto](#38-ejecucion-y-validacion-del-proyecto)
-  - [3.9 Gestion futura de variables de entorno y flavors](#39-gestion-futura-de-variables-de-entorno-y-flavors)
 - [4. Tecnologias utilizadas](#4-tecnologias-utilizadas)
 - [5. Requisitos funcionales](#5-requisitos-funcionales)
 - [6. Requisitos no funcionales](#6-requisitos-no-funcionales)
@@ -117,7 +116,7 @@ La captura confirma la instalacion de Xcode `26.4`, build `17E192`.
 
 **Xcode instalado**
 
-![Xcode instalado en macOS](docs/images/xcode-app-macos.png)
+<img src="./docs/images/xcode-app-macos-compact.png" alt="Xcode instalado en macOS" width="700">
 
 La captura muestra la ventana "About Xcode", donde se valida visualmente la version instalada.
 
@@ -246,7 +245,45 @@ Nota: el documento **Configurar el desarrollo de Windows** tambien menciona Visu
 
 ### 3.8 Ejecucion y validacion del proyecto
 
-Luego de clonar el repositorio, ejecutar:
+El proyecto Flutter **ReportaYA-Front** fue creado inicialmente con el comando:
+
+```bash
+flutter create ReportaYA-Front
+```
+
+Este comando genera la estructura base de Flutter, incluyendo archivos como `pubspec.yaml`, `lib/main.dart`, `android/`, `ios/`, `test/` y configuraciones iniciales para ejecutar el proyecto.
+
+En macOS se recomienda trabajar el proyecto desde una ruta neutral como `~/Projects`, en lugar de mantenerlo dentro de `Desktop`. Durante la preparacion del entorno se identifico que trabajar desde Desktop puede generar metadatos o atributos extendidos de macOS que afectan la compilacion para macOS, por ejemplo errores de firma relacionados con:
+
+```text
+resource fork, Finder information, or similar detritus not allowed
+```
+
+Por ello, la ruta recomendada para clonar o mover el proyecto es:
+
+```text
+~/Projects/ReportaYA-Front
+```
+
+Comandos recomendados para ubicar el proyecto en esa ruta:
+
+```bash
+mkdir -p ~/Projects
+cd ~/Projects
+git clone https://github.com/jeffangeloss/ReportaYA-Front.git
+cd ~/Projects/ReportaYA-Front
+```
+
+Si el proyecto ya existe en otra ubicacion, se puede mover a `~/Projects` y limpiar atributos extendidos:
+
+```bash
+mkdir -p ~/Projects
+mv ~/Desktop/ReportaYA-Front ~/Projects/ReportaYA-Front
+cd ~/Projects/ReportaYA-Front
+xattr -cr .
+```
+
+Luego de ubicarse en la raiz del proyecto, donde se encuentra `pubspec.yaml`, ejecutar:
 
 ```bash
 flutter pub get
@@ -259,70 +296,6 @@ Para revisar el estado del codigo:
 flutter analyze
 flutter test
 ```
-
-### 3.9 Gestion futura de variables de entorno y flavors
-
-Tambien se reviso el documento **Managing Environment Variables and Flavors in Flutter: A Guide for Android & iOS**, agregado en la carpeta `docs/images/`, para identificar una estrategia futura de configuracion por ambientes.
-
-El material explica que una aplicacion Flutter puede separar configuraciones por ambiente, por ejemplo:
-
-- `dev`: ambiente de desarrollo.
-- `staging`: ambiente de pruebas o validacion.
-- `prod`: ambiente de produccion.
-
-Esta separacion permite manejar valores distintos por ambiente, como URLs de API, nombres de aplicacion, identificadores de paquete o configuraciones internas. Para ReportaYA, esta configuracion no se implementa todavia porque el proyecto se encuentra en una base inicial, pero se considera como referencia para siguientes iteraciones.
-
-La estrategia futura podria incluir:
-
-- Archivos de variables de entorno separados, por ejemplo `.env.dev`, `.env.staging` y `.env.prod`.
-- Carga de variables segun el ambiente seleccionado.
-- Configuracion de flavors en Android mediante `productFlavors`.
-- Configuracion de esquemas o targets en iOS mediante Xcode.
-- Ejecucion diferenciada por ambiente durante desarrollo, pruebas y despliegue.
-
-Por el momento, el proyecto mantiene una configuracion simple para evitar complejidad innecesaria en la etapa inicial.
-
-**Referencia de archivos de entorno**
-
-<img src="./docs/images/flavors-env-files-reference.png" alt="Referencia de archivos env en Flutter" width="700">
-
-La imagen muestra una referencia de organizacion para archivos `.env` por ambiente. Este enfoque permitiria separar variables de configuracion segun el entorno de ejecucion.
-
-**Referencia de carga de variables**
-
-<img src="./docs/images/flavors-load-env-reference.png" alt="Referencia de carga de variables de entorno en Flutter" width="700">
-
-La imagen muestra una referencia para cargar variables de entorno desde el proyecto Flutter. En una futura iteracion, esta idea podria adaptarse para cargar valores de configuracion segun el ambiente seleccionado.
-
-**Referencia de assets y archivos ignorados**
-
-<img src="./docs/images/flavors-gitignore-assets-reference.png" alt="Referencia de assets y gitignore para env en Flutter" width="700">
-
-La imagen muestra una referencia para declarar assets relacionados con archivos de entorno y excluirlos del repositorio cuando corresponda. Esto es importante porque las variables de entorno pueden contener datos sensibles o configuraciones particulares de cada ambiente.
-
-**Referencia de esquemas iOS**
-
-<img src="./docs/images/flavors-ios-schemes-reference.png" alt="Referencia de esquemas iOS para flavors Flutter" width="700">
-
-La imagen muestra una referencia de esquemas en Xcode. En una futura configuracion de flavors, estos esquemas permitirian ejecutar variantes como desarrollo, pruebas o produccion desde iOS.
-
-**Referencia de bundle identifiers iOS**
-
-<img src="./docs/images/flavors-ios-bundle-reference.png" alt="Referencia de bundle identifiers iOS para flavors Flutter" width="700">
-
-La imagen muestra una referencia para diferenciar identificadores de paquete en iOS. Esto permitiria instalar variantes distintas de la aplicacion en un mismo dispositivo, por ejemplo una version de pruebas y una version de produccion.
-
-**Referencia de flavors para Android**
-
-<img src="./docs/images/flavors-android-reference.png" alt="Referencia de flavors Android e iOS en Flutter" width="700">
-
-La imagen muestra una referencia sobre el uso de `DART_DEFINES` y flavors nativos. Esta configuracion puede servir como base futura para diferenciar ambientes de desarrollo, pruebas y produccion.
-
-**Referencia de productFlavors en Android**
-
-<img src="./docs/images/flavors-android-productflavors-reference.png" alt="Referencia de productFlavors Android en Flutter" width="700">
-
-La imagen muestra una referencia de `productFlavors` en Android. En una futura implementacion, esta configuracion permitiria definir variantes como `dev`, `staging` y `prod` dentro del proyecto Android.
 
 ## 4. Tecnologias utilizadas
 
@@ -353,8 +326,6 @@ Este comando descarga o actualiza las dependencias y regenera `pubspec.lock`, qu
 - Dependencias principales:
   - `flutter`: SDK principal para el desarrollo de la aplicacion.
   - `get: ^4.6.5`: paquete agregado para facilitar gestion de estado, rutas o inyeccion de dependencias en futuras iteraciones del proyecto.
-- Dependencias consideradas para siguientes iteraciones:
-  - `flutter_dotenv`: posible paquete para cargar variables de entorno desde archivos `.env` si el equipo decide implementar ambientes `dev`, `staging` y `prod`.
 - Dependencias de desarrollo:
   - `flutter_test`: pruebas automatizadas de widgets.
   - `flutter_lints: ^6.0.0`: reglas recomendadas de analisis estatico para mantener buenas practicas en Dart/Flutter.
