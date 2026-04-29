@@ -334,7 +334,76 @@ Este comando descarga o actualiza las dependencias y regenera `pubspec.lock`, qu
 > Completar por el equipo.
 
 ## 6. Requisitos no funcionales
-> Completar por el equipo.
+
+Los requisitos no funcionales (RNF) describen las **cualidades** que debe cumplir el sistema **ReportaYA** mas alla de su funcionalidad: rendimiento, disponibilidad, seguridad, compatibilidad, etc. Cada RNF de esta seccion declara una **metrica medible** y se asocia explicitamente a un **nodo o enlace del diagrama de despliegue (seccion 10)**, garantizando trazabilidad entre lo que el sistema debe lograr y la infraestructura sobre la que se despliega.
+
+### 6.1 Enfoque
+
+- **Cada RNF tiene un identificador unico** (`RNF-NN`) para poder referenciarlo desde casos de uso, tareas y pruebas.
+- **Cada RNF incluye un criterio de aceptacion concreto** (latencia objetivo, porcentaje de disponibilidad, etc.) — un RNF sin metrica no es verificable.
+- **Cada RNF se ancla a un componente del diagrama de despliegue**, de modo que cuando se modifique la arquitectura sea evidente que requisitos pueden verse afectados.
+
+### 6.2 Catalogo de RNF
+
+| ID | Categoria | Descripcion | Criterio de aceptacion / metrica | Componente del diagrama de despliegue (seccion 10) |
+|---|---|---|---|---|
+| **RNF-01** | Compatibilidad | La aplicacion movil debe ejecutarse correctamente en Android y iOS. | Soporte para **Android 7.0 (API 24) y superiores** y **iOS 13.0 y superiores**. 100 % de los smoke tests aprobados en ambas plataformas en cada release. | Nodos `Mobile Device (Android)` y `Mobile Device (iOS)` |
+| **RNF-02** | Rendimiento | Las operaciones REST entre la app y el backend deben responder rapidamente bajo carga normal. | Tiempo de respuesta **< 2 s en el percentil 95** medido desde el cliente, en operaciones de lectura paginadas y creacion de reportes. | Enlace `Mobile App ↔ Backend (HTTPS REST)` |
+| **RNF-03** | Disponibilidad | El backend debe estar disponible la mayor parte del tiempo para no bloquear la creacion ni la consulta de reportes. | **Uptime ≥ 99 % mensual** en el servicio de API. | Nodo `Backend Spring Boot` desplegado en `Azure Container Apps` |
+| **RNF-04** | Seguridad — transporte | Toda comunicacion entre la app movil y el backend debe ir cifrada y autenticada. | Uso obligatorio de **TLS 1.2 o superior** y validacion de credenciales en cada login. Sin endpoints publicos sin autenticacion (a excepcion del propio `/api/auth/login`). | Enlace `Mobile App ↔ Backend (HTTPS REST)` |
+| **RNF-05** | Almacenamiento de evidencias | Las fotos adjuntadas por los tecnicos para resolver un reporte deben almacenarse fuera del backend para evitar saturacion. | **Subida de foto < 5 s** para imagenes ≤ 5 MB. URL publica devuelta al cliente. Respaldo en almacenamiento local del backend si Firebase Storage no esta disponible. | Enlace `Backend → Firebase Storage` |
+| **RNF-06** | Notificaciones en tiempo real | Los cambios de estado de un reporte deben llegar al usuario afectado sin que tenga que refrescar la app. | **Latencia de push < 5 s** entre el evento de cambio de estado y la entrega de la notificacion al dispositivo. | Enlace `Backend → Firebase Cloud Messaging → Mobile App` |
+| **RNF-07** | Persistencia local de sesion | El usuario no debe re-autenticarse cada vez que abre la aplicacion. | Sesion valida durante **24 horas** desde el ultimo login, almacenada de forma segura (almacenamiento cifrado del dispositivo, no en texto plano). | Componente local `Almacenamiento seguro` dentro del nodo `Mobile Device` |
+| **RNF-08** | Geolocalizacion y geocodificacion | El reporte debe registrar la ubicacion del incidente con precision suficiente para que un tecnico lo encuentre. | Precision GPS **< 50 m** en exteriores. Reverse geocoding (coordenadas → direccion textual) disponible para mostrar la calle al usuario. | Enlace `Mobile App → Nominatim (OpenStreetMap)` |
+
+### 6.3 Trazabilidad RNF ↔ Diagrama de despliegue
+
+El siguiente grafo resume como cada RNF se conecta con un componente o enlace del diagrama de despliegue. Sirve como ancla visual independiente de la seccion 10 y demuestra que los RNF se diseñaron pensando en la arquitectura objetivo.
+
+```mermaid
+graph LR
+  RNF01["RNF-01<br/>Compatibilidad"]
+  RNF02["RNF-02<br/>Rendimiento"]
+  RNF03["RNF-03<br/>Disponibilidad"]
+  RNF04["RNF-04<br/>Seguridad"]
+  RNF05["RNF-05<br/>Storage"]
+  RNF06["RNF-06<br/>Push"]
+  RNF07["RNF-07<br/>Sesion local"]
+  RNF08["RNF-08<br/>Geolocalizacion"]
+
+  Mobile(("Mobile Device<br/>Android / iOS"))
+  Link1(["Enlace<br/>App ↔ Backend<br/>HTTPS REST"])
+  Backend(("Backend Spring Boot<br/>Azure Container Apps"))
+  FStorage(("Firebase Storage"))
+  FCM(("Firebase Cloud<br/>Messaging"))
+  OSM(("Nominatim<br/>OpenStreetMap"))
+
+  RNF01 --> Mobile
+  RNF07 --> Mobile
+  RNF02 --> Link1
+  RNF04 --> Link1
+  RNF03 --> Backend
+  RNF05 --> FStorage
+  RNF06 --> FCM
+  RNF08 --> OSM
+```
+
+> Nota: el diagrama completo de despliegue se encuentra en la **seccion 10** y es responsabilidad del equipo. Los RNF de esta seccion ya estan alineados con los nodos y enlaces que ese diagrama incluira.
+
+### 6.4 Verificacion de los RNF
+
+Cada RNF se validara con una de las siguientes tecnicas durante las iteraciones del proyecto:
+
+| Tecnica | Aplicada a |
+|---|---|
+| Smoke tests automaticos en CI (Android + iOS) | RNF-01 |
+| Pruebas de carga con `k6` o `Apache JMeter` contra el backend | RNF-02, RNF-03 |
+| Inspeccion de cabeceras TLS y revision manual de endpoints | RNF-04 |
+| Medicion manual de tiempos de subida y entrega | RNF-05, RNF-06 |
+| Test de integracion sobre `flutter_secure_storage` y verificacion de TTL | RNF-07 |
+| Pruebas de campo con dispositivos reales en distintos puntos de Lima | RNF-08 |
+
+
 
 ## 7. Diagrama de casos de uso
 > Insertar imagen o enlace cuando este listo.
