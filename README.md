@@ -406,7 +406,7 @@ Cada RNF se validara con una de las siguientes tecnicas durante las iteraciones 
 
 
 ## 7. Diagrama de casos de uso
-> Insertar imagen o enlace cuando este listo.
+<img src="./docs/images/Diagrama_CasosDeUso.png" alt="Diagrama de Casos de Uso de ReportaYa">
 
 ## 8. Descripcion de casos de uso
 > Completar con tablas o formato acordado.
