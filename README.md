@@ -28,7 +28,10 @@
 > Completar por el equipo.
 
 ## 2. Integrantes
-> Completar nombres, codigos y responsabilidades.
+- 20230622 - CASOLDA ALEGRIA MARIEL FERNANDA
+- 20221789 - ORDOÑEZ FLORES ENZO FABRIZIO
+- 20235218 - SANCHEZ PALACIOS JEFFERSON ANGELO
+- 20224203 - YANCE VALENZUELA ANTHONY
 
 ## 3. Entorno de desarrollo
 
