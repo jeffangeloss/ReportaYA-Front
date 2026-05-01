@@ -418,7 +418,8 @@ Cada RNF se validara con una de las siguientes tecnicas durante las iteraciones 
 > Insertar imagenes o enlaces.
 
 ## 10. Diagrama de despliegue
-> Insertar imagen o enlace cuando este listo.
+
+<img src="./docs/images/DiagramaDedespliegue.png" alt="Diagrama de Despliegue de ReportaYA" width="900">
 
 ## 11. Instalacion y ejecucion del proyecto
 
