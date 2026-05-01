@@ -382,6 +382,7 @@ Cada RNF se validara con una de las siguientes tecnicas durante las iteraciones 
 <img src="./docs/images/Diagrama_CasosDeUso.png" alt="Diagrama de Casos de Uso de ReportaYa">
 
 ## 8. Descripcion de casos de uso
+
 | ID     | Caso de Uso           | Actor                           | Descripción                                                                 | Precondición                                      |
 |--------|-----------------------|--------------------------------|-----------------------------------------------------------------------------|---------------------------------------------------|
 | CU01 | Iniciar sesión | Usuario (Ciudadano, Operador de Oficina Municipal, Técnico de Campo Municipal) | Permitir que un usuario autenticado acceda a la aplicación ingresando sus credenciales y sea dirigido a la vista correspondiente a su rol. | La aplicación está disponible y el usuario dispone de conexión a Internet. |
