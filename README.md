@@ -382,7 +382,17 @@ Cada RNF se validara con una de las siguientes tecnicas durante las iteraciones 
 <img src="./docs/images/Diagrama_CasosDeUso.png" alt="Diagrama de Casos de Uso de ReportaYa">
 
 ## 8. Descripcion de casos de uso
-> Completar con tablas o formato acordado.
+
+| ID     | Caso de Uso           | Actor                           | Descripción                                                                 | Precondición                                      |
+|--------|-----------------------|--------------------------------|-----------------------------------------------------------------------------|---------------------------------------------------|
+| CU01 | Iniciar sesión | Usuario (Ciudadano, Operador de Oficina Municipal, Técnico de Campo Municipal) | Permitir que un usuario autenticado acceda a la aplicación ingresando sus credenciales y sea dirigido a la vista correspondiente a su rol. | La aplicación está disponible y el usuario dispone de conexión a Internet. |
+| CU02 | Registrarse | Usuario (Ciudadano) | Permitir que un ciudadano cree una cuenta proporcionando sus datos y reciba un correo de confirmación para activar su perfil. | La aplicación está disponible y el usuario dispone de conexión a Internet. |
+| CU03 | Recuperar contraseña | Usuario (Ciudadano, Operador de Oficina Municipal, Técnico de Campo Municipal) | Permitir que un usuario restablezca su contraseña recibiendo un enlace o token en el correo que tenga registrado | La aplicación está disponible y el usuario dispone de conexión a Internet. |
+| CU04 | Reportar incidencia urbana | Usuario (Ciudadano) | Permitir que un ciudadano cree  y envíe un nuevo reporte de incidente urbano, aportando ubicación, tipo de problema, descripción y evidencia multimedia, y posteriormente poder hacerle seguimiento. | El ciudadano ha iniciado sesión y ha accedido a la opción “Reportar incidencia” (Símbolo “+” en el mapa) en la aplicación. |
+| CU05 | Consultar reportes | Usuario (Ciudadano, Operador de Oficina Municipal, Técnico de Campo Municipal) | Permitir que un usuario visualice, filtre y explore reportes de incidentes en un listado detallado y sobre un mapa interactivo, con notificaciones de estado y una leyenda de colores e íconos para facilitar la interpretación. | El usuario ha iniciado sesión, el sistema ha cargado los datos de los reportes y el mapa base y la conexión a los servicios de datos está activa. |
+| CU06 | Validar reportes ciudadanos | Usuario (Operador de Oficina Municipal) | Permitir que un operador revise, apruebe o rechace los reportes recibidos, que asigne un nivel de prioridad y que notifique al ciudadano sobre la decisión tomada. | El usuario ha iniciado sesión como su rol correspondiente, existen reportes en estado “Pendiente de validación” y la interfaz de validación carga correctamente los datos del reporte. |
+| CU07 | Asignar reportes | Usuario (Operador de Oficina Municipal) | Permitir que un operador designe al personal responsable (técnico de campo) para atender un reporte aprobado y asegurar su seguimiento hasta la resolución. | El usuario ha iniciado sesión como su rol correspondiente, existen reportes en estado “Aprobado” listos para asignar y  La lista de técnicos de campo está cargada y disponible. |
+| CU08 | Atender reporte | Usuario (Técnico de Campo Municipal) | Permitir que un técnico revise las tareas asignadas, actualice el estado del reporte, aporte evidencia fotográfica y comentarios de la solución, y confirme la finalización del trabajo en campo. | El usuario ha iniciado sesión como su rol correspondiente y existe al menos un reporte en estado “Asignado” en su lista de tareas |
 
 ## 9. Mockups
 > Insertar imagenes o enlaces.
