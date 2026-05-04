@@ -27,7 +27,7 @@
 
 ## 1. Descripcion del proyecto
 <p align="center">
-  <img src="./docs/images/Captura%20de%20pantalla%202026-05-04%20a%20la(s)%2016.46.41.png" alt="Logo de ReportaYA" width="520">
+  <img src="./docs/images/reportaya-logo.png" alt="Logo de ReportaYA" width="520">
 </p>
 
 **ReportaYA** es una aplicacion movil desarrollada en Flutter orientada al registro, seguimiento y gestion de reportes ciudadanos. El proyecto busca facilitar que los usuarios comuniquen incidencias de manera rapida, ordenada y accesible desde dispositivos moviles, centralizando la informacion necesaria para su revision y atencion.
@@ -40,7 +40,7 @@ Documentacion tecnica de referencia:
 
 - [Documento del proyecto ReportaYA](./docs/images/Grupo_04_IS1_Proyecto%20(2)%20(1).pdf).
 - [Informe de diseno del software - Sprint 2](./docs/images/INFORME%20del%20disen%CC%83o%20del%20Software.%20Sprint2.docx%20(1)%20(1).pdf).
-- [Mockups interactivos en HTML](./docs/images/ReportaYA_Disen%CC%83o.html).
+- [Mockups interactivos en HTML](./docs/images/ReportaYA_Diseno.html).
 
 ## 2. Integrantes
 - 20230622 - CASOLDA ALEGRIA MARIEL FERNANDA
@@ -409,7 +409,7 @@ Cada RNF se validara con una de las siguientes tecnicas durante las iteraciones 
 | CU08 | Atender reporte | Usuario (Técnico de Campo Municipal) | Permitir que un técnico revise las tareas asignadas, actualice el estado del reporte, aporte evidencia fotográfica y comentarios de la solución, y confirme la finalización del trabajo en campo. | El usuario ha iniciado sesión como su rol correspondiente y existe al menos un reporte en estado “Asignado” en su lista de tareas |
 
 ## 9. Mockups
-Los mockups del proyecto se encuentran en el archivo HTML interactivo [ReportaYA_Diseño.html](./docs/images/ReportaYA_Disen%CC%83o.html). Para que puedan visualizarse directamente desde este documento, se incluyen capturas del sistema de diseno, las pantallas principales y el prototipo navegable.
+Los mockups del proyecto se encuentran en el archivo HTML interactivo [ReportaYA_Diseno.html](./docs/images/ReportaYA_Diseno.html). Para que puedan visualizarse directamente desde este documento, se incluyen capturas del sistema de diseno, las pantallas principales y el prototipo navegable.
 
 ### 9.1 Sistema de diseno
 
