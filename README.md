@@ -31,7 +31,6 @@
 - [8. Diagrama de base de datos](#8-diagrama-de-base-de-datos)
 - [9. Tecnologias utilizadas](#9-tecnologias-utilizadas)
 - [10. Instalacion y ejecucion del proyecto](#10-instalacion-y-ejecucion-del-proyecto)
-- [11. Estructura base del proyecto](#11-estructura-base-del-proyecto)
 
 ## 1. Descripcion del proyecto
 <p align="center">
@@ -310,7 +309,6 @@ Para revisar el estado del codigo:
 flutter analyze
 flutter test
 ```
-
 ## 4. Diagrama de despliegue
 
 <img src="./docs/images/DiagramaDedespliegue.png" alt="Diagrama de Despliegue de ReportaYA" width="900">
@@ -494,31 +492,4 @@ Para verificar el estado del codigo:
 ```bash
 flutter analyze
 flutter test
-```
-
-## 11. Estructura base del proyecto
-
-```text
-lib/
-  main.dart
-  app.dart
-  core/
-    constants/
-    theme/
-    utils/
-  features/
-    auth/
-      presentation/
-    home/
-      presentation/
-    reports/
-      data/
-      domain/
-      presentation/
-    map/
-      presentation/
-    profile/
-      presentation/
-  shared/
-    widgets/
 ```
