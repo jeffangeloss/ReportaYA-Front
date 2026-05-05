@@ -15,15 +15,20 @@
   - [3.8 Ejecucion y validacion del proyecto](#38-ejecucion-y-validacion-del-proyecto)
 - [4. Diagrama de despliegue](#4-diagrama-de-despliegue)
 - [5. Requisitos no funcionales](#5-requisitos-no-funcionales)
-- [6. Requisitos funcionales](#6-requisitos-funcionales)
-- [7. Diagrama de casos de uso](#7-diagrama-de-casos-de-uso)
-- [8. Descripcion de casos de uso](#8-descripcion-de-casos-de-uso)
-- [9. Mockups](#9-mockups)
-- [10. Diagrama de clases o base de datos](#10-diagrama-de-clases-o-base-de-datos)
-- [11. Tecnologias utilizadas](#11-tecnologias-utilizadas)
-- [12. Instalacion y ejecucion del proyecto](#12-instalacion-y-ejecucion-del-proyecto)
-- [13. Estructura base del proyecto](#13-estructura-base-del-proyecto)
-- [14. Pendientes](#14-pendientes)
+- [6. Requerimientos funcionales](#6-requerimientos-funcionales)
+  - [6.1 Diagrama de casos de uso](#61-diagrama-de-casos-de-uso)
+  - [6.2 Descripcion de casos de uso](#62-descripcion-de-casos-de-uso)
+- [7. Mockups](#7-mockups)
+  - [7.1 Sistema de diseno](#71-sistema-de-diseno)
+  - [7.2 Pantallas principales](#72-pantallas-principales)
+  - [7.3 Prototipo navegable](#73-prototipo-navegable)
+- [8. Diagrama de clases o base de datos](#8-diagrama-de-clases-o-base-de-datos)
+  - [8.1 Diagrama de clases](#81-diagrama-de-clases)
+  - [8.2 Modelo de base de datos](#82-modelo-de-base-de-datos)
+- [9. Tecnologias utilizadas](#9-tecnologias-utilizadas)
+- [10. Instalacion y ejecucion del proyecto](#10-instalacion-y-ejecucion-del-proyecto)
+- [11. Estructura base del proyecto](#11-estructura-base-del-proyecto)
+- [12. Pendientes](#12-pendientes)
 
 ## 1. Descripcion del proyecto
 <p align="center">
@@ -40,7 +45,8 @@ Documentacion tecnica de referencia:
 
 - [Documento del proyecto ReportaYA](./docs/images/Grupo_04_IS1_Proyecto%20(2)%20(1).pdf).
 - [Informe de diseno del software - Sprint 2](./docs/images/INFORME%20del%20disen%CC%83o%20del%20Software.%20Sprint2.docx%20(1)%20(1).pdf).
-- [Mockups interactivos en HTML](./docs/images/ReportaYA_Diseno.html).
+- [Mockups interactivos renderizados](https://htmlpreview.github.io/?https://github.com/jeffangeloss/ReportaYA-Front/blob/main/docs/images/ReportaYA_Diseno.html).
+- [Archivo HTML de mockups](./docs/images/ReportaYA_Diseno.html).
 
 ## 2. Integrantes
 - 20230622 - CASOLDA ALEGRIA MARIEL FERNANDA
@@ -389,13 +395,14 @@ Cada RNF se validara con una de las siguientes tecnicas durante las iteraciones 
 | Test de integracion sobre `flutter_secure_storage` y verificacion de TTL | RNF-07 |
 | Pruebas de campo con dispositivos reales en distintos puntos de Lima | RNF-08 |
 
-## 6. Requisitos funcionales
-> Completar por el equipo.
+## 6. Requerimientos funcionales
 
-## 7. Diagrama de casos de uso
+Los requerimientos funcionales de **ReportaYA** se documentan a traves del diagrama de casos de uso y la descripcion de cada caso de uso. En conjunto, estas secciones definen las capacidades que el sistema debe ofrecer a sus actores principales: ciudadano, operador municipal y tecnico de campo municipal.
+
+### 6.1 Diagrama de casos de uso
 <img src="./docs/images/Diagrama_CasosDeUso.png" alt="Diagrama de Casos de Uso de ReportaYa">
 
-## 8. Descripcion de casos de uso
+### 6.2 Descripcion de casos de uso
 
 | ID     | Caso de Uso           | Actor                           | Descripción                                                                 | Precondición                                      |
 |--------|-----------------------|--------------------------------|-----------------------------------------------------------------------------|---------------------------------------------------|
@@ -408,29 +415,31 @@ Cada RNF se validara con una de las siguientes tecnicas durante las iteraciones 
 | CU07 | Asignar reportes | Usuario (Operador de Oficina Municipal) | Permitir que un operador designe al personal responsable (técnico de campo) para atender un reporte aprobado y asegurar su seguimiento hasta la resolución. | El usuario ha iniciado sesión como su rol correspondiente, existen reportes en estado “Aprobado” listos para asignar y  La lista de técnicos de campo está cargada y disponible. |
 | CU08 | Atender reporte | Usuario (Técnico de Campo Municipal) | Permitir que un técnico revise las tareas asignadas, actualice el estado del reporte, aporte evidencia fotográfica y comentarios de la solución, y confirme la finalización del trabajo en campo. | El usuario ha iniciado sesión como su rol correspondiente y existe al menos un reporte en estado “Asignado” en su lista de tareas |
 
-## 9. Mockups
-Los mockups del proyecto se encuentran en el archivo HTML interactivo [ReportaYA_Diseno.html](./docs/images/ReportaYA_Diseno.html). Para que puedan visualizarse directamente desde este documento, se incluyen capturas del sistema de diseno, las pantallas principales y el prototipo navegable.
+## 7. Mockups
+Los mockups del proyecto se encuentran en el archivo HTML interactivo [ReportaYA_Diseno.html](./docs/images/ReportaYA_Diseno.html). GitHub muestra los archivos HTML como codigo fuente, por lo que tambien se incluye un enlace para abrirlos renderizados: [ver mockups interactivos](https://htmlpreview.github.io/?https://github.com/jeffangeloss/ReportaYA-Front/blob/main/docs/images/ReportaYA_Diseno.html).
 
-### 9.1 Sistema de diseno
+Para que puedan visualizarse directamente desde este documento, se incluyen capturas del sistema de diseno, las pantallas principales y el prototipo navegable.
+
+### 7.1 Sistema de diseno
 
 <img src="./docs/images/mockups/reportaya-mockups-design-system.png" alt="Sistema de diseno de ReportaYA">
 
-### 9.2 Pantallas principales
+### 7.2 Pantallas principales
 
 <img src="./docs/images/mockups/reportaya-mockups-pantallas.png" alt="Pantallas principales de ReportaYA">
 
-### 9.3 Prototipo navegable
+### 7.3 Prototipo navegable
 
 <img src="./docs/images/mockups/reportaya-mockups-prototipo.png" alt="Prototipo navegable de ReportaYA">
 
-## 10. Diagrama de clases o base de datos
+## 8. Diagrama de clases o base de datos
 Los diagramas fueron ubicados dentro de los documentos PDF agregados al proyecto. El diagrama de clases proviene del documento del proyecto ReportaYA, seccion **6.3 Diagrama de clases**; el modelo de base de datos proviene del informe de diseno del software, seccion **6.2 Modelo de Base de Datos**.
 
-### 10.1 Diagrama de clases
+### 8.1 Diagrama de clases
 
-### 10.2 Modelo de base de datos
+### 8.2 Modelo de base de datos
 
-## 11. Tecnologias utilizadas
+## 9. Tecnologias utilizadas
 
 - Framework: Flutter.
 - Lenguaje: Dart.
@@ -463,7 +472,7 @@ Este comando descarga o actualiza las dependencias y regenera `pubspec.lock`, qu
   - `flutter_test`: pruebas automatizadas de widgets.
   - `flutter_lints: ^6.0.0`: reglas recomendadas de analisis estatico para mantener buenas practicas en Dart/Flutter.
 
-## 12. Instalacion y ejecucion del proyecto
+## 10. Instalacion y ejecucion del proyecto
 
 Ejecutar los siguientes comandos desde la raiz del proyecto:
 
@@ -479,7 +488,7 @@ flutter analyze
 flutter test
 ```
 
-## 13. Estructura base del proyecto
+## 11. Estructura base del proyecto
 
 ```text
 lib/
@@ -506,5 +515,5 @@ lib/
     widgets/
 ```
 
-## 14. Pendientes
+## 12. Pendientes
 > Completar por el equipo con tareas futuras, acuerdos y observaciones.
