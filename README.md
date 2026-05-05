@@ -28,7 +28,6 @@
 - [9. Tecnologias utilizadas](#9-tecnologias-utilizadas)
 - [10. Instalacion y ejecucion del proyecto](#10-instalacion-y-ejecucion-del-proyecto)
 - [11. Estructura base del proyecto](#11-estructura-base-del-proyecto)
-- [12. Pendientes](#12-pendientes)
 
 ## 1. Descripcion del proyecto
 <p align="center">
@@ -38,15 +37,6 @@
 **ReportaYA** es una aplicacion movil desarrollada en Flutter orientada al registro, seguimiento y gestion de reportes ciudadanos. El proyecto busca facilitar que los usuarios comuniquen incidencias de manera rapida, ordenada y accesible desde dispositivos moviles, centralizando la informacion necesaria para su revision y atencion.
 
 La propuesta contempla una interfaz simple y directa, pensada para que el usuario pueda crear reportes, consultar su estado y acceder a informacion relevante del proceso. Desde el lado del sistema, ReportaYA organiza los casos registrados y prepara una base funcional para futuras mejoras relacionadas con autenticacion, clasificacion de reportes, notificaciones y administracion de incidencias.
-
-El desarrollo forma parte de un trabajo academico en el que se documentan el entorno de desarrollo, requisitos funcionales y no funcionales, casos de uso, diagramas, tecnologias utilizadas y estructura base del proyecto.
-
-Documentacion tecnica de referencia:
-
-- [Documento del proyecto ReportaYA](./docs/images/Grupo_04_IS1_Proyecto%20(2)%20(1).pdf).
-- [Informe de diseno del software - Sprint 2](./docs/images/INFORME%20del%20disen%CC%83o%20del%20Software.%20Sprint2.docx%20(1)%20(1).pdf).
-- [Mockups interactivos renderizados](https://htmlpreview.github.io/?https://github.com/jeffangeloss/ReportaYA-Front/blob/main/docs/images/ReportaYA_Diseno.html).
-- [Archivo HTML de mockups](./docs/images/ReportaYA_Diseno.html).
 
 ## 2. Integrantes
 - 20230622 - CASOLDA ALEGRIA MARIEL FERNANDA
@@ -264,8 +254,6 @@ flutter devices
 ```
 
 Nota: el documento **Configurar el desarrollo de Windows** tambien menciona Visual Studio con la carga de trabajo **Desarrollo de escritorio con C++**. Esta configuracion es necesaria si se desea compilar aplicaciones Flutter para escritorio Windows. Para el alcance movil de ReportaYA, Android Studio y Android SDK son los componentes principales en Windows.
-
-> Completar por el equipo con versiones y capturas del entorno Windows.
 
 ### 3.8 Ejecucion y validacion del proyecto
 
@@ -514,6 +502,3 @@ lib/
   shared/
     widgets/
 ```
-
-## 12. Pendientes
-> Completar por el equipo con tareas futuras, acuerdos y observaciones.
