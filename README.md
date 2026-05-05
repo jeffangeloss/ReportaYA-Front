@@ -427,7 +427,7 @@ Los requerimientos funcionales de **ReportaYA** describen las acciones y capacid
 | CU08 | Atender reporte | Usuario (Técnico de Campo Municipal) | Permitir que un técnico revise las tareas asignadas, actualice el estado del reporte, aporte evidencia fotográfica y comentarios de la solución, y confirme la finalización del trabajo en campo. | El usuario ha iniciado sesión como su rol correspondiente y existe al menos un reporte en estado “Asignado” en su lista de tareas |
 
 ## 7. Mockups
-Los mockups del proyecto se encuentran en el archivo HTML interactivo [ReportaYA_Diseno.html](./docs/images/ReportaYA_Diseno.html). GitHub muestra los archivos HTML como codigo fuente, por lo que tambien se incluye un enlace para abrirlos renderizados: [ver mockups interactivos](https://htmlpreview.github.io/?https://github.com/jeffangeloss/ReportaYA-Front/blob/main/docs/images/ReportaYA_Diseno.html).
+Los mockups del proyecto se encuentran en el archivo HTML interactivo [ReportaYA_Diseno.html](./docs/images/ReportaYA_Diseno.html). GitHub muestra los archivos HTML como codigo fuente, por lo que para visualizarlos como prototipo se debe abrir el siguiente enlace: [ver mockups interactivos](https://htmlpreview.github.io/?https://github.com/jeffangeloss/ReportaYA-Front/blob/jeff/docs/images/ReportaYA_Diseno.html).
 
 Para que puedan visualizarse directamente desde este documento, se incluyen capturas del sistema de diseno, las pantallas principales y el prototipo navegable.
 
