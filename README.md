@@ -15,15 +15,23 @@
   - [3.8 Ejecucion y validacion del proyecto](#38-ejecucion-y-validacion-del-proyecto)
 - [4. Diagrama de despliegue](#4-diagrama-de-despliegue)
 - [5. Requisitos no funcionales](#5-requisitos-no-funcionales)
-- [6. Requisitos funcionales](#6-requisitos-funcionales)
-- [7. Diagrama de casos de uso](#7-diagrama-de-casos-de-uso)
-- [8. Descripcion de casos de uso](#8-descripcion-de-casos-de-uso)
-- [9. Mockups](#9-mockups)
-- [10. Diagrama de clases o base de datos](#10-diagrama-de-clases-o-base-de-datos)
-- [11. Tecnologias utilizadas](#11-tecnologias-utilizadas)
-- [12. Instalacion y ejecucion del proyecto](#12-instalacion-y-ejecucion-del-proyecto)
-- [13. Estructura base del proyecto](#13-estructura-base-del-proyecto)
-- [14. Pendientes](#14-pendientes)
+  - [5.1 Enfoque](#51-enfoque)
+  - [5.2 Catalogo de RNF](#52-catalogo-de-rnf)
+  - [5.3 Trazabilidad RNF y diagrama de despliegue](#53-trazabilidad-rnf--diagrama-de-despliegue)
+  - [5.4 Verificacion de los RNF](#54-verificacion-de-los-rnf)
+- [6. Requerimientos funcionales](#6-requerimientos-funcionales)
+  - [6.1 Catalogo de requisitos funcionales](#61-catalogo-de-requisitos-funcionales)
+  - [6.2 Actores del sistema](#62-actores-del-sistema)
+  - [6.3 Diagrama de casos de uso](#63-diagrama-de-casos-de-uso)
+  - [6.4 Descripcion de casos de uso](#64-descripcion-de-casos-de-uso)
+- [7. Mockups](#7-mockups)
+  - [7.1 Sistema de diseno](#71-sistema-de-diseno)
+  - [7.2 Pantallas principales](#72-pantallas-principales)
+  - [7.3 Prototipo navegable](#73-prototipo-navegable)
+- [8. Diagrama de base de datos](#8-diagrama-de-base-de-datos)
+- [9. Tecnologias utilizadas](#9-tecnologias-utilizadas)
+- [10. Instalacion y ejecucion del proyecto](#10-instalacion-y-ejecucion-del-proyecto)
+- [11. Estructura base del proyecto](#11-estructura-base-del-proyecto)
 
 ## 1. Descripcion del proyecto
 <p align="center">
@@ -33,14 +41,6 @@
 **ReportaYA** es una aplicacion movil desarrollada en Flutter orientada al registro, seguimiento y gestion de reportes ciudadanos. El proyecto busca facilitar que los usuarios comuniquen incidencias de manera rapida, ordenada y accesible desde dispositivos moviles, centralizando la informacion necesaria para su revision y atencion.
 
 La propuesta contempla una interfaz simple y directa, pensada para que el usuario pueda crear reportes, consultar su estado y acceder a informacion relevante del proceso. Desde el lado del sistema, ReportaYA organiza los casos registrados y prepara una base funcional para futuras mejoras relacionadas con autenticacion, clasificacion de reportes, notificaciones y administracion de incidencias.
-
-El desarrollo forma parte de un trabajo academico en el que se documentan el entorno de desarrollo, requisitos funcionales y no funcionales, casos de uso, diagramas, tecnologias utilizadas y estructura base del proyecto.
-
-Documentacion tecnica de referencia:
-
-- [Documento del proyecto ReportaYA](./docs/images/Grupo_04_IS1_Proyecto%20(2)%20(1).pdf).
-- [Informe de diseno del software - Sprint 2](./docs/images/INFORME%20del%20disen%CC%83o%20del%20Software.%20Sprint2.docx%20(1)%20(1).pdf).
-- [Mockups interactivos en HTML](./docs/images/ReportaYA_Diseno.html).
 
 ## 2. Integrantes
 - 20230622 - CASOLDA ALEGRIA MARIEL FERNANDA
@@ -52,11 +52,9 @@ Documentacion tecnica de referencia:
 
 Esta seccion describe la configuracion del entorno necesaria para desarrollar y ejecutar el proyecto Flutter **ReportaYA**. El objetivo es que cualquier integrante del equipo pueda preparar su equipo, validar las herramientas instaladas y ejecutar el proyecto en Android o iOS.
 
-La preparacion se realizo tomando como referencia la documentacion oficial de Flutter:
+**Flutter** es el framework utilizado para construir la aplicacion movil de ReportaYA desde una misma base de codigo en Dart. Permite compilar y ejecutar el proyecto en distintas plataformas, como Android e iOS, manteniendo una estructura comun para la interfaz, la logica de presentacion y la gestion de dependencias.
 
-- [Comenzar: Instalar en macOS - Flutter](https://flutter-website-staging.firebaseapp.com/setup-macos/).
-- `Add Flutter to your PATH.pdf`.
-- `Configurar el desarrollo de Windows.pdf`.
+**Android Studio** es el entorno de desarrollo usado para preparar la ejecucion en Android. Desde esta herramienta se instala y administra el Android SDK, las herramientas de compilacion, los emuladores y los dispositivos virtuales necesarios para probar la aplicacion.
 
 Flutter requiere tres bloques principales de configuracion:
 
@@ -259,8 +257,6 @@ flutter devices
 
 Nota: el documento **Configurar el desarrollo de Windows** tambien menciona Visual Studio con la carga de trabajo **Desarrollo de escritorio con C++**. Esta configuracion es necesaria si se desea compilar aplicaciones Flutter para escritorio Windows. Para el alcance movil de ReportaYA, Android Studio y Android SDK son los componentes principales en Windows.
 
-> Completar por el equipo con versiones y capturas del entorno Windows.
-
 ### 3.8 Ejecucion y validacion del proyecto
 
 El proyecto Flutter **ReportaYA-Front** fue creado inicialmente con el comando:
@@ -389,9 +385,9 @@ Cada RNF se validara con una de las siguientes tecnicas durante las iteraciones 
 | Test de integracion sobre `flutter_secure_storage` y verificacion de TTL | RNF-07 |
 | Pruebas de campo con dispositivos reales en distintos puntos de Lima | RNF-08 |
 
-## 6. Requisitos funcionales
+## 6. Requerimientos funcionales
 
-Los requisitos funcionales (RF) describen las **acciones y capacidades** que el sistema **ReportaYA** debe proporcionar a sus usuarios. Cada RF está vinculado a un caso de uso específico del diagrama de la sección 7.
+Los requerimientos funcionales de **ReportaYA** describen las acciones y capacidades que el sistema debe proporcionar a sus usuarios. Cada RF esta vinculado a un caso de uso especifico y se complementa con el diagrama y la descripcion de casos de uso.
 
 ### 6.1 Catalogo de requisitos funcionales
 
@@ -414,10 +410,10 @@ Los requisitos funcionales (RF) describen las **acciones y capacidades** que el 
 | **Operador de Oficina Municipal** | Usuario responsable de validar y priorizar reportes. Revisa reportes de ciudadanos, aprueba o rechaza, asigna técnicos, y notifica decisiones. |
 | **Técnico de Campo Municipal** | Usuario responsable de resolver reportes en el terreno. Recibe asignaciones, actualiza estados, adjunta evidencias fotográficas y cierra reportes. |
 
-## 7. Diagrama de casos de uso
+### 6.3 Diagrama de casos de uso
 <img src="./docs/images/Diagrama_CasosDeUso.png" alt="Diagrama de Casos de Uso de ReportaYa">
 
-## 8. Descripcion de casos de uso
+### 6.4 Descripcion de casos de uso
 
 | ID     | Caso de Uso           | Actor                           | Descripción                                                                 | Precondición                                      |
 |--------|-----------------------|--------------------------------|-----------------------------------------------------------------------------|---------------------------------------------------|
@@ -430,26 +426,28 @@ Los requisitos funcionales (RF) describen las **acciones y capacidades** que el 
 | CU07 | Asignar reportes | Usuario (Operador de Oficina Municipal) | Permitir que un operador designe al personal responsable (técnico de campo) para atender un reporte aprobado y asegurar su seguimiento hasta la resolución. | El usuario ha iniciado sesión como su rol correspondiente, existen reportes en estado “Aprobado” listos para asignar y  La lista de técnicos de campo está cargada y disponible. |
 | CU08 | Atender reporte | Usuario (Técnico de Campo Municipal) | Permitir que un técnico revise las tareas asignadas, actualice el estado del reporte, aporte evidencia fotográfica y comentarios de la solución, y confirme la finalización del trabajo en campo. | El usuario ha iniciado sesión como su rol correspondiente y existe al menos un reporte en estado “Asignado” en su lista de tareas |
 
-## 9. Mockups
-Los mockups del proyecto se encuentran en el archivo HTML interactivo [ReportaYA_Diseno.html](./docs/images/ReportaYA_Diseno.html). Para que puedan visualizarse directamente desde este documento, se incluyen capturas del sistema de diseno, las pantallas principales y el prototipo navegable.
+## 7. Mockups
+Los mockups del proyecto se encuentran en el archivo HTML interactivo [ReportaYA_Diseno.html](./docs/images/ReportaYA_Diseno.html). GitHub muestra los archivos HTML como codigo fuente, por lo que tambien se incluye un enlace para abrirlos renderizados: [ver mockups interactivos](https://htmlpreview.github.io/?https://github.com/jeffangeloss/ReportaYA-Front/blob/main/docs/images/ReportaYA_Diseno.html).
 
-### 9.1 Sistema de diseno
+Para que puedan visualizarse directamente desde este documento, se incluyen capturas del sistema de diseno, las pantallas principales y el prototipo navegable.
+
+### 7.1 Sistema de diseno
 
 <img src="./docs/images/mockups/reportaya-mockups-design-system.png" alt="Sistema de diseno de ReportaYA">
 
-### 9.2 Pantallas principales
+### 7.2 Pantallas principales
 
 <img src="./docs/images/mockups/reportaya-mockups-pantallas.png" alt="Pantallas principales de ReportaYA">
 
-### 9.3 Prototipo navegable
+### 7.3 Prototipo navegable
 
 <img src="./docs/images/mockups/reportaya-mockups-prototipo.png" alt="Prototipo navegable de ReportaYA">
 
-## 10. Diagrama de base de datos
+## 8. Diagrama de base de datos
 
 <img src="./docs/images/diagrams/Diagrama_DB.png" alt="Modelo de base de datos ReportaYA" width="900">
 
-## 11. Tecnologias utilizadas
+## 9. Tecnologias utilizadas
 
 - Framework: Flutter.
 - Lenguaje: Dart.
@@ -482,7 +480,7 @@ Este comando descarga o actualiza las dependencias y regenera `pubspec.lock`, qu
   - `flutter_test`: pruebas automatizadas de widgets.
   - `flutter_lints: ^6.0.0`: reglas recomendadas de analisis estatico para mantener buenas practicas en Dart/Flutter.
 
-## 12. Instalacion y ejecucion del proyecto
+## 10. Instalacion y ejecucion del proyecto
 
 Ejecutar los siguientes comandos desde la raiz del proyecto:
 
@@ -498,7 +496,7 @@ flutter analyze
 flutter test
 ```
 
-## 13. Estructura base del proyecto
+## 11. Estructura base del proyecto
 
 ```text
 lib/
@@ -524,6 +522,3 @@ lib/
   shared/
     widgets/
 ```
-
-## 14. Pendientes
-> Completar por el equipo con tareas futuras, acuerdos y observaciones.
