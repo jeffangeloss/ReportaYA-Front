@@ -445,12 +445,9 @@ Los mockups del proyecto se encuentran en el archivo HTML interactivo [ReportaYA
 
 <img src="./docs/images/mockups/reportaya-mockups-prototipo.png" alt="Prototipo navegable de ReportaYA">
 
-## 10. Diagrama de clases o base de datos
-Los diagramas fueron ubicados dentro de los documentos PDF agregados al proyecto. El diagrama de clases proviene del documento del proyecto ReportaYA, seccion **6.3 Diagrama de clases**; el modelo de base de datos proviene del informe de diseno del software, seccion **6.2 Modelo de Base de Datos**.
+## 10. Diagrama de base de datos
 
-### 10.1 Diagrama de clases
-
-### 10.2 Modelo de base de datos
+<img src="./docs/images/diagrams/Diagrama_DB.png" alt="Modelo de base de datos ReportaYA" width="900">
 
 ## 11. Tecnologias utilizadas
 

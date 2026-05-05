@@ -1,0 +1,164 @@
+@startuml DBmodelo
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define primary_key(x) <b><color:red>PK: x</color></b>
+!define foreign_key(x) <color:blue>FK: x</color>
+!define unique(x) <color:green>UK: x</color>
+
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+
+' ==========================================
+' ENTIDADES DEL SISTEMA
+' ==========================================
+
+entity "personas" as personas {
+  primary_key(id): BIGSERIAL PRIMARY KEY
+  --
+  nombres: VARCHAR(255) NOT NULL
+  apellidos: VARCHAR(255) NOT NULL
+  dni: VARCHAR(50) NOT NULL <<unique>>
+  telefono: VARCHAR(50) NOT NULL
+  correo: VARCHAR(255) NOT NULL <<unique>>
+}
+
+entity "cuentas" as cuentas {
+  primary_key(id): BIGSERIAL PRIMARY KEY
+  --
+  usuario: VARCHAR(255) NOT NULL <<unique>>
+  contrasena_hash: VARCHAR(255) NOT NULL
+  persona_id: BIGINT NOT NULL <<unique>>
+  fecha_creacion: TIMESTAMP
+  fecha_actualizacion: TIMESTAMP
+  activo: BOOLEAN DEFAULT TRUE
+}
+
+entity "operadores_municipales" as operadores_municipales {
+  primary_key(id): BIGINT PRIMARY KEY
+  foreign_key(cuenta_id): BIGINT
+}
+
+entity "tecnicos" as tecnicos {
+  primary_key(id): BIGINT PRIMARY KEY
+  foreign_key(cuenta_id): BIGINT
+}
+
+entity "ciudadanos" as ciudadanos {
+  primary_key(id): BIGINT PRIMARY KEY
+  foreign_key(cuenta_id): BIGINT
+}
+
+entity "ubicaciones" as ubicaciones {
+  primary_key(id): BIGSERIAL PRIMARY KEY
+  --
+  direccion: VARCHAR(500) NOT NULL
+  latitud: DOUBLE PRECISION
+  longitud: DOUBLE PRECISION
+  distrito: VARCHAR(255)
+  departamento: VARCHAR(255)
+}
+
+entity "reportes" as reportes {
+  primary_key(id): BIGSERIAL PRIMARY KEY
+  --
+  titulo: VARCHAR(255) NOT NULL
+  descripcion: VARCHAR(1000) NOT NULL
+  cuenta_id: BIGINT NOT NULL
+  ubicacion_id: BIGINT NOT NULL
+  prioridad: VARCHAR(50)
+  estado: VARCHAR(50) NOT NULL
+  fecha_creacion: TIMESTAMP
+  fecha_actualizacion: TIMESTAMP
+  comentario_resolucion: VARCHAR(1000)
+  fecha_cierre: TIMESTAMP
+  operador_cierre_id: BIGINT
+}
+
+entity "fotos" as fotos {
+  primary_key(id): BIGSERIAL PRIMARY KEY
+  --
+  reporte_id: BIGINT NOT NULL
+  url: VARCHAR(500) NOT NULL
+  tipo: VARCHAR(20) NOT NULL
+  descripcion: VARCHAR(255)
+  fecha_carga: TIMESTAMP NOT NULL
+  --
+  **Constraint**
+  CHECK (tipo IN ('INICIAL','FINAL'))
+}
+
+entity "asignaciones" as asignaciones {
+  primary_key(id): BIGSERIAL PRIMARY KEY
+  --
+  reporte_id: BIGINT NOT NULL
+  operador_id: BIGINT NOT NULL
+  tecnico_id: BIGINT
+  fecha_asignacion: TIMESTAMP
+  fecha_cierre: TIMESTAMP
+}
+
+entity "historial_estados" as historial_estados {
+  primary_key(id): BIGSERIAL PRIMARY KEY
+  --
+  reporte_id: BIGINT NOT NULL
+  estado_anterior: VARCHAR(50)
+  estado_nuevo: VARCHAR(50) NOT NULL
+  fecha_cambio: TIMESTAMP NOT NULL
+}
+
+entity "token_notificaciones" as token_notificaciones {
+  primary_key(id): BIGSERIAL PRIMARY KEY
+  --
+  cuenta_id: BIGINT NOT NULL <<unique>>
+  token: VARCHAR(512) NOT NULL
+}
+
+entity "mensaje_notificaciones" as mensaje_notificaciones {
+  primary_key(id): BIGSERIAL PRIMARY KEY
+  --
+  estado: VARCHAR(50) NOT NULL <<unique>>
+  mensaje: VARCHAR(500) NOT NULL
+}
+
+' ==========================================
+' RELACIONES
+' ==========================================
+
+' Persona -> Cuenta (1:1)
+personas ||--|| cuentas : "tiene"
+
+' Cuenta -> Subclases (herencia JOINED)
+cuentas ||--o| operadores_municipales : ""
+cuentas ||--o| tecnicos : ""
+cuentas ||--o| ciudadanos : ""
+
+' Ciudadano -> Reportes (1:N)
+ciudadanos ||--o{ reportes : "crea"
+
+' Ubicación -> Reportes (1:N)
+ubicaciones ||--o{ reportes : "tiene"
+
+' Reporte -> Fotos (1:N)
+reportes ||--o{ fotos : "contiene"
+
+' OperadorMunicipal -> Reportes rechazados (1:N)
+operadores_municipales ||--o{ reportes : "rechaza >"
+
+' Reporte -> Asignaciones (1:N)
+reportes ||--o{ asignaciones : "tiene"
+
+' Técnico -> Asignaciones (1:N)
+tecnicos ||--o{ asignaciones : "asignado a"
+
+' OperadorMunicipal -> Asignaciones (1:N)
+operadores_municipales ||--o{ asignaciones : "gestiona"
+
+' Reporte -> Historial de Estados (1:N)
+reportes ||--o{ historial_estados : "tiene"
+
+' Cuenta -> Token de Notificaciones (1:1)
+cuentas ||--o| token_notificaciones : "tiene"
+
+' Estado -> Mensaje de Notificación (1:1)
+mensaje_notificaciones ||--o{ reportes : "para estado"
+
+@enduml
