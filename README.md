@@ -15,6 +15,10 @@
   - [3.8 Ejecucion y validacion del proyecto](#38-ejecucion-y-validacion-del-proyecto)
 - [4. Diagrama de despliegue](#4-diagrama-de-despliegue)
 - [5. Requisitos no funcionales](#5-requisitos-no-funcionales)
+  - [5.1 Enfoque](#51-enfoque)
+  - [5.2 Catalogo de RNF](#52-catalogo-de-rnf)
+  - [5.3 Trazabilidad RNF y diagrama de despliegue](#53-trazabilidad-rnf--diagrama-de-despliegue)
+  - [5.4 Verificacion de los RNF](#54-verificacion-de-los-rnf)
 - [6. Requerimientos funcionales](#6-requerimientos-funcionales)
   - [6.1 Catalogo de requisitos funcionales](#61-catalogo-de-requisitos-funcionales)
   - [6.2 Actores del sistema](#62-actores-del-sistema)
@@ -48,11 +52,9 @@ La propuesta contempla una interfaz simple y directa, pensada para que el usuari
 
 Esta seccion describe la configuracion del entorno necesaria para desarrollar y ejecutar el proyecto Flutter **ReportaYA**. El objetivo es que cualquier integrante del equipo pueda preparar su equipo, validar las herramientas instaladas y ejecutar el proyecto en Android o iOS.
 
-La preparacion se realizo tomando como referencia la documentacion oficial de Flutter:
+**Flutter** es el framework utilizado para construir la aplicacion movil de ReportaYA desde una misma base de codigo en Dart. Permite compilar y ejecutar el proyecto en distintas plataformas, como Android e iOS, manteniendo una estructura comun para la interfaz, la logica de presentacion y la gestion de dependencias.
 
-- [Comenzar: Instalar en macOS - Flutter](https://flutter-website-staging.firebaseapp.com/setup-macos/).
-- `Add Flutter to your PATH.pdf`.
-- `Configurar el desarrollo de Windows.pdf`.
+**Android Studio** es el entorno de desarrollo usado para preparar la ejecucion en Android. Desde esta herramienta se instala y administra el Android SDK, las herramientas de compilacion, los emuladores y los dispositivos virtuales necesarios para probar la aplicacion.
 
 Flutter requiere tres bloques principales de configuracion:
 
