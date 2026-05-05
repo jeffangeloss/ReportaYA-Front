@@ -429,7 +429,7 @@ Los mockups del proyecto se encuentran en el archivo HTML interactivo [ReportaYA
 
 Para que puedan visualizarse directamente desde este documento, se incluyen capturas del sistema de diseno, las pantallas principales y el prototipo navegable.
 
-### 7.1 Sistema de diseno
+### 7.1 Sistema de diseño
 
 <img src="./docs/images/mockups/reportaya-mockups-design-system.png" alt="Sistema de diseno de ReportaYA">
 
