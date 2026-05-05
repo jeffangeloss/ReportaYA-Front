@@ -120,45 +120,48 @@ entity "mensaje_notificaciones" as mensaje_notificaciones {
 }
 
 ' ==========================================
-' RELACIONES
+' RELACIONES (con cardinalidad)
 ' ==========================================
 
-' Persona -> Cuenta (1:1)
+' ||--|| : Relación 1:1 (uno a uno - exactamente)
 personas ||--|| cuentas : "tiene"
 
-' Cuenta -> Subclases (herencia JOINED)
-cuentas ||--o| operadores_municipales : ""
-cuentas ||--o| tecnicos : ""
-cuentas ||--o| ciudadanos : ""
+' ||--o| : Relación 0:1 (cero o uno) - HERENCIA JOINED
+' Tabla padre (cuentas) se relaciona con tablas hijas (operadores, técnicos, ciudadanos)
+' Cada tabla hija tiene su propia tabla pero comparte el PK como FK hacia cuentas
+' Esto evita duplicar campos de autenticación en 3 tablas diferentes
+cuentas ||--o| operadores_municipales : "herencia"
+cuentas ||--o| tecnicos : "herencia"
+cuentas ||--o| ciudadanos : "herencia"
 
-' Ciudadano -> Reportes (1:N)
+' ||--o{ : Relación 0:N (cero o muchos) - un ciudadano PUEDE crear varios reportes
 ciudadanos ||--o{ reportes : "crea"
 
-' Ubicación -> Reportes (1:N)
+' ||--o{ : un registro de ubicación PUEDE tener varios reportes
 ubicaciones ||--o{ reportes : "tiene"
 
-' Reporte -> Fotos (1:N)
+' ||--o{ : un reporte PUEDE tener múltiples fotos (inicial y final)
 reportes ||--o{ fotos : "contiene"
 
-' OperadorMunicipal -> Reportes rechazados (1:N)
-operadores_municipales ||--o{ reportes : "rechaza >"
+' ||--o{ : un operador municipal PUEDE rechazar múltiples reportes
+operadores_municipales ||--o{ reportes : "rechaza"
 
-' Reporte -> Asignaciones (1:N)
-reportes ||--o{ asignaciones : "tiene"
+' ||--|| : un reporte tiene exactamente 1 asignación (a 1 técnico únicamente)
+reportes ||--|| asignaciones : "tiene"
 
-' Técnico -> Asignaciones (1:N)
+' ||--o{ : un técnico PUEDE estar asignado a (cero o muchos) múltiples reportes
 tecnicos ||--o{ asignaciones : "asignado a"
 
-' OperadorMunicipal -> Asignaciones (1:N)
+' ||--o{ : un operador municipal PUEDE gestionar múltiples asignaciones
 operadores_municipales ||--o{ asignaciones : "gestiona"
 
-' Reporte -> Historial de Estados (1:N)
+' ||--o{ : un reporte PUEDE tener múltiples cambios de estado registrados
 reportes ||--o{ historial_estados : "tiene"
 
-' Cuenta -> Token de Notificaciones (1:1)
+' ||--o| : una cuenta tiene 0 ó 1 token de notificaciones (FCM de Firebase)
 cuentas ||--o| token_notificaciones : "tiene"
 
-' Estado -> Mensaje de Notificación (1:1)
+' ||--o{ : un estado predefinido PUEDE estar asociado a múltiples reportes
 mensaje_notificaciones ||--o{ reportes : "para estado"
 
 @enduml
