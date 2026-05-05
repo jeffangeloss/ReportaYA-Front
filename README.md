@@ -16,15 +16,15 @@
 - [4. Diagrama de despliegue](#4-diagrama-de-despliegue)
 - [5. Requisitos no funcionales](#5-requisitos-no-funcionales)
 - [6. Requerimientos funcionales](#6-requerimientos-funcionales)
-  - [6.1 Diagrama de casos de uso](#61-diagrama-de-casos-de-uso)
-  - [6.2 Descripcion de casos de uso](#62-descripcion-de-casos-de-uso)
+  - [6.1 Catalogo de requisitos funcionales](#61-catalogo-de-requisitos-funcionales)
+  - [6.2 Actores del sistema](#62-actores-del-sistema)
+  - [6.3 Diagrama de casos de uso](#63-diagrama-de-casos-de-uso)
+  - [6.4 Descripcion de casos de uso](#64-descripcion-de-casos-de-uso)
 - [7. Mockups](#7-mockups)
   - [7.1 Sistema de diseno](#71-sistema-de-diseno)
   - [7.2 Pantallas principales](#72-pantallas-principales)
   - [7.3 Prototipo navegable](#73-prototipo-navegable)
-- [8. Diagrama de clases o base de datos](#8-diagrama-de-clases-o-base-de-datos)
-  - [8.1 Diagrama de clases](#81-diagrama-de-clases)
-  - [8.2 Modelo de base de datos](#82-modelo-de-base-de-datos)
+- [8. Diagrama de base de datos](#8-diagrama-de-base-de-datos)
 - [9. Tecnologias utilizadas](#9-tecnologias-utilizadas)
 - [10. Instalacion y ejecucion del proyecto](#10-instalacion-y-ejecucion-del-proyecto)
 - [11. Estructura base del proyecto](#11-estructura-base-del-proyecto)
@@ -385,12 +385,33 @@ Cada RNF se validara con una de las siguientes tecnicas durante las iteraciones 
 
 ## 6. Requerimientos funcionales
 
-Los requerimientos funcionales de **ReportaYA** se documentan a traves del diagrama de casos de uso y la descripcion de cada caso de uso. En conjunto, estas secciones definen las capacidades que el sistema debe ofrecer a sus actores principales: ciudadano, operador municipal y tecnico de campo municipal.
+Los requerimientos funcionales de **ReportaYA** describen las acciones y capacidades que el sistema debe proporcionar a sus usuarios. Cada RF esta vinculado a un caso de uso especifico y se complementa con el diagrama y la descripcion de casos de uso.
 
-### 6.1 Diagrama de casos de uso
+### 6.1 Catalogo de requisitos funcionales
+
+| ID | Requisito Funcional | Caso de Uso Relacionado | Actor(es) |
+|---|---|---|---|
+| **RF-01** | El sistema debe permitir a los usuarios (Ciudadano, Operador de Oficina Municipal, Técnico de Campo Municipal) autenticarse ingresando sus credenciales para acceder a la vista correspondiente a su rol. | CU01 - Iniciar sesión | Todos |
+| **RF-02** | El sistema debe permitir a los ciudadanos crear una cuenta proporcionando sus datos personales y debe enviar un correo de confirmación para activar el perfil. | CU02 - Registrarse | Ciudadano |
+| **RF-03** | El sistema debe permitir a los usuarios solicitar la recuperación de su contraseña mediante el envío de un enlace o token al correo electrónico registrado. | CU03 - Recuperar contraseña | Todos |
+| **RF-04** | El sistema debe permitir a los ciudadanos crear, enviar y hacer seguimiento a nuevos reportes de incidentes urbanos, incluyendo la ubicación, tipo de problema, descripción detallada y evidencia multimedia. | CU04 - Reportar incidencia urbana | Ciudadano |
+| **RF-05** | El sistema debe permitir a los usuarios visualizar, filtrar y explorar los reportes mediante un listado detallado y un mapa interactivo (con leyenda de colores e íconos), además de enviar notificaciones de estado. | CU05 - Consultar reportes | Ciudadano, Operador, Técnico |
+| **RF-06** | El sistema debe permitir al Operador de Oficina Municipal revisar, aprobar o rechazar los reportes ingresados, asignarles un nivel de prioridad y notificar al ciudadano la decisión tomada. | CU06 - Validar reportes ciudadanos | Operador de Oficina |
+| **RF-07** | El sistema debe permitir al Operador de Oficina Municipal asignar un técnico de campo a un reporte previamente aprobado, y facilitar el seguimiento del mismo hasta su resolución. | CU07 - Asignar reportes | Operador de Oficina |
+| **RF-08** | El sistema debe permitir al Técnico de Campo Municipal revisar sus tareas asignadas, actualizar el estado del reporte, adjuntar evidencia fotográfica, añadir comentarios sobre la solución y confirmar la finalización en campo. | CU08 - Atender reporte | Técnico de Campo |
+
+### 6.2 Actores del sistema
+
+| Actor | Descripcion |
+|---|---|
+| **Ciudadano** | Usuario que reporta incidentes urbanos y hace seguimiento a sus reportes. Puede crear cuenta, autenticarse, crear reportes y visualizar su estado. |
+| **Operador de Oficina Municipal** | Usuario responsable de validar y priorizar reportes. Revisa reportes de ciudadanos, aprueba o rechaza, asigna técnicos, y notifica decisiones. |
+| **Técnico de Campo Municipal** | Usuario responsable de resolver reportes en el terreno. Recibe asignaciones, actualiza estados, adjunta evidencias fotográficas y cierra reportes. |
+
+### 6.3 Diagrama de casos de uso
 <img src="./docs/images/Diagrama_CasosDeUso.png" alt="Diagrama de Casos de Uso de ReportaYa">
 
-### 6.2 Descripcion de casos de uso
+### 6.4 Descripcion de casos de uso
 
 | ID     | Caso de Uso           | Actor                           | Descripción                                                                 | Precondición                                      |
 |--------|-----------------------|--------------------------------|-----------------------------------------------------------------------------|---------------------------------------------------|
@@ -420,12 +441,9 @@ Para que puedan visualizarse directamente desde este documento, se incluyen capt
 
 <img src="./docs/images/mockups/reportaya-mockups-prototipo.png" alt="Prototipo navegable de ReportaYA">
 
-## 8. Diagrama de clases o base de datos
-Los diagramas fueron ubicados dentro de los documentos PDF agregados al proyecto. El diagrama de clases proviene del documento del proyecto ReportaYA, seccion **6.3 Diagrama de clases**; el modelo de base de datos proviene del informe de diseno del software, seccion **6.2 Modelo de Base de Datos**.
+## 8. Diagrama de base de datos
 
-### 8.1 Diagrama de clases
-
-### 8.2 Modelo de base de datos
+<img src="./docs/images/diagrams/Diagrama_DB.png" alt="Modelo de base de datos ReportaYA" width="900">
 
 ## 9. Tecnologias utilizadas
 
