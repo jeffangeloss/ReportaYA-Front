@@ -390,7 +390,29 @@ Cada RNF se validara con una de las siguientes tecnicas durante las iteraciones 
 | Pruebas de campo con dispositivos reales en distintos puntos de Lima | RNF-08 |
 
 ## 6. Requisitos funcionales
-> Completar por el equipo.
+
+Los requisitos funcionales (RF) describen las **acciones y capacidades** que el sistema **ReportaYA** debe proporcionar a sus usuarios. Cada RF está vinculado a un caso de uso específico del diagrama de la sección 7.
+
+### 6.1 Catalogo de requisitos funcionales
+
+| ID | Requisito Funcional | Caso de Uso Relacionado | Actor(es) |
+|---|---|---|---|
+| **RF-01** | El sistema debe permitir a los usuarios (Ciudadano, Operador de Oficina Municipal, Técnico de Campo Municipal) autenticarse ingresando sus credenciales para acceder a la vista correspondiente a su rol. | CU01 - Iniciar sesión | Todos |
+| **RF-02** | El sistema debe permitir a los ciudadanos crear una cuenta proporcionando sus datos personales y debe enviar un correo de confirmación para activar el perfil. | CU02 - Registrarse | Ciudadano |
+| **RF-03** | El sistema debe permitir a los usuarios solicitar la recuperación de su contraseña mediante el envío de un enlace o token al correo electrónico registrado. | CU03 - Recuperar contraseña | Todos |
+| **RF-04** | El sistema debe permitir a los ciudadanos crear, enviar y hacer seguimiento a nuevos reportes de incidentes urbanos, incluyendo la ubicación, tipo de problema, descripción detallada y evidencia multimedia. | CU04 - Reportar incidencia urbana | Ciudadano |
+| **RF-05** | El sistema debe permitir a los usuarios visualizar, filtrar y explorar los reportes mediante un listado detallado y un mapa interactivo (con leyenda de colores e íconos), además de enviar notificaciones de estado. | CU05 - Consultar reportes | Ciudadano, Operador, Técnico |
+| **RF-06** | El sistema debe permitir al Operador de Oficina Municipal revisar, aprobar o rechazar los reportes ingresados, asignarles un nivel de prioridad y notificar al ciudadano la decisión tomada. | CU06 - Validar reportes ciudadanos | Operador de Oficina |
+| **RF-07** | El sistema debe permitir al Operador de Oficina Municipal asignar un técnico de campo a un reporte previamente aprobado, y facilitar el seguimiento del mismo hasta su resolución. | CU07 - Asignar reportes | Operador de Oficina |
+| **RF-08** | El sistema debe permitir al Técnico de Campo Municipal revisar sus tareas asignadas, actualizar el estado del reporte, adjuntar evidencia fotográfica, añadir comentarios sobre la solución y confirmar la finalización en campo. | CU08 - Atender reporte | Técnico de Campo |
+
+### 6.2 Actores del sistema
+
+| Actor | Descripcion |
+|---|---|
+| **Ciudadano** | Usuario que reporta incidentes urbanos y hace seguimiento a sus reportes. Puede crear cuenta, autenticarse, crear reportes y visualizar su estado. |
+| **Operador de Oficina Municipal** | Usuario responsable de validar y priorizar reportes. Revisa reportes de ciudadanos, aprueba o rechaza, asigna técnicos, y notifica decisiones. |
+| **Técnico de Campo Municipal** | Usuario responsable de resolver reportes en el terreno. Recibe asignaciones, actualiza estados, adjunta evidencias fotográficas y cierra reportes. |
 
 ## 7. Diagrama de casos de uso
 <img src="./docs/images/Diagrama_CasosDeUso.png" alt="Diagrama de Casos de Uso de ReportaYa">
