@@ -15,8 +15,8 @@ class ReportaYaTheme {
   static const _surface = Color(0xFFFFFFFF);
   static const _surfaceVariant = Color(0xFFF0EAFF);
   static const _outline = Color(0xFFCBD5DD);
-  static const _textPrimary = Color(0xFF1F1F29);
-  static const _textSecondary = Color(0xFF6C757D);
+  static const _textPrimary = Color(0xFF333333);
+  static const _textSecondary = Color(0xFF555555);
 
   static ColorScheme lightScheme() {
     return const ColorScheme(
