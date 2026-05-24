@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:reportaya/configs/dimensions.dart';
 import 'log_in_controller.dart';
 
 class LogInPage extends StatefulWidget {
@@ -12,16 +13,42 @@ class LogInPage extends StatefulWidget {
 class _LogInPageState extends State<LogInPage> {
   LogInController control = Get.put(LogInController());
 
+  Widget _loginButton(BuildContext context, colors, textTheme){
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: (){
+          //go to Start page
+          control.login();
+        },
+        child: Text('Iniciar Sesión')),
+    );
+  }
+
+  Widget _recoverPassword(BuildContext context, colors, textTheme){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        InkWell(
+          onTap: (){
+            //control.goToRecoverPassword(context);
+          },
+          child: Text('¿Olvidaste tu contraseña?',
+            style: TextStyle(
+              color: colors.onSurface,
+            ),
+          ),
+        )
+      ],
+    );
+  }
 
   Widget _form(BuildContext context, colors, textTheme){
-    return Expanded(
-      flex: 5,
-      child:
-      Container(
+    return Container(
         width: double.infinity,
-        padding: EdgeInsets.all(28),
+        padding: EdgeInsets.all(AppDimensions.paddingXL),
         decoration: BoxDecoration(
-          color: colors.surface,
+          color: Colors.white,
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(36),
             topRight: Radius.circular(36),
@@ -32,80 +59,73 @@ class _LogInPageState extends State<LogInPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Iniciar Sesión',
-              style: textTheme.headlineSmall?.copyWith(
+              style: textTheme.headlineMedium?.copyWith(
               color: colors.primary,
-              fontWeight: FontWeight.w700,
-              fontSize: 22.0,
             ),
           ),
+
+          SizedBox(height: 8),
 
           Text('Ingresa con tu cuenta para continuar',
-              style: textTheme.bodyMedium?.copyWith(
-              color: colors.onSurfaceVariant,
-              fontSize: 16.0,
-            ),
+              style: textTheme.bodyMedium,
           ),
 
-        SizedBox(height: 20),
-
-        //User
-        TextField(
-          controller: control.usernameController,
-          decoration: InputDecoration(
-            labelText: "Usuario",
-            labelStyle: TextStyle(
-              color: colors.onSurface
-            ),
+          SizedBox(height: 32),
+          
+          //User
+          TextField(
+            controller: control.usernameController,
+            decoration: InputDecoration(
+              labelText: "Usuario",
+              labelStyle: TextStyle(
+                color: colors.onSurface
+              ),
             hintText: 'Tu usuario',
             border: OutlineInputBorder(),
           ),
-        ),
-
-        SizedBox(height: 10),
-
-        //Password
-        TextField(
-          controller: control.passwordController,
-          obscureText: control.isPasswordHidden,
-          decoration: InputDecoration(
-            labelText: "Contraseña",
-            labelStyle: TextStyle(
-              color: colors.onSurface
-            ),
-            border: OutlineInputBorder(),
-            suffixIcon: IconButton(
-              icon: Icon(
-                control.isPasswordHidden ? Icons.visibility : Icons.visibility_off,
-              ),
-
-              onPressed: () {
-                setState(() {
-                  control.togglePasswordVisibility();
-                  });
-              },
-            )
           ),
-        ),
+
+          SizedBox(height: 20),
+
+          //Password
+          TextField(
+            controller: control.passwordController,
+            obscureText: control.isPasswordHidden,
+            decoration: InputDecoration(
+              labelText: "Contraseña",
+              labelStyle: TextStyle(
+                color: colors.onSurface
+              ),
+              border: OutlineInputBorder(),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  control.isPasswordHidden ? Icons.visibility : Icons.visibility_off,
+                ),
+
+                onPressed: () {
+                  setState(() {
+                    control.togglePasswordVisibility();
+                    });
+                },
+              ),
+            ),
+          ),
+
+        SizedBox(height: 16),
+
+        _recoverPassword(context, colors, textTheme),
+
+        SizedBox(height: 28),
+
+        _loginButton(context, colors, textTheme),
 
         ],),
-      ),
     );
   }
 
   Widget _logo(BuildContext context, colors, textTheme){
     // REEMPLAZAR POR ASSET DE LOGO, ESTO ESTA XD
-    return Container(
-      width: 72,
-      height: 72,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-        color: Colors.white24,
-        ),
-        ),
-      
-      child: const Center(
+    return Center(
         child: Text(
           'RY',
           style: TextStyle(
@@ -114,49 +134,46 @@ class _LogInPageState extends State<LogInPage> {
           fontWeight: FontWeight.bold,
           ),
         ),
-      ),
     );
   }
 
   Widget _centerText(BuildContext context, colors, textTheme){
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: 60),
-      width: double.infinity,
-      child:
-      Column(
-        children: [
-          _logo(context, colors, textTheme),
+    return Column(
+      children: [
+        Container(
+          width: 72,
+          height: 72,
 
-          SizedBox(height: 14),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(22),
+          ),
 
-          Text("ReportaYA",
+          child: _logo(context, colors, textTheme),
+      ),
+
+      SizedBox(height: 24),
+
+      Text("ReportaYA",
           style: textTheme.headlineLarge?.copyWith(
             color: Colors.white,
-            fontWeight: FontWeight.w800,
-            fontSize: 48.0,
+          ),
+        ),
+
+      SizedBox(height: 8),
+
+      Text("Tu ciudad, tus reportes",
+          style: textTheme.bodyLarge?.copyWith(
+            color: Colors.white70,
             ),
           ),
 
-          Text("Tu ciudad, tus reportes",
-          style: textTheme.headlineLarge?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w700,
-            fontSize: 16.0,
-            ),
-          ),
-        ],
-      )
+      ],
     );
   }
 
   Widget _background(BuildContext context, colors){
-    return Expanded(
-            //flex: 30,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 32,
-              ),
+    return Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -167,7 +184,6 @@ class _LogInPageState extends State<LogInPage> {
                   ],
                 ),
               ),
-        )
       );
   }
 
@@ -177,8 +193,19 @@ class _LogInPageState extends State<LogInPage> {
         _background(context, colors),
 
         Column(children: [
-          _centerText(context, colors, textTheme),
-          _form(context, colors, textTheme),
+          Expanded(
+            flex: 2,
+            child: Container(
+              alignment: Alignment.topCenter,
+              padding: EdgeInsets.only(top: 60),
+              child: _centerText(context, colors, textTheme)),
+          ),
+
+          Expanded(
+            flex: 4,
+            child: _form(context, colors, textTheme),
+            ),
+          
         ],),
 
         ],
@@ -192,7 +219,6 @@ class _LogInPageState extends State<LogInPage> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      //backgroundColor: colors.primary,
         resizeToAvoidBottomInset: false,
         appBar: null,
         body: _buildBody(context, colors, textTheme),
