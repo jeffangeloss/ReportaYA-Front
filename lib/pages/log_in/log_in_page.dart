@@ -19,7 +19,7 @@ class _LogInPageState extends State<LogInPage> {
       child: ElevatedButton(
         onPressed: (){
           //go to Start page
-          control.login();
+          control.login(context);
         },
         child: Text('Iniciar Sesión')),
     );
