@@ -5,7 +5,6 @@ import 'package:reportaya/models/account.dart';
 import 'package:reportaya/services/account_services.dart';
 
 class LogInController extends GetxController {
-  
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
 
