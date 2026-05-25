@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reportaya/pages/log_in/log_in_page.dart';
+import 'package:reportaya/pages/start/start_page.dart';
 import './configs/theme.dart';
 
 void main() {
@@ -21,7 +22,8 @@ class MyApp extends StatelessWidget {
       theme: reportaYaTheme.light(),
       initialRoute: '/log-in',
       routes: {
-        '/log-in' : (context) => LogInPage(),
+        '/log-in': (context) => LogInPage(),
+        '/start': (context) => const StartPage(),
       },
     );
   }
