@@ -4,6 +4,7 @@ import '../services/servicio_reportes.dart';
 import '../utils/fechas.dart';
 import '../widgets/app_colors.dart';
 import '../widgets/estado_pill.dart';
+import '../widgets/foto_view.dart';
 
 /// Vista 05 Detalle (CU-05). El contenido varia segun el estado del reporte.
 class DetalleScreen extends StatefulWidget {
@@ -20,6 +21,8 @@ class _DetalleScreenState extends State<DetalleScreen> {
   bool _loading = true;
 
   ReporteResponse get r => widget.reporte;
+  List<Foto> get _iniciales => _fotos.where((f) => f.tipo == TipoFoto.INICIAL).toList();
+  List<Foto> get _finales => _fotos.where((f) => f.tipo == TipoFoto.FINAL).toList();
 
   @override
   void initState() {
@@ -47,7 +50,7 @@ class _DetalleScreenState extends State<DetalleScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _fotosStrip(TipoFoto.INICIAL),
+                FotosStrip(fotos: _iniciales, vacioTexto: 'Sin fotos del incidente'),
                 const SizedBox(height: 12),
                 Row(children: [EstadoPill(r.estado)]),
                 const SizedBox(height: 12),
@@ -55,6 +58,7 @@ class _DetalleScreenState extends State<DetalleScreen> {
                   _kv('Descripcion', r.descripcion),
                   _kv('Tipo', TipoProblema.label(r.tipoProblema)),
                   _kv('Direccion', r.ubicacion.direccion ?? 'Sin direccion'),
+                  _kv('Ultima actualizacion', fmtFechaHora(r.fechaActualizacion)),
                   ..._extraPorEstado(),
                 ]),
                 const SizedBox(height: 16),
@@ -80,44 +84,13 @@ class _DetalleScreenState extends State<DetalleScreen> {
           const SizedBox(height: 8),
           const Text('Fotos de resolucion', style: TextStyle(fontSize: 11.5, color: Color(0xFF6B7280))),
           const SizedBox(height: 6),
-          _fotosStrip(TipoFoto.FINAL),
+          FotosStrip(fotos: _finales, vacioTexto: 'Sin fotos de resolucion'),
         ];
       case EstadoReporte.RECHAZADO:
         return [_callout('Motivo del rechazo: ${r.comentarioResolucion ?? '-'}')];
       default:
         return [];
     }
-  }
-
-  Widget _fotosStrip(String tipo) {
-    final fotos = _fotos.where((f) => f.tipo == tipo).toList();
-    if (fotos.isEmpty) {
-      return Container(
-        height: 84,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(color: const Color(0xFFEDEDF2), borderRadius: BorderRadius.circular(10)),
-        child: const Text('Sin fotos', style: TextStyle(color: Color(0xFF9AA0AB))),
-      );
-    }
-    return SizedBox(
-      height: 84,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: fotos.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (_, i) => Container(
-          width: 120,
-          decoration: BoxDecoration(
-            color: tipo == TipoFoto.FINAL ? const Color(0xFF2F5D3A) : const Color(0xFF5B4636),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          alignment: Alignment.bottomLeft,
-          padding: const EdgeInsets.all(6),
-          child: Text(fotos[i].descripcion ?? 'Foto',
-              style: const TextStyle(color: Colors.white, fontSize: 10)),
-        ),
-      ),
-    );
   }
 
   Widget _timeline() {

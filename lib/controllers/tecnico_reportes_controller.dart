@@ -16,6 +16,9 @@ class TecnicoReportesController extends GetxController {
   List<ReporteResponse> get pendientes =>
       asignaciones.where((r) => r.estado == EstadoReporte.REVISION).toList();
 
+  List<ReporteResponse> get completados =>
+      asignaciones.where((r) => r.estado == EstadoReporte.FINALIZADO).toList();
+
   Future<void> cargar(int tecnicoId) async {
     _tecnicoId = tecnicoId;
     loading.value = true;

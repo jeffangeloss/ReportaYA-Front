@@ -9,17 +9,22 @@ class ReportCard extends StatelessWidget {
   final ReporteResponse reporte;
   final VoidCallback? onTap;
   final bool mostrarTecnico;
+  final bool usarFechaActualizacion;
 
   const ReportCard({
     super.key,
     required this.reporte,
     this.onTap,
     this.mostrarTecnico = false,
+    this.usarFechaActualizacion = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final color = AppColors.forEstado(reporte.estado);
+    final fecha = usarFechaActualizacion
+        ? fmtFecha(reporte.fechaActualizacion)
+        : fmtFecha(reporte.fechaCreacion);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -81,8 +86,10 @@ class ReportCard extends StatelessWidget {
                         children: [
                           EstadoPill(reporte.estado),
                           const Spacer(),
-                          Text(fmtFecha(reporte.fechaCreacion),
-                              style: const TextStyle(fontSize: 11.5, color: Color(0xFF9AA0AB))),
+                          Text(
+                            usarFechaActualizacion ? 'Act. $fecha' : fecha,
+                            style: const TextStyle(fontSize: 11.5, color: Color(0xFF9AA0AB)),
+                          ),
                         ],
                       ),
                     ],

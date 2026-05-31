@@ -5,6 +5,7 @@ import '../controllers/tecnico_reportes_controller.dart';
 import '../routes/app_routes.dart';
 import '../widgets/app_colors.dart';
 import '../widgets/report_card.dart';
+import 'detalle_screen.dart';
 import 'ejecutar_reporte_screen.dart';
 
 /// Vista 01 Mis asignaciones (CU-08).
@@ -81,18 +82,29 @@ class _HomeScreenTecnicoState extends State<HomeScreenTecnico> {
           Expanded(
             child: Obx(() {
               if (_ctrl.loading.value) return const Center(child: CircularProgressIndicator());
-              final list = _ctrl.pendientes;
-              if (list.isEmpty) {
-                return const Center(child: Text('No tienes reportes por atender.', style: TextStyle(color: Color(0xFF9AA0AB))));
+              final porAtender = _ctrl.pendientes;
+              final completados = _ctrl.completados;
+              if (porAtender.isEmpty && completados.isEmpty) {
+                return const Center(child: Text('No tienes reportes asignados.', style: TextStyle(color: Color(0xFF9AA0AB))));
               }
               return ListView(
                 padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
-                children: list
-                    .map((r) => ReportCard(
+                children: [
+                  if (porAtender.isNotEmpty) ...[
+                    _seccion('POR ATENDER', AppColors.estadoRevision),
+                    ...porAtender.map((r) => ReportCard(
                           reporte: r,
                           onTap: () => Get.to(() => EjecutarReporteScreen(reporteId: r.id)),
-                        ))
-                    .toList(),
+                        )),
+                  ],
+                  if (completados.isNotEmpty) ...[
+                    _seccion('COMPLETADOS', AppColors.estadoFinalizado),
+                    ...completados.map((r) => ReportCard(
+                          reporte: r,
+                          onTap: () => Get.to(() => DetalleScreen(reporte: r)),
+                        )),
+                  ],
+                ],
               );
             }),
           ),
@@ -100,6 +112,12 @@ class _HomeScreenTecnicoState extends State<HomeScreenTecnico> {
       ),
     );
   }
+
+  Widget _seccion(String titulo, Color color) => Padding(
+        padding: const EdgeInsets.fromLTRB(4, 8, 4, 6),
+        child: Text(titulo,
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color, letterSpacing: 1)),
+      );
 
   Widget _contador(String label, int n, Color color) => Expanded(
         child: Container(

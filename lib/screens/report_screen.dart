@@ -32,7 +32,6 @@ class _ReportScreenState extends State<ReportScreen> {
   static const _tipos = TipoProblema.values;
 
   Future<void> _usarUbicacion() async {
-    // Sin GPS real en el demo: usamos una ubicacion de ejemplo y geocodificamos local.
     _lat = -12.08530; _lng = -77.03760;
     final dir = await _geo.obtenerDireccion(_lat!, _lng!);
     setState(() => _direccion = dir.direccionCompleta);
@@ -58,11 +57,12 @@ class _ReportScreenState extends State<ReportScreen> {
           ubicacion: CrearUbicacionRequest(latitud: _lat!, longitud: _lng!, direccion: _direccion),
         ),
         nombreCiudadano: _auth.usuario.value?.nombre,
+        urlsFotos: List.filled(_fotos, 'assets/img/sample/generic_inicial.png'),
       );
       AppToast.success('Reporte enviado!');
       await Get.find<ReportesController>().cargarReportes(_auth.cuentaId);
       _reset();
-      Get.find<TabsController>().go(3); // ir a Mis reportes
+      Get.find<TabsController>().go(3);
     } catch (e) {
       AppToast.error(e.toString().replaceFirst('Exception: ', ''));
     } finally {
@@ -142,7 +142,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                _label('Fotos (${_fotos}/5)'),
+                _label('Fotos ($_fotos/5)'),
                 Row(
                   children: [
                     ...List.generate(_fotos, (i) => Container(

@@ -203,7 +203,7 @@ Revision de CU de ReportaYA-Front.
 3. El operador hace click en un reporte del listado de reportes pendientes. 
 4. El frontend redirige al operador a la vista 02 Gestion.
 5. El backend devuelve el detalle del reporte seleccionado. 
-6. El frontend muestra el detalle del reporte, incluyendo su título, estado,fecha de actualización de estado ,las fotos adjuntas, descripción, tipo de problema,dirección, ubicación en un mapa.
+6. El frontend muestra el detalle del reporte, incluyendo su título, estado,fecha de actualización de estado mas reciente ,las fotos adjuntas por el ciudadano, descripción, tipo de problema,dirección, ubicación en un mapa.
 7. El operador hace click en el botón "Aceptar Reporte" y Avisa que falta Asignar Técnico. 
 8. El backend actualiza el estado del reporte a "Revisión", envía una notificación al ciudadano indicando que su reporte ha sido aceptado y está en revisión.
 
@@ -238,7 +238,7 @@ Revision de CU de ReportaYA-Front.
 4. Si el reporte seleccionado tiene el estado "Revisión" y no tiene un técnico asignado, el frontend muestra adicionalmente "Sin tecnico asignado" debajo del estado del reporte. Caso contrario, si el reporte tiene un técnico asignado, el frontend muestra el nombre del técnico asignado debajo del estado del reporte.
 5. El frontend redirige al operador a la vista 02 Gestion.
 6. El backend devuelve el detalle del reporte seleccionado. 
-7. El frontend muestra el detalle del reporte, incluyendo su título, estado,fecha de actualización de estado ,las fotos adjuntas, descripción, tipo de problema,dirección, ubicación en un mapa.
+7. El frontend muestra el detalle del reporte, incluyendo su título, estado,fecha de actualización de estado  mas reciente ,las fotos adjuntas por el ciudadano, descripción, tipo de problema,dirección, ubicación en un mapa.
 8. El operador hace click en el botón "Asignar Técnico".
 9. El backend no cambia el estado , asigna un técnico y envía una notificación al ciudadano indicando que su reporte ha sido asignado a un técnico.
 

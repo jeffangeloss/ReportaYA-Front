@@ -1,8 +1,0 @@
-[
-  { "id": 4, "usuario": "tec.carlos", "nombres": "Carlos", "apellidos": "Mendoza",
-    "dni": "70123456", "telefono": "933221100", "correo": "carlos.mendoza@muni.gob.pe", "activo": true },
-  { "id": 5, "usuario": "tec.lucia", "nombres": "Lucia", "apellidos": "Paredes",
-    "dni": "70988111", "telefono": "933000111", "correo": "lucia.paredes@muni.gob.pe", "activo": true },
-  { "id": 6, "usuario": "tec.maria", "nombres": "Maria", "apellidos": "Torres",
-    "dni": "70555222", "telefono": "933444555", "correo": "maria.torres@muni.gob.pe", "activo": true }
-]

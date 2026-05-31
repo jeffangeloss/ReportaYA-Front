@@ -13,5 +13,8 @@
     "correo": "carlos.mendoza@muni.gob.pe", "activo": true },
   { "id": 5, "tipoCuenta": "TECNICO", "usuario": "tec.lucia", "contrasena": "123456",
     "nombres": "Lucia", "apellidos": "Paredes", "dni": "70988111", "telefono": "933000111",
-    "correo": "lucia.paredes@muni.gob.pe", "activo": true }
+    "correo": "lucia.paredes@muni.gob.pe", "activo": true },
+  { "id": 6, "tipoCuenta": "TECNICO", "usuario": "tec.maria", "contrasena": "123456",
+    "nombres": "Maria", "apellidos": "Torres", "dni": "70555222", "telefono": "933444555",
+    "correo": "maria.torres@muni.gob.pe", "activo": true }
 ]

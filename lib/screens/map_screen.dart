@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../controllers/tabs_controller.dart';
 import '../models/models.dart';
 import '../services/servicio_reportes.dart';
 import '../widgets/app_colors.dart';
@@ -17,14 +18,28 @@ class _MapScreenState extends State<MapScreen> {
   final _service = ServicioReportes();
   List<ReporteResponse> _reportes = [];
   bool _loading = true;
+  Worker? _tabWorker;
 
   @override
   void initState() {
     super.initState();
     _cargar();
+    // Recargar cada vez que el usuario navega a la pestaña Mapa (índice 1)
+    // para reflejar reportes nuevos creados durante la sesión.
+    final tabs = Get.find<TabsController>();
+    _tabWorker = ever(tabs.index, (int idx) {
+      if (idx == 1 && mounted) _cargar();
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabWorker?.dispose();
+    super.dispose();
   }
 
   Future<void> _cargar() async {
+    if (mounted) setState(() => _loading = true);
     final list = await _service.obtenerParaMapa();
     if (mounted) setState(() { _reportes = list; _loading = false; });
   }

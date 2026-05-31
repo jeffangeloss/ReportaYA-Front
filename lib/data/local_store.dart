@@ -8,6 +8,10 @@ import '../models/models.dart';
 /// Almacen en memoria sembrado desde los JSON de assets/data.
 /// Simula la base de datos local mientras no exista backend (entrega 2).
 /// En la entrega 3/4 solo cambian los Servicios (JSON -> API), no esto.
+///
+/// Fuente unica de cuentas: cuentas.json. Los tecnicos se derivan filtrando
+/// las cuentas con tipoCuenta == TECNICO (refleja la tabla 'cuentas' con
+/// discriminador del modelo de datos), por lo que no hay un tecnicos.json aparte.
 class LocalStore {
   LocalStore._();
   static final LocalStore instance = LocalStore._();
@@ -26,10 +30,23 @@ class LocalStore {
   Future<void> seed() async {
     if (_seeded) return;
     cuentas.addAll(await _load('assets/data/cuentas.json', CuentaResponse.fromJson));
-    tecnicos.addAll(await _load('assets/data/tecnicos.json', TecnicoResponse.fromJson));
     reportes.addAll(await _load('assets/data/reportes.json', ReporteResponse.fromJson));
     historial.addAll(await _load('assets/data/historial.json', HistorialEstado.fromJson));
     fotos.addAll(await _load('assets/data/fotos.json', Foto.fromJson));
+
+    // Los tecnicos salen de las cuentas (rol TECNICO).
+    tecnicos.addAll(cuentas
+        .where((c) => c.tipoCuenta == TipoCuenta.TECNICO)
+        .map((c) => TecnicoResponse(
+              id: c.id,
+              usuario: c.usuario,
+              nombres: c.nombres,
+              apellidos: c.apellidos,
+              dni: c.dni,
+              telefono: c.telefono,
+              correo: c.correo,
+              activo: c.activo,
+            )));
 
     _reporteSeq = _maxId(reportes.map((r) => r.id)) + 1;
     _historialSeq = _maxId(historial.map((h) => h.id)) + 1;

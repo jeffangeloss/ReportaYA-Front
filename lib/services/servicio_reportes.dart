@@ -10,7 +10,6 @@ class ServicioReportes {
 
   // ---------------- Lectura (CU-05 / CU-06 / CU-08) ----------------
 
-  /// Reportes creados por un ciudadano (vista 03 Mis reportes).
   Future<List<ReporteResponse>> obtenerReportesPorCuenta(int cuentaId) async {
     await Future.delayed(const Duration(milliseconds: 250));
     final list = _store.reportes.where((r) => r.cuentaId == cuentaId).toList();
@@ -18,13 +17,11 @@ class ServicioReportes {
     return list;
   }
 
-  /// Reportes recientes para la vista 02 Inicio.
   Future<List<ReporteResponse>> obtenerRecientes(int cuentaId, {int limit = 5}) async {
     final list = await obtenerReportesPorCuenta(cuentaId);
     return list.take(limit).toList();
   }
 
-  /// Todos los reportes, opcionalmente filtrados por estado (vista 01 Cola).
   Future<List<ReporteResponse>> obtenerTodos({String? estado}) async {
     await Future.delayed(const Duration(milliseconds: 250));
     final list = _store.reportes
@@ -34,7 +31,6 @@ class ServicioReportes {
     return list;
   }
 
-  /// Reportes con ubicacion para la vista 06 Mapa.
   Future<List<ReporteResponse>> obtenerParaMapa({String? estado, String? tipo}) async {
     await Future.delayed(const Duration(milliseconds: 250));
     return _store.reportes
@@ -43,7 +39,6 @@ class ServicioReportes {
         .toList();
   }
 
-  /// Reportes asignados a un tecnico (vista 01 Mis asignaciones).
   Future<List<ReporteResponse>> obtenerAsignadosATecnico(int tecnicoId) async {
     await Future.delayed(const Duration(milliseconds: 250));
     final list = _store.reportes
@@ -68,7 +63,6 @@ class ServicioReportes {
     return _store.fotosDe(reporteId, tipo: tipo);
   }
 
-  /// Conteo por estado (contadores de las vistas 01).
   Future<Map<String, int>> contarPorEstado() async {
     final map = {for (final e in EstadoReporte.values) e: 0};
     for (final r in _store.reportes) {
@@ -87,8 +81,12 @@ class ServicioReportes {
 
   // ---------------- Escritura ----------------
 
-  /// CU-04: crea un reporte en estado PENDIENTE.
-  Future<ReporteResponse> crearReporte(CrearReporteRequest req, {String? nombreCiudadano}) async {
+  /// CU-04: crea un reporte en estado PENDIENTE y guarda sus fotos INICIAL.
+  Future<ReporteResponse> crearReporte(
+    CrearReporteRequest req, {
+    String? nombreCiudadano,
+    List<String> urlsFotos = const [],
+  }) async {
     await Future.delayed(const Duration(milliseconds: 300));
     final id = _store.nextReporteId();
     final ahora = _ahora();
@@ -110,6 +108,16 @@ class ServicioReportes {
       fechaActualizacion: ahora,
     );
     _store.reportes.add(reporte);
+    for (final url in urlsFotos) {
+      _store.fotos.add(Foto(
+        id: _store.nextFotoId(),
+        reporteId: id,
+        url: url,
+        tipo: TipoFoto.INICIAL,
+        descripcion: 'Foto del incidente',
+        fechaCarga: ahora,
+      ));
+    }
     _store.registrarCambioEstado(id, null, EstadoReporte.PENDIENTE);
     return reporte;
   }
@@ -146,7 +154,7 @@ class ServicioReportes {
     return actualizado;
   }
 
-  /// CU-08: el tecnico finaliza -> REVISION pasa a FINALIZADO.
+  /// CU-08: el tecnico finaliza -> REVISION pasa a FINALIZADO. Guarda fotos FINAL.
   Future<ReporteResponse> finalizarReporte(
     int id,
     String comentarioResolucion,

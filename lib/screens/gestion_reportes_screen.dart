@@ -3,10 +3,13 @@ import 'package:get/get.dart';
 import '../controllers/operador_reportes_controller.dart';
 import '../controllers/tecnicos_controller.dart';
 import '../models/models.dart';
+import '../routes/app_routes.dart';
+import '../services/servicio_reportes.dart';
 import '../utils/fechas.dart';
 import '../widgets/app_colors.dart';
 import '../widgets/custom_toast.dart';
 import '../widgets/estado_pill.dart';
+import '../widgets/foto_view.dart';
 
 /// Vista 02 Gestion (CU-06 aceptar/rechazar, CU-07 asignar tecnico).
 class GestionReportesScreen extends StatefulWidget {
@@ -18,13 +21,21 @@ class GestionReportesScreen extends StatefulWidget {
 
 class _GestionReportesScreenState extends State<GestionReportesScreen> {
   final _ctrl = Get.find<OperadorReportesController>();
+  final _service = ServicioReportes();
   late ReporteResponse r;
+  List<Foto> _fotos = [];
   bool _busy = false;
 
   @override
   void initState() {
     super.initState();
     r = _ctrl.reportes.firstWhere((x) => x.id == widget.reporteId);
+    _cargarFotos();
+  }
+
+  Future<void> _cargarFotos() async {
+    final f = await _service.obtenerFotos(r.id, tipo: TipoFoto.INICIAL);
+    if (mounted) setState(() => _fotos = f);
   }
 
   Future<void> _aceptar() async {
@@ -60,11 +71,12 @@ class _GestionReportesScreenState extends State<GestionReportesScreen> {
           onPressed: () async {
             final motivo = motivoCtrl.text.trim();
             if (motivo.isEmpty) { AppToast.error('Ingresa un motivo'); return; }
-            Get.back();
+            Get.back(); // cierra el dialogo
             setState(() => _busy = true);
             await _ctrl.rechazar(r.id, motivo);
             AppToast.success('Reporte rechazado.');
-            Get.back(); // volver a la cola
+            // Redirige a Cola de reportes (vista 01)
+            Get.until((route) => route.settings.name == AppRoutes.homeOperador);
           },
           child: const Text('Confirmar rechazo', style: TextStyle(color: Colors.white)),
         ),
@@ -84,20 +96,15 @@ class _GestionReportesScreenState extends State<GestionReportesScreen> {
         ),
         child: Obx(() {
           if (tc.tecnicos.isEmpty) {
-            return const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('No hay tecnicos disponibles.'),
-            );
+            return const Padding(padding: EdgeInsets.all(16), child: Text('No hay tecnicos disponibles.'));
           }
           return Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Asignar Tecnico',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+              const Text('Asignar Tecnico', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              const Text('El estado se mantiene en Revision.',
-                  style: TextStyle(fontSize: 12.5, color: Color(0xFF6B7280))),
+              const Text('El estado se mantiene en Revision.', style: TextStyle(fontSize: 12.5, color: Color(0xFF6B7280))),
               const SizedBox(height: 12),
               ...tc.tecnicos.map((t) => ListTile(
                     leading: const CircleAvatar(backgroundColor: Color(0xFFEFEAFF), child: Icon(Icons.engineering, color: AppColors.primary)),
@@ -134,6 +141,9 @@ class _GestionReportesScreenState extends State<GestionReportesScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            // Fotos adjuntas por el ciudadano (CU-06 paso 7)
+            FotosStrip(fotos: _fotos, vacioTexto: 'Sin fotos del ciudadano'),
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
@@ -147,15 +157,30 @@ class _GestionReportesScreenState extends State<GestionReportesScreen> {
                     const SizedBox(width: 6),
                     Expanded(child: Text(r.titulo, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17))),
                   ]),
-                  const SizedBox(height: 4),
-                  Text('${r.ubicacion.direccion ?? ''} - ${fmtFecha(r.fechaCreacion)}',
-                      style: const TextStyle(fontSize: 12.5, color: Color(0xFF6B7280))),
                   const SizedBox(height: 10),
                   Text(r.descripcion, style: const TextStyle(fontSize: 13.5)),
                   const Divider(height: 24),
                   _kv('Tipo', TipoProblema.label(r.tipoProblema)),
+                  _kv('Direccion', r.ubicacion.direccion ?? '-'),
                   _kv('Reportado por', r.nombreCiudadano ?? '-'),
+                  _kv('Ultima actualizacion', fmtFechaHora(r.fechaActualizacion)),
                   _kv('Tecnico asignado', r.tieneTecnico ? r.tecnicoNombre! : 'Sin tecnico asignado'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Ubicacion en un mapa (placeholder nativo)
+            Container(
+              height: 130,
+              decoration: BoxDecoration(color: const Color(0xFFE6ECEF), borderRadius: BorderRadius.circular(12)),
+              child: Stack(
+                children: [
+                  const Center(child: Icon(Icons.place, color: AppColors.primary, size: 34)),
+                  Positioned(
+                    left: 10, bottom: 8,
+                    child: Text('${r.ubicacion.latitud.toStringAsFixed(5)}, ${r.ubicacion.longitud.toStringAsFixed(5)}',
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280))),
+                  ),
                 ],
               ),
             ),

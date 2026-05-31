@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../controllers/tabs_controller.dart';
+export '../controllers/tabs_controller.dart'; // re-export para compatibilidad
 import '../widgets/app_colors.dart';
 import 'inicio_screen.dart';
 import 'map_screen.dart';
 import 'report_screen.dart';
 import 'mis_reportes_screen.dart';
-
-/// Controla la pestana activa del Ciudadano (Inicio / Mapa / Reportar / Mis reportes).
-class TabsController extends GetxController {
-  final RxInt index = 0.obs;
-  void go(int i) => index.value = i;
-}
 
 class MainTabs extends StatelessWidget {
   const MainTabs({super.key});

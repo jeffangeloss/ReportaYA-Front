@@ -121,6 +121,7 @@ class _HomeScreenOperadorState extends State<HomeScreenOperador> {
                     .map((r) => ReportCard(
                           reporte: r,
                           mostrarTecnico: r.estado == EstadoReporte.REVISION,
+                          usarFechaActualizacion: true,
                           onTap: () => Get.to(() => GestionReportesScreen(reporteId: r.id)),
                         ))
                     .toList(),

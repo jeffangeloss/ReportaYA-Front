@@ -4,8 +4,7 @@ import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/main_tabs.dart';
 import '../screens/home_screen_operador.dart';
-import '../screens/coming_soon_screen.dart';
-import '../widgets/app_colors.dart';
+import '../screens/home_screen_tecnico.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -21,13 +20,6 @@ class AppRoutes {
         GetPage(name: register, page: () => const RegisterScreen()),
         GetPage(name: mainTabs, page: () => const MainTabs()),
         GetPage(name: homeOperador, page: () => const HomeScreenOperador()),
-        // Fase 3: reemplaza este placeholder.
-        GetPage(
-          name: homeTecnico,
-          page: () => const ComingSoonScreen(
-            titulo: 'Panel del Tecnico',
-            colors: AppColors.tecnicoGradient,
-          ),
-        ),
+        GetPage(name: homeTecnico, page: () => const HomeScreenTecnico()),
       ];
 }
