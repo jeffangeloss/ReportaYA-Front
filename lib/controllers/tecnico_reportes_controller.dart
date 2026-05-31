@@ -11,7 +11,7 @@ class TecnicoReportesController extends GetxController {
   final RxnString error = RxnString();
   final RxInt currentPage = 0.obs;
   final RxInt totalPages = 0.obs;
-  final RxnString filtroEstado = RxnString();
+  final RxnString filtroEstado = RxnString('PROCESO');
 
   Future<void> cargarReportes({int page = 0, String? estadoParam}) async {
     try {

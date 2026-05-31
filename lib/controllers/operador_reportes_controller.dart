@@ -22,6 +22,7 @@ class OperadorReportesController extends GetxController {
       currentPage.value = page;
       totalPages.value = pageData.totalPages;
     } catch (e) {
+      reportes.clear();
       error.value = e.toString();
     } finally {
       loading.value = false;

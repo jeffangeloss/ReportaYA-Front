@@ -76,7 +76,11 @@ class _AsignacionTecnicosScreenState extends State<AsignacionTecnicosScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+      width: double.infinity,
+      height: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(colors: AppColors.ciudadanoGradient, begin: Alignment.topCenter, end: Alignment.bottomCenter),
       ),
@@ -134,22 +138,25 @@ class _AsignacionTecnicosScreenState extends State<AsignacionTecnicosScreen> {
                     Container(
                       margin: const EdgeInsets.only(top: 4),
                       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10)),
-                      child: Column(
-                        children: _opciones.map((o) {
-                          final sel = _prioridad == o['value'];
-                          return InkWell(
-                            onTap: () => setState(() {
-                              _prioridad = o['value']!;
-                              _prioridadOpen = false;
-                            }),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                              color: sel ? const Color(0xFFF0EAFF) : Colors.transparent,
-                              child: Text(o['label']!,
-                                  style: TextStyle(color: sel ? const Color(0xFFA27EFF) : Colors.black87)),
-                            ),
-                          );
-                        }).toList(),
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: Column(
+                          children: _opciones.map((o) {
+                            final sel = _prioridad == o['value'];
+                            return InkWell(
+                              onTap: () => setState(() {
+                                _prioridad = o['value']!;
+                                _prioridadOpen = false;
+                              }),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                color: sel ? const Color(0xFFF0EAFF) : Colors.transparent,
+                                child: Text(o['label']!,
+                                    style: TextStyle(color: sel ? const Color(0xFFA27EFF) : Colors.black87)),
+                              ),
+                            );
+                          }).toList(),
+                        ),
                       ),
                     ),
                 ],
@@ -215,6 +222,6 @@ class _AsignacionTecnicosScreenState extends State<AsignacionTecnicosScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 }

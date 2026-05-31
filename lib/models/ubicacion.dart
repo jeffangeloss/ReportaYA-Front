@@ -23,6 +23,9 @@ class Ubicacion {
     );
   }
 
+  factory Ubicacion.unavailable() =>
+      Ubicacion(latitud: 0, longitud: 0, direccion: 'Ubicación no disponible');
+
   Map<String, dynamic> toJson() => {
         if (id != null) 'id': id,
         'latitud': latitud,

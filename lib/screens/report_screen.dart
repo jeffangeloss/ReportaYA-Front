@@ -11,7 +11,9 @@ import '../services/servicio_geocoding.dart';
 import '../services/servicio_reportes.dart';
 import '../widgets/app_colors.dart';
 import '../widgets/custom_toast.dart';
+import '../utils/geo.dart';
 import '../widgets/location_picker_modal.dart';
+import 'main_tabs.dart';
 
 class _UbicacionSeleccionada {
   double lat;
@@ -52,8 +54,12 @@ class _ReportScreenState extends State<ReportScreen> {
       } catch (_) {
         AppToast.info('Usando ubicación por defecto. Ajusta el marcador.');
       }
-      final lat = pos?.latitude ?? _ubicacion?.lat ?? -12.046374;
-      final lng = pos?.longitude ?? _ubicacion?.lng ?? -77.042793;
+      double lat = _ubicacion?.lat ?? limaLat;
+      double lng = _ubicacion?.lng ?? limaLng;
+      if (pos != null && isInPeru(pos.latitude, pos.longitude)) {
+        lat = pos.latitude;
+        lng = pos.longitude;
+      }
 
       await Get.to(() => LocationPickerModal(
             initialLat: lat,
@@ -82,15 +88,40 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   Future<void> _takePhoto() async {
+    final source = await _pickImageSource();
+    if (source == null) return;
     try {
       final picker = ImagePicker();
-      final picked = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+      final picked = await picker.pickImage(source: source, imageQuality: 80);
       if (picked != null) {
         setState(() => _imagenPath = picked.path);
       }
     } catch (_) {
-      AppToast.error('No se pudo acceder a la cámara');
+      AppToast.error('No se pudo obtener la imagen');
     }
+  }
+
+  Future<ImageSource?> _pickImageSource() {
+    return showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: Color(0xFFA27EFF)),
+              title: const Text('Tomar foto'),
+              onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: Color(0xFFA27EFF)),
+              title: const Text('Elegir de galería'),
+              onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _submit() async {
@@ -141,12 +172,14 @@ class _ReportScreenState extends State<ReportScreen> {
       final ctrl = Get.find<ReportesController>();
       await ctrl.agregarReporte(reporte, usuario.id);
       AppToast.success('¡Reporte creado exitosamente!');
+      if (!mounted) return;
       setState(() {
         _tipo = '';
         _descripcionCtrl.clear();
         _ubicacion = null;
         _imagenPath = null;
       });
+      MainTabs.of(context)?.goTo(0);
     } catch (e) {
       AppToast.error(e.toString().replaceFirst('Exception: ', ''));
     } finally {
@@ -157,12 +190,14 @@ class _ReportScreenState extends State<ReportScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
+      height: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(colors: AppColors.ciudadanoGradient, begin: Alignment.topCenter, end: Alignment.bottomCenter),
       ),
       child: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
           child: Column(
             children: [
               const Text('Reportar Incidencia',

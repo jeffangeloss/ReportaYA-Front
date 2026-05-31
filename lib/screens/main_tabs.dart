@@ -6,13 +6,18 @@ import 'report_screen.dart';
 class MainTabs extends StatefulWidget {
   const MainTabs({super.key});
 
+  static MainTabsState? of(BuildContext context) => context.findAncestorStateOfType<MainTabsState>();
+
   @override
-  State<MainTabs> createState() => _MainTabsState();
+  State<MainTabs> createState() => MainTabsState();
 }
 
-class _MainTabsState extends State<MainTabs> {
+class MainTabsState extends State<MainTabs> {
   int _index = 0;
-  final List<Widget> _pages = const [HomeScreen(), MapScreen(), ReportScreen()];
+  final GlobalKey<MapScreenState> _mapKey = GlobalKey<MapScreenState>();
+  late final List<Widget> _pages = [const HomeScreen(), MapScreen(key: _mapKey), const ReportScreen()];
+
+  void goTo(int index) => setState(() => _index = index);
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +28,10 @@ class _MainTabsState extends State<MainTabs> {
         selectedItemColor: const Color(0xFFA27EFF),
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
-        onTap: (i) => setState(() => _index = i),
+        onTap: (i) {
+          setState(() => _index = i);
+          if (i == 1) _mapKey.currentState?.reload();
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Mis Reportes'),
           BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Mapa'),

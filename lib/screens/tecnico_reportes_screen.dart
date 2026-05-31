@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../controllers/tecnico_reportes_controller.dart';
+import '../routes/app_routes.dart';
 import '../widgets/app_colors.dart';
 import '../widgets/pagination_footer.dart';
 import '../widgets/report_card.dart';
@@ -25,7 +26,11 @@ class _TecnicoReportesScreenState extends State<TecnicoReportesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+      width: double.infinity,
+      height: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(colors: AppColors.tecnicoGradient, begin: Alignment.topCenter, end: Alignment.bottomCenter),
       ),
@@ -114,9 +119,7 @@ class _TecnicoReportesScreenState extends State<TecnicoReportesScreen> {
                                 fecha: fecha,
                                 ubicacion: ubic,
                                 onPress: () {},
-                                onAtender: () {
-                                  // TODO: completar reporte con fotos (futura iteración)
-                                },
+                                onAtender: () => Get.toNamed(AppRoutes.completarReporte, arguments: r.id),
                               );
                             },
                           ),
@@ -141,7 +144,7 @@ class _TecnicoReportesScreenState extends State<TecnicoReportesScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   String _formatFecha(String iso) {

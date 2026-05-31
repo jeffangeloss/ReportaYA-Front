@@ -10,8 +10,8 @@ class HttpService {
   HttpService._internal() {
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 30),
       headers: {'Content-Type': 'application/json'},
     ));
 
@@ -30,8 +30,8 @@ class HttpService {
     return res.data;
   }
 
-  Future<dynamic> post(String url, {dynamic data}) async {
-    final res = await _dio.post(url, data: data);
+  Future<dynamic> post(String url, {dynamic data, Map<String, dynamic>? query}) async {
+    final res = await _dio.post(url, data: data, queryParameters: query);
     return res.data;
   }
 

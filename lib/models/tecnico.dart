@@ -3,31 +3,26 @@ class TecnicoResponse {
   final String usuario;
   final String nombres;
   final String apellidos;
-  final String dni;
-  final String telefono;
-  final String correo;
-  final bool activo;
+  final String? email;
+  final String? especialidad;
 
   TecnicoResponse({
     required this.id,
     required this.usuario,
     required this.nombres,
     required this.apellidos,
-    required this.dni,
-    required this.telefono,
-    required this.correo,
-    required this.activo,
+    this.email,
+    this.especialidad,
   });
 
+  // Alineado con backend TecnicoDTO: id, usuario, nombres, apellidos, email, especialidad.
   factory TecnicoResponse.fromJson(Map<String, dynamic> json) => TecnicoResponse(
         id: json['id'] as int,
-        usuario: json['usuario'] as String,
-        nombres: json['nombres'] as String,
-        apellidos: json['apellidos'] as String,
-        dni: json['dni'] as String,
-        telefono: json['telefono'] as String,
-        correo: json['correo'] as String,
-        activo: json['activo'] as bool? ?? true,
+        usuario: json['usuario'] as String? ?? '',
+        nombres: json['nombres'] as String? ?? '',
+        apellidos: json['apellidos'] as String? ?? '',
+        email: json['email'] as String?,
+        especialidad: json['especialidad'] as String?,
       );
 
   String get nombreCompleto => '$nombres $apellidos';

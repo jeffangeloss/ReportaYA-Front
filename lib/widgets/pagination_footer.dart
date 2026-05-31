@@ -24,16 +24,19 @@ class PaginationFooter extends StatelessWidget {
     final canPrev = currentPage > 0 && !loading;
     final canNext = currentPage < totalPages - 1 && !loading;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _btn(Icons.chevron_left, 'Anterior', canPrev, onPrev),
-          Text('Página ${currentPage + 1} de ${totalPages == 0 ? 1 : totalPages}',
-              style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
-          _btn(Icons.chevron_right, 'Siguiente', canNext, onNext, iconAtEnd: true),
-        ],
+    return Material(
+      type: MaterialType.transparency,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _btn(Icons.chevron_left, 'Anterior', canPrev, onPrev),
+            Text('Página ${currentPage + 1} de ${totalPages == 0 ? 1 : totalPages}',
+                style: TextStyle(color: textColor, fontWeight: FontWeight.w600)),
+            _btn(Icons.chevron_right, 'Siguiente', canNext, onNext, iconAtEnd: true),
+          ],
+        ),
       ),
     );
   }

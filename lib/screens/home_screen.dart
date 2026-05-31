@@ -46,6 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
+      height: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(colors: AppColors.ciudadanoGradient, begin: Alignment.topCenter, end: Alignment.bottomCenter),
       ),

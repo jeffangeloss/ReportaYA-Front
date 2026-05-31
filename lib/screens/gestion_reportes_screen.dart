@@ -69,7 +69,11 @@ class _GestionReportesScreenState extends State<GestionReportesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+      width: double.infinity,
+      height: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(colors: AppColors.ciudadanoGradient, begin: Alignment.topCenter, end: Alignment.bottomCenter),
       ),
@@ -84,6 +88,10 @@ class _GestionReportesScreenState extends State<GestionReportesScreen> {
                   const Expanded(
                     child: Text('Gestión de Reportes',
                         style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh, color: Colors.white),
+                    onPressed: () => ctrl.cargarReportes(page: ctrl.currentPage.value),
                   ),
                 ],
               ),
@@ -186,7 +194,7 @@ class _GestionReportesScreenState extends State<GestionReportesScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   String _formatFecha(String iso) {

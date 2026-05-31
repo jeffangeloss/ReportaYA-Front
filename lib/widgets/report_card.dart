@@ -85,7 +85,10 @@ class ReportCard extends StatelessWidget {
     );
 
     if (onPress != null) {
-      return InkWell(onTap: onPress, borderRadius: BorderRadius.circular(12), child: content);
+      return Material(
+        type: MaterialType.transparency,
+        child: InkWell(onTap: onPress, borderRadius: BorderRadius.circular(12), child: content),
+      );
     }
     return content;
   }

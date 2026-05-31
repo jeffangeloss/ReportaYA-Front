@@ -37,7 +37,9 @@ class ReporteResponse {
       prioridad: json['prioridad'] as String? ?? 'MEDIA',
       estado: json['estado'] as String? ?? 'PENDIENTE',
       tipoProblema: json['tipoProblema'] as String?,
-      ubicacion: Ubicacion.fromJson(json['ubicacion'] as Map<String, dynamic>),
+      ubicacion: json['ubicacion'] != null
+          ? Ubicacion.fromJson(json['ubicacion'] as Map<String, dynamic>)
+          : Ubicacion.unavailable(),
       fechaCreacion: json['fechaCreacion'] as String? ?? '',
       fechaActualizacion: json['fechaActualizacion'] as String? ?? '',
     );

@@ -44,7 +44,11 @@ class _HistorialScreenState extends State<HistorialScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Container(
+      width: double.infinity,
+      height: double.infinity,
       decoration: const BoxDecoration(
         gradient: LinearGradient(colors: AppColors.ciudadanoGradient, begin: Alignment.topCenter, end: Alignment.bottomCenter),
       ),
@@ -172,6 +176,6 @@ class _HistorialScreenState extends State<HistorialScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 }

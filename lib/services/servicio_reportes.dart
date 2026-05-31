@@ -27,9 +27,9 @@ class ServicioReportes {
 
   Future<Page<ReporteResponse>> obtenerTodosReportes({int page = 0, String? estado}) async {
     try {
-      final query = {'page': page};
-      if (estado != null) query['estado'] = estado as dynamic;
-      final data = await _http.get(_endpoint, query: query.cast<String, dynamic>());
+      final query = <String, dynamic>{'page': page};
+      if (estado != null) query['estado'] = estado;
+      final data = await _http.get(_endpoint, query: query);
       return Page.fromJson(data as Map<String, dynamic>, ReporteResponse.fromJson);
     } on DioException catch (e) {
       throw Exception(_msg(e, 'Error al obtener los reportes'));
@@ -66,11 +66,8 @@ class ServicioReportes {
   // Note: server expects motivo as query param (matches RN call).
   Future<ReporteResponse> rechazarReporteConMotivo(int id, String motivo) async {
     try {
-      final res = await Dio(BaseOptions(baseUrl: HttpService.baseUrl)).post(
-        '$_endpoint/$id/rechazar',
-        queryParameters: {'motivo': motivo},
-      );
-      return ReporteResponse.fromJson(res.data as Map<String, dynamic>);
+      final data = await _http.post('$_endpoint/$id/rechazar', query: {'motivo': motivo});
+      return ReporteResponse.fromJson(data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw Exception(_msg(e, 'Error al rechazar el reporte'));
     }

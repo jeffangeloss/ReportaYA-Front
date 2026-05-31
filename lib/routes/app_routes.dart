@@ -9,6 +9,7 @@ import '../screens/tecnico_reportes_screen.dart';
 import '../screens/asignacion_tecnicos_screen.dart';
 import '../screens/auditar_reporte_screen.dart';
 import '../screens/historial_screen.dart';
+import '../screens/completar_reporte_screen.dart';
 import '../screens/splash_screen.dart';
 
 class AppRoutes {
@@ -23,6 +24,7 @@ class AppRoutes {
   static const String asignacionTecnicos = '/asignacion-tecnicos';
   static const String auditarReporte = '/auditar-reporte';
   static const String historial = '/historial';
+  static const String completarReporte = '/completar-reporte';
 
   static List<GetPage> get pages => [
         GetPage(name: splash, page: () => const SplashScreen()),
@@ -36,5 +38,6 @@ class AppRoutes {
         GetPage(name: asignacionTecnicos, page: () => const AsignacionTecnicosScreen()),
         GetPage(name: auditarReporte, page: () => const AuditarReporteScreen()),
         GetPage(name: historial, page: () => const HistorialScreen()),
+        GetPage(name: completarReporte, page: () => const CompletarReporteScreen()),
       ];
 }

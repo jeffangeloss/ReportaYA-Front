@@ -7,16 +7,17 @@ import '../models/enums.dart';
 import '../models/reporte.dart';
 import '../services/servicio_reportes.dart';
 import '../widgets/custom_toast.dart';
+import '../utils/geo.dart';
 import '../widgets/report_detail_modal.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
   @override
-  State<MapScreen> createState() => _MapScreenState();
+  State<MapScreen> createState() => MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class MapScreenState extends State<MapScreen> {
   WebViewController? _webCtrl;
   List<ReporteResponse> _reportes = [];
   bool _loading = false;
@@ -27,11 +28,15 @@ class _MapScreenState extends State<MapScreen> {
   String? _filtroPrioridad;
   bool _filterOpen = false;
 
+  static const List<String> _mapEstados = ['PENDIENTE', 'REVISION', 'PROCESO', 'RESUELTA'];
+
   @override
   void initState() {
     super.initState();
     _initLocation();
   }
+
+  void reload() => _cargarReportes();
 
   Future<void> _initLocation() async {
     try {
@@ -45,14 +50,18 @@ class _MapScreenState extends State<MapScreen> {
           pos = await Geolocator.getCurrentPosition();
         } catch (_) {}
       }
-      _userLat = pos?.latitude ?? -12.046374;
-      _userLng = pos?.longitude ?? -77.042793;
+      _userLat = limaLat;
+      _userLng = limaLng;
+      if (pos != null && isInPeru(pos.latitude, pos.longitude)) {
+        _userLat = pos.latitude;
+        _userLng = pos.longitude;
+      }
       await _cargarReportes();
       _initWebView();
       setState(() {});
     } catch (_) {
-      _userLat = -12.046374;
-      _userLng = -77.042793;
+      _userLat = limaLat;
+      _userLng = limaLng;
       await _cargarReportes();
       _initWebView();
       setState(() {});
@@ -106,6 +115,8 @@ class _MapScreenState extends State<MapScreen> {
         return 'green';
       case 'PROCESO':
         return 'yellow';
+      case 'REVISION':
+        return 'blue';
       case 'PENDIENTE':
         return 'red';
       default:
@@ -115,6 +126,7 @@ class _MapScreenState extends State<MapScreen> {
 
   String _buildHtml() {
     final markers = _reportes
+        .where((r) => _mapEstados.contains(r.estado.toUpperCase()))
         .map((r) => {
               'id': r.id,
               'lat': r.ubicacion.latitud,
@@ -196,9 +208,10 @@ class _MapScreenState extends State<MapScreen> {
             child: const Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
               Text('Leyenda', style: TextStyle(fontWeight: FontWeight.bold)),
               SizedBox(height: 4),
-              _LegendRow(color: Colors.green, label: 'Resuelto'),
-              _LegendRow(color: Colors.yellow, label: 'En Proceso'),
               _LegendRow(color: Colors.red, label: 'Pendiente'),
+              _LegendRow(color: Colors.blue, label: 'En Revisión'),
+              _LegendRow(color: Colors.yellow, label: 'En Proceso'),
+              _LegendRow(color: Colors.green, label: 'Resuelto'),
             ]),
           ),
         ),
@@ -229,7 +242,7 @@ class _MapScreenState extends State<MapScreen> {
                   children: [
                     const Text('Filtros', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 12),
-                    _filterSection('Estado', EstadoReporte.values, _filtroEstado, (v) => setState(() => _filtroEstado = v)),
+                    _filterSection('Estado', _mapEstados, _filtroEstado, (v) => setState(() => _filtroEstado = v)),
                     _filterSection('Tipo de Problema', TipoProblema.values, _filtroTipo, (v) => setState(() => _filtroTipo = v)),
                     _filterSection('Prioridad', Prioridad.values, _filtroPrioridad, (v) => setState(() => _filtroPrioridad = v)),
                     Row(
