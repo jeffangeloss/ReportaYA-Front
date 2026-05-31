@@ -1,0 +1,72 @@
+@startuml
+skinparam maxMessageSize 150
+autonumber
+
+actor Ciudadano
+boundary "Vista 02 Inicio" as V2
+boundary "Vista 03 Mis reportes" as V3
+boundary "Vista 05 Detalle" as V5
+boundary "Vista 06 Mapa" as V6
+control "Backend (SpringBoot)" as Backend
+database "Base de Datos (SQL)" as DB
+
+group Flujo Principal y Escenario 1: Carga de Inicio
+    Ciudadano -> V2: Accede a la vista de Inicio
+    V2 -> Backend: Solicita lista de reportes recientes
+    Backend -> DB: Query(SELECT reportes recientes)
+    DB --> Backend: Retorna datos
+    
+    alt Hay reportes recientes
+        Backend --> V2: Retorna listado de reportes
+        V2 --> Ciudadano: Muestra listado (título, tipo, estado, fecha)
+    else Sin reportes recientes (Escenario 1)
+        Backend --> V2: Notifica que no hay reportes
+        V2 --> Ciudadano: Muestra lista vacía y sugiere crear reporte
+    end
+end
+
+group Escenario 2: Ver detalle desde "Inicio"
+    Ciudadano -> V2: Clic en un reporte del listado
+    V2 -> V5: Redirige a la vista Detalle
+    V5 -> Backend: Solicita detalle del reporte (ID)
+    Backend -> DB: Query(SELECT detalle completo)
+    DB --> Backend: Retorna datos completos
+    Backend --> V5: Retorna detalle del reporte
+    V5 --> Ciudadano: Muestra detalle general (título, estado, fecha, fotos, cronología, etc.)
+    
+    alt Estado == Pendiente
+        V5 --> Ciudadano: Muestra mensaje "Pendiente de revisión por oficina municipal"
+    else Estado == Revision
+        V5 --> Ciudadano: Muestra nombre del técnico asignado o "Sin asignar técnico"
+    else Estado == Finalizado
+        V5 --> Ciudadano: Muestra técnico, comentario de resolución y fotos de resolución
+    else Estado == Rechazado
+        V5 --> Ciudadano: Muestra comentario de rechazo del operador
+    end
+end
+
+group Escenario 3: Ver detalle desde "Mis reportes"
+    Ciudadano -> V2: Clic en botón "Mis reportes"
+    V2 -> V3: Redirige a la vista Mis reportes
+    V3 -> Backend: Solicita reportes creados por el usuario
+    Backend -> DB: Query(SELECT reportes WHERE user_id)
+    DB --> Backend: Retorna datos
+    Backend --> V3: Retorna listado de reportes del usuario
+    V3 --> Ciudadano: Muestra listado con filtros de estado y barra de búsqueda
+    Ciudadano -> V3: Filtra/Busca y hace clic en un reporte
+    V3 -> V5: Redirige a la vista Detalle (Inicia flujo de carga de detalle)
+end
+
+group Escenario 4: Ver detalle desde el mapa interactivo
+    Ciudadano -> V2: Clic en el mapa interactivo
+    V2 -> V6: Redirige a la vista Mapa
+    V6 -> Backend: Solicita reportes con coordenadas geográficas
+    Backend -> DB: Query(SELECT reportes con ubicación)
+    DB --> Backend: Retorna datos geolocalizados
+    Backend --> V6: Retorna listado geográfico
+    V6 --> Ciudadano: Muestra mapa con íconos y colores según estado/tipo
+    Ciudadano -> V6: Clic en un reporte del mapa
+    V6 -> V5: Redirige a la vista Detalle (Inicia flujo de carga de detalle)
+end
+
+@enduml

@@ -1,0 +1,47 @@
+@startuml
+title CU-03 · Recuperar contrasena
+skinparam maxMessageSize 160
+autonumber
+actor Usuario
+boundary "Vista 01 Login" as V1
+boundary "Vista 08 Recuperar contrasena" as V8
+boundary "Vista 09 Restablecer contrasena" as V9
+control "Backend (Ruby)" as Backend
+database "Base de Datos (SQLite)" as DB
+
+note over V8, V9: Vistas pendientes de diseno (CU futuro)
+
+group Flujo Principal y Escenario 1: Solicitud de recuperacion
+    Usuario -> V1: Clic en "Olvidaste tu contrasena?"
+    V1 -> V8: Redirige a la vista Recuperar contrasena
+    Usuario -> V8: Ingresa correo y clic "Enviar"
+    V8 -> Backend: Solicita restablecimiento (correo)
+    Backend -> DB: Query(SELECT cuenta WHERE correo)
+    DB --> Backend: Retorna datos
+
+    alt Correo asociado a una cuenta
+        Backend -> DB: Query(INSERT token de restablecimiento)
+        DB --> Backend: Confirma
+        Backend --> V8: Envia enlace de restablecimiento al correo
+        V8 --> Usuario: Informa que se envio el enlace
+    else Correo no asociado (Escenario 1)
+        Backend --> V8: Notifica que el correo no esta asociado
+        V8 --> Usuario: Muestra error y solicita otro correo
+    end
+end
+
+group Flujo Principal y Escenario 2: Restablecimiento
+    Usuario -> V9: Abre el enlace, ingresa nueva contrasena y confirmacion
+    Usuario -> V9: Clic en "Restablecer contrasena"
+    V9 -> Backend: Envia nueva contrasena (token)
+    alt Contrasenas coinciden
+        Backend -> DB: Query(UPDATE contrasena_hash)
+        DB --> Backend: Confirma
+        Backend --> V9: Contrasena restablecida
+        V9 --> Usuario: Muestra exito y redirige a Login
+    else Contrasenas no coinciden (Escenario 2)
+        Backend --> V9: Notifica que las contrasenas no coinciden
+        V9 --> Usuario: Muestra error
+    end
+end
+@enduml

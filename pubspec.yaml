@@ -1,5 +1,5 @@
 name: reportaya
-description: "ReportaYA - Flutter port of React Native app (gestion de reportes urbanos)."
+description: "ReportaYA - app movil de gestion de reportes urbanos (Flutter). Entrega 2: front con datos locales (JSON)."
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -10,34 +10,20 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # State management & navigation
+  # State management & navegacion
   get: ^4.6.6
 
-  # Networking
-  dio: ^5.7.0
-
-  # Local persistence
+  # Persistencia local de sesion
   get_storage: ^2.1.1
 
-  # Maps (using WebView + Leaflet, mirrors RN approach)
-  webview_flutter: ^4.10.0
-
-  # Geolocation
-  geolocator: ^13.0.1
-
-  # Image picker (camera)
-  image_picker: ^1.1.2
-
-  # Permissions
-  permission_handler: ^11.3.1
-
-  # Firebase
-  firebase_core: ^3.6.0
-  firebase_messaging: ^15.1.3
-
-  # Misc
+  # Formato de fechas
   intl: ^0.20.0
-  flutter_svg: ^2.0.10+1
+
+  # --- Pendientes para la entrega 3/4 (backend real, GPS, camara) ---
+  # dio: ^5.7.0
+  # geolocator: ^13.0.1
+  # image_picker: ^1.1.2
+  # webview_flutter: ^4.10.0
 
 dev_dependencies:
   flutter_test:
@@ -46,3 +32,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/data/

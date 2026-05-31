@@ -1,0 +1,41 @@
+@startuml
+title CU-07 · Asignar tecnicos a reportes en revision
+skinparam maxMessageSize 160
+autonumber
+actor "Operador de Oficina Municipal" as Operador
+boundary "Vista 01 Cola de reportes" as V1
+boundary "Vista 02 Gestion" as V2
+control "Backend (Ruby)" as Backend
+database "Base de Datos (SQLite)" as DB
+
+group Seleccion del reporte en Revision
+    Operador -> V1: Clic en un reporte en estado Revision
+    V1 -> V2: Redirige a la vista Gestion
+    V2 -> Backend: Solicita detalle del reporte (ID)
+    Backend -> DB: Query(SELECT detalle y asignacion)
+    DB --> Backend: Retorna datos (sin tecnico asignado)
+    Backend --> V2: Retorna detalle del reporte
+    V2 --> Operador: Muestra "Sin tecnico asignado"
+end
+
+group Flujo Principal y Escenario 1: Asignacion del tecnico
+    Operador -> V2: Clic en "Asignar Tecnico"
+    V2 -> Backend: Solicita tecnicos disponibles
+    Backend -> DB: Query(SELECT tecnicos disponibles)
+    DB --> Backend: Retorna lista
+
+    alt Hay tecnicos disponibles
+        Backend --> V2: Retorna lista de tecnicos
+        Operador -> V2: Selecciona un tecnico
+        V2 -> Backend: Solicita asignar el tecnico (tecnico_id)
+        Backend -> DB: Query(INSERT asignacion)
+        note right of DB: El estado del reporte se mantiene en Revision
+        DB --> Backend: Confirma
+        Backend --> V2: Asignacion registrada y notifica al ciudadano
+        V2 --> Operador: Confirma la asignacion
+    else Sin tecnicos disponibles (Escenario 1)
+        Backend --> V2: Notifica que no hay tecnicos disponibles
+        V2 --> Operador: Muestra lista vacia
+    end
+end
+@enduml

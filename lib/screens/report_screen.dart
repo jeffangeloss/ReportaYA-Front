@@ -1,343 +1,203 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/reportes_controller.dart';
-import '../models/reporte.dart';
-import '../models/ubicacion.dart';
+import '../models/models.dart';
 import '../services/servicio_geocoding.dart';
 import '../services/servicio_reportes.dart';
 import '../widgets/app_colors.dart';
 import '../widgets/custom_toast.dart';
-import '../widgets/location_picker_modal.dart';
+import 'main_tabs.dart';
 
-class _UbicacionSeleccionada {
-  double lat;
-  double lng;
-  String? direccion;
-  _UbicacionSeleccionada({required this.lat, required this.lng, this.direccion});
-}
-
+/// Vista 04 Reportar (CU-04). Crea un reporte en estado PENDIENTE.
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
-
   @override
   State<ReportScreen> createState() => _ReportScreenState();
 }
 
 class _ReportScreenState extends State<ReportScreen> {
-  final _descripcionCtrl = TextEditingController();
-  String _tipo = '';
-  _UbicacionSeleccionada? _ubicacion;
-  String? _imagenPath;
-  bool _loading = false;
+  final _auth = Get.find<AuthController>();
+  final _service = ServicioReportes();
+  final _geo = ServicioGeocoding();
 
-  Future<void> _pickLocation() async {
-    try {
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
-        AppToast.error('Permiso de ubicación denegado');
-        return;
-      }
-      AppToast.info('Obteniendo ubicación...');
-      Position? pos;
-      try {
-        pos = await Geolocator.getCurrentPosition(
-            locationSettings: const LocationSettings(accuracy: LocationAccuracy.high, timeLimit: Duration(seconds: 15)));
-      } catch (_) {
-        AppToast.info('Usando ubicación por defecto. Ajusta el marcador.');
-      }
-      final lat = pos?.latitude ?? _ubicacion?.lat ?? -12.046374;
-      final lng = pos?.longitude ?? _ubicacion?.lng ?? -77.042793;
+  final _tituloCtrl = TextEditingController();
+  final _descCtrl = TextEditingController();
+  String _tipo = TipoProblema.INFRAESTRUCTURA;
+  double? _lat, _lng;
+  String? _direccion;
+  int _fotos = 0;
+  bool _enviando = false;
 
-      await Get.to(() => LocationPickerModal(
-            initialLat: lat,
-            initialLng: lng,
-            onConfirm: (newLat, newLng) async {
-              AppToast.info('Obteniendo dirección...');
-              try {
-                final direccion = await ServicioGeocoding().obtenerDireccion(newLat, newLng);
-                setState(() {
-                  _ubicacion = _UbicacionSeleccionada(
-                    lat: newLat,
-                    lng: newLng,
-                    direccion: direccion.direccionCompleta,
-                  );
-                });
-                AppToast.success('Ubicación: ${direccion.distrito}, ${direccion.departamento}');
-              } catch (_) {
-                setState(() => _ubicacion = _UbicacionSeleccionada(lat: newLat, lng: newLng));
-                AppToast.success('Ubicación seleccionada correctamente');
-              }
-            },
-          ));
-    } catch (e) {
-      AppToast.error('Error al solicitar permiso de ubicación');
-    }
+  static const _tipos = TipoProblema.values;
+
+  Future<void> _usarUbicacion() async {
+    // Sin GPS real en el demo: usamos una ubicacion de ejemplo y geocodificamos local.
+    _lat = -12.08530; _lng = -77.03760;
+    final dir = await _geo.obtenerDireccion(_lat!, _lng!);
+    setState(() => _direccion = dir.direccionCompleta);
   }
 
-  Future<void> _takePhoto() async {
+  Future<void> _enviar() async {
+    if (_tituloCtrl.text.trim().isEmpty || _descCtrl.text.trim().isEmpty) {
+      AppToast.error('Completa titulo y descripcion');
+      return;
+    }
+    if (_lat == null) {
+      AppToast.error('Selecciona una ubicacion');
+      return;
+    }
+    setState(() => _enviando = true);
     try {
-      final picker = ImagePicker();
-      final picked = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
-      if (picked != null) {
-        setState(() => _imagenPath = picked.path);
-      }
-    } catch (_) {
-      AppToast.error('No se pudo acceder a la cámara');
-    }
-  }
-
-  Future<void> _submit() async {
-    if (_loading) return;
-    final auth = Get.find<AuthController>();
-    final usuario = auth.usuario.value;
-    if (usuario == null) {
-      AppToast.error('Debes iniciar sesión para crear un reporte');
-      return;
-    }
-    if (_tipo.isEmpty) {
-      AppToast.error('Por favor, selecciona un tipo de problema.');
-      return;
-    }
-    if (_ubicacion == null) {
-      AppToast.error('Por favor, obtén tu ubicación.');
-      return;
-    }
-    if (_descripcionCtrl.text.trim().length < 10) {
-      AppToast.error('La descripción debe tener al menos 10 caracteres.');
-      return;
-    }
-
-    setState(() => _loading = true);
-    try {
-      final tituloMap = {
-        'infraestructura': 'Problema de infraestructura urbana',
-        'residuos': 'Acumulación de residuos',
-        'otros': 'Otro problema',
-      };
-      final tipoMap = {
-        'infraestructura': 'INFRAESTRUCTURA',
-        'residuos': 'RESIDUOS',
-        'otros': 'OTROS',
-      };
-      final req = CrearReporteRequest(
-        titulo: tituloMap[_tipo] ?? 'Reporte sin especificar',
-        descripcion: _descripcionCtrl.text.trim(),
-        cuentaId: usuario.id,
-        tipoProblema: tipoMap[_tipo],
-        ubicacion: CrearUbicacionRequest(
-          latitud: _ubicacion!.lat,
-          longitud: _ubicacion!.lng,
-          direccion: _ubicacion!.direccion,
+      await _service.crearReporte(
+        CrearReporteRequest(
+          titulo: _tituloCtrl.text.trim(),
+          descripcion: _descCtrl.text.trim(),
+          cuentaId: _auth.cuentaId,
+          tipoProblema: _tipo,
+          ubicacion: CrearUbicacionRequest(latitud: _lat!, longitud: _lng!, direccion: _direccion),
         ),
+        nombreCiudadano: _auth.usuario.value?.nombre,
       );
-      final reporte = await ServicioReportes().crearReporte(req);
-      final ctrl = Get.find<ReportesController>();
-      await ctrl.agregarReporte(reporte, usuario.id);
-      AppToast.success('¡Reporte creado exitosamente!');
-      setState(() {
-        _tipo = '';
-        _descripcionCtrl.clear();
-        _ubicacion = null;
-        _imagenPath = null;
-      });
+      AppToast.success('Reporte enviado!');
+      await Get.find<ReportesController>().cargarReportes(_auth.cuentaId);
+      _reset();
+      Get.find<TabsController>().go(3); // ir a Mis reportes
     } catch (e) {
       AppToast.error(e.toString().replaceFirst('Exception: ', ''));
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) setState(() => _enviando = false);
     }
+  }
+
+  void _reset() {
+    _tituloCtrl.clear();
+    _descCtrl.clear();
+    setState(() { _tipo = TipoProblema.INFRAESTRUCTURA; _lat = null; _lng = null; _direccion = null; _fotos = 0; });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(colors: AppColors.ciudadanoGradient, begin: Alignment.topCenter, end: Alignment.bottomCenter),
-      ),
-      child: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              const Text('Reportar Incidencia',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F4F8),
+      body: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(16, 52, 16, 14),
+            width: double.infinity,
+            decoration: const BoxDecoration(gradient: LinearGradient(colors: AppColors.ciudadanoGradient)),
+            child: const Text('Reportar Incidencia',
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _label('Titulo'),
+                _input(_tituloCtrl, 'Ej. Hueco en la pista'),
+                const SizedBox(height: 14),
+                _label('Tipo de problema'),
+                Wrap(
+                  spacing: 8, runSpacing: 8,
+                  children: _tipos.map((t) {
+                    final on = _tipo == t;
+                    return ChoiceChip(
+                      avatar: Icon(AppColors.iconoTipo(t), size: 16, color: on ? Colors.white : AppColors.primary),
+                      label: Text(TipoProblema.label(t)),
+                      selected: on,
+                      onSelected: (_) => setState(() => _tipo = t),
+                      selectedColor: AppColors.primary,
+                      backgroundColor: Colors.white,
+                      labelStyle: TextStyle(color: on ? Colors.white : const Color(0xFF555555), fontWeight: FontWeight.w600),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 14),
+                _label('Descripcion detallada'),
+                _input(_descCtrl, 'Describe la incidencia con detalle', maxLines: 4),
+                const SizedBox(height: 14),
+                _label('Ubicacion'),
+                GestureDetector(
+                  onTap: _usarUbicacion,
+                  child: Container(
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE6ECEF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFD7DEE2)),
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(_lat == null ? Icons.add_location_alt_outlined : Icons.place, color: AppColors.primary, size: 30),
+                          const SizedBox(height: 6),
+                          Text(_direccion ?? 'Toca para usar una ubicacion de ejemplo',
+                              style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12.5)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _label('Fotos (${_fotos}/5)'),
+                Row(
                   children: [
-                    const _Label('Tipo de Problema:'),
-                    _tipoSelector(),
-                    const SizedBox(height: 14),
-                    const _Label('Ubicación en el Mapa:'),
-                    _ubicacionBox(),
-                    const SizedBox(height: 14),
-                    const _Label('Descripción detallada:'),
-                    TextField(
-                      controller: _descripcionCtrl,
-                      maxLines: 4,
-                      decoration: InputDecoration(
-                        hintText: 'Describa el problema encontrado...',
-                        filled: true,
-                        fillColor: const Color(0xFFF5F5F5),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                    ...List.generate(_fotos, (i) => Container(
+                          width: 56, height: 56, margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(color: const Color(0xFF5B4636), borderRadius: BorderRadius.circular(10)),
+                          child: const Icon(Icons.image, color: Colors.white54, size: 20),
+                        )),
+                    if (_fotos < 5)
+                      GestureDetector(
+                        onTap: () => setState(() => _fotos++),
+                        child: Container(
+                          width: 56, height: 56,
+                          decoration: BoxDecoration(color: const Color(0xFFEDEDF2), borderRadius: BorderRadius.circular(10)),
+                          child: const Icon(Icons.add, color: Color(0xFF9AA0AB)),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 14),
-                    const _Label('Adjuntar fotos:'),
-                    _photoBox(),
-                    const SizedBox(height: 18),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFA27EFF),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onPressed: _loading ? null : _submit,
-                      child: Text(
-                        _loading ? 'Enviando...' : 'Enviar Reporte',
-                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ),
                   ],
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _tipoSelector() {
-    Widget btn(String value, String label) {
-      final selected = _tipo == value;
-      return Expanded(
-        child: InkWell(
-          onTap: () => setState(() => _tipo = value),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: selected ? const Color(0xFFA27EFF) : const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            alignment: Alignment.center,
-            child: Text(label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: selected ? Colors.white : const Color(0xFF555555),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                )),
-          ),
-        ),
-      );
-    }
-
-    return Row(children: [
-      btn('infraestructura', 'Infraestructura'),
-      btn('residuos', 'Residuos'),
-      btn('otros', 'Otro'),
-    ]);
-  }
-
-  Widget _ubicacionBox() {
-    if (_ubicacion == null) {
-      return ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFA27EFF),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-        ),
-        onPressed: _pickLocation,
-        child: const Text('Obtener Ubicación', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-      );
-    }
-    return InkWell(
-      onTap: _pickLocation,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF9F7FF),
-          border: Border.all(color: const Color(0xFFA27EFF), width: 2),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE8E0FF),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Text('🗺️📍', style: TextStyle(fontSize: 28)),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(_ubicacion!.direccion ?? 'Ubicación seleccionada',
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF333333))),
-                      const SizedBox(height: 4),
-                      Text('${_ubicacion!.lat.toStringAsFixed(5)}, ${_ubicacion!.lng.toStringAsFixed(5)}',
-                          style: const TextStyle(fontSize: 11, color: Color(0xFF666666), fontFamily: 'monospace')),
-                    ],
+                const SizedBox(height: 22),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    onPressed: _enviando ? null : _enviar,
+                    child: _enviando
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Text('Enviar reporte',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            const Text('Toca para cambiar ubicación',
-                style: TextStyle(fontSize: 12, color: Color(0xFFA27EFF), fontWeight: FontWeight.w600)),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _photoBox() {
-    if (_imagenPath != null) {
-      return InkWell(
-        onTap: _takePhoto,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Image.file(File(_imagenPath!), height: 160, fit: BoxFit.cover),
-        ),
-      );
-    }
-    return OutlinedButton.icon(
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        side: const BorderSide(color: Color(0xFFE0E0E0)),
-        backgroundColor: const Color(0xFFF5F5F5),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      icon: const Icon(Icons.camera_alt, color: Color(0xFF555555)),
-      label: const Text('Adjuntar Fotos', style: TextStyle(color: Color(0xFF555555))),
-      onPressed: _takePhoto,
-    );
-  }
-}
-
-class _Label extends StatelessWidget {
-  final String text;
-  const _Label(this.text);
-  @override
-  Widget build(BuildContext context) => Padding(
+  Widget _label(String t) => Padding(
         padding: const EdgeInsets.only(bottom: 6),
-        child: Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF555555))),
+        child: Text(t, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF444444))),
+      );
+
+  Widget _input(TextEditingController c, String hint, {int maxLines = 1}) => TextField(
+        controller: c,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          hintText: hint,
+          filled: true, fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        ),
       );
 }

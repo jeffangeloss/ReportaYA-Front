@@ -1,132 +1,197 @@
-import 'package:dio/dio.dart';
-import '../models/pagination.dart';
-import '../models/reporte.dart';
-import 'http_service.dart';
+import '../data/local_store.dart';
+import '../models/models.dart';
 
+/// Logica de reportes contra el almacen local (sin REST).
+/// Mismas firmas que tendra la version API en la entrega 3/4.
 class ServicioReportes {
-  static const String _endpoint = '/api/reportes';
-  final HttpService _http = HttpService.instance;
+  final LocalStore _store = LocalStore.instance;
 
-  Future<ReporteResponse> crearReporte(CrearReporteRequest reporte) async {
-    try {
-      final data = await _http.post(_endpoint, data: reporte.toJson());
-      return ReporteResponse.fromJson(data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw Exception(_msg(e, 'Error al crear el reporte'));
-    }
+  String _ahora() => DateTime.now().toIso8601String();
+
+  // ---------------- Lectura (CU-05 / CU-06 / CU-08) ----------------
+
+  /// Reportes creados por un ciudadano (vista 03 Mis reportes).
+  Future<List<ReporteResponse>> obtenerReportesPorCuenta(int cuentaId) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    final list = _store.reportes.where((r) => r.cuentaId == cuentaId).toList();
+    list.sort((a, b) => b.fechaCreacion.compareTo(a.fechaCreacion));
+    return list;
   }
 
-  Future<ReporteResponse> actualizarReporte(int id, Map<String, dynamic> reporte) async {
-    try {
-      final data = await _http.put('$_endpoint/$id', data: reporte);
-      return ReporteResponse.fromJson(data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw Exception(_msg(e, 'Error al actualizar el reporte'));
-    }
+  /// Reportes recientes para la vista 02 Inicio.
+  Future<List<ReporteResponse>> obtenerRecientes(int cuentaId, {int limit = 5}) async {
+    final list = await obtenerReportesPorCuenta(cuentaId);
+    return list.take(limit).toList();
   }
 
-  Future<Page<ReporteResponse>> obtenerTodosReportes({int page = 0, String? estado}) async {
-    try {
-      final query = {'page': page};
-      if (estado != null) query['estado'] = estado as dynamic;
-      final data = await _http.get(_endpoint, query: query.cast<String, dynamic>());
-      return Page.fromJson(data as Map<String, dynamic>, ReporteResponse.fromJson);
-    } on DioException catch (e) {
-      throw Exception(_msg(e, 'Error al obtener los reportes'));
-    }
+  /// Todos los reportes, opcionalmente filtrados por estado (vista 01 Cola).
+  Future<List<ReporteResponse>> obtenerTodos({String? estado}) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    final list = _store.reportes
+        .where((r) => estado == null || r.estado == estado)
+        .toList();
+    list.sort((a, b) => b.fechaActualizacion.compareTo(a.fechaActualizacion));
+    return list;
   }
 
-  Future<List<ReporteResponse>> obtenerReportesMapa({String? estado, String? tipo, String? prioridad}) async {
-    try {
-      final query = <String, dynamic>{};
-      if (estado != null) query['estado'] = estado;
-      if (tipo != null) query['tipo'] = tipo;
-      if (prioridad != null) query['prioridad'] = prioridad;
-      final data = await _http.get('$_endpoint/mapa', query: query);
-      return (data as List<dynamic>)
-          .map((e) => ReporteResponse.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw Exception(_msg(e, 'Error al obtener reportes del mapa'));
-    }
+  /// Reportes con ubicacion para la vista 06 Mapa.
+  Future<List<ReporteResponse>> obtenerParaMapa({String? estado, String? tipo}) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    return _store.reportes
+        .where((r) => (estado == null || r.estado == estado) &&
+            (tipo == null || r.tipoProblema == tipo))
+        .toList();
   }
 
-  Future<ReporteResponse> rechazarReporte(int id, String motivo) async {
-    try {
-      final data = await _http.post(
-        '$_endpoint/$id/rechazar',
-        data: null,
-      );
-      return ReporteResponse.fromJson(data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw Exception(_msg(e, 'Error al rechazar el reporte'));
-    }
+  /// Reportes asignados a un tecnico (vista 01 Mis asignaciones).
+  Future<List<ReporteResponse>> obtenerAsignadosATecnico(int tecnicoId) async {
+    await Future.delayed(const Duration(milliseconds: 250));
+    final list = _store.reportes
+        .where((r) => r.tecnicoAsignadoId == tecnicoId)
+        .toList();
+    list.sort((a, b) => b.fechaActualizacion.compareTo(a.fechaActualizacion));
+    return list;
   }
 
-  // Note: server expects motivo as query param (matches RN call).
-  Future<ReporteResponse> rechazarReporteConMotivo(int id, String motivo) async {
-    try {
-      final res = await Dio(BaseOptions(baseUrl: HttpService.baseUrl)).post(
-        '$_endpoint/$id/rechazar',
-        queryParameters: {'motivo': motivo},
-      );
-      return ReporteResponse.fromJson(res.data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw Exception(_msg(e, 'Error al rechazar el reporte'));
-    }
+  Future<ReporteResponse?> obtenerDetalle(int id) async {
+    await Future.delayed(const Duration(milliseconds: 200));
+    final i = _store.indexReporte(id);
+    return i >= 0 ? _store.reportes[i] : null;
   }
 
   Future<List<HistorialEstado>> obtenerHistorialEstados(int reporteId) async {
-    try {
-      final data = await _http.get('/historial-estados/reporte/$reporteId');
-      return (data as List<dynamic>)
-          .map((e) => HistorialEstado.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw Exception(_msg(e, 'Error al obtener historial'));
-    }
+    await Future.delayed(const Duration(milliseconds: 150));
+    return _store.historialDe(reporteId);
   }
 
-  Future<Page<ReporteResponse>> obtenerReportesPorCuenta(int cuentaId, {int page = 0}) async {
-    try {
-      final data = await _http.get('$_endpoint/cuenta/$cuentaId', query: {'page': page});
-      return Page.fromJson(data as Map<String, dynamic>, ReporteResponse.fromJson);
-    } on DioException catch (e) {
-      throw Exception(_msg(e, 'Error al obtener los reportes'));
-    }
+  Future<List<Foto>> obtenerFotos(int reporteId, {String? tipo}) async {
+    return _store.fotosDe(reporteId, tipo: tipo);
   }
 
-  Future<ReporteResponse> cambiarEstadoReporte(int id, String nuevoEstado) async {
-    try {
-      final data = await _http.patch('$_endpoint/$id/estado', query: {'nuevoEstado': nuevoEstado});
-      return ReporteResponse.fromJson(data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw Exception(_msg(e, 'Error al cambiar estado del reporte'));
+  /// Conteo por estado (contadores de las vistas 01).
+  Future<Map<String, int>> contarPorEstado() async {
+    final map = {for (final e in EstadoReporte.values) e: 0};
+    for (final r in _store.reportes) {
+      map[r.estado] = (map[r.estado] ?? 0) + 1;
     }
+    return map;
   }
 
-  Future<ReporteResponse> cambiarPrioridadReporte(int id, String nuevaPrioridad) async {
-    try {
-      final data = await _http.patch('$_endpoint/$id/prioridad', query: {'nuevaPrioridad': nuevaPrioridad});
-      return ReporteResponse.fromJson(data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      throw Exception(_msg(e, 'Error al cambiar prioridad'));
+  Future<Map<String, int>> contarPorEstadoTecnico(int tecnicoId) async {
+    final map = {EstadoReporte.REVISION: 0, EstadoReporte.FINALIZADO: 0};
+    for (final r in _store.reportes.where((r) => r.tecnicoAsignadoId == tecnicoId)) {
+      map[r.estado] = (map[r.estado] ?? 0) + 1;
     }
+    return map;
   }
 
-  Future<void> eliminarReporte(int id) async {
-    try {
-      await _http.delete('$_endpoint/$id');
-    } on DioException catch (e) {
-      throw Exception(_msg(e, 'Error al eliminar el reporte'));
-    }
+  // ---------------- Escritura ----------------
+
+  /// CU-04: crea un reporte en estado PENDIENTE.
+  Future<ReporteResponse> crearReporte(CrearReporteRequest req, {String? nombreCiudadano}) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    final id = _store.nextReporteId();
+    final ahora = _ahora();
+    final reporte = ReporteResponse(
+      id: id,
+      titulo: req.titulo,
+      descripcion: req.descripcion,
+      cuentaId: req.cuentaId,
+      nombreCiudadano: nombreCiudadano,
+      estado: EstadoReporte.PENDIENTE,
+      tipoProblema: req.tipoProblema,
+      ubicacion: Ubicacion(
+        id: id,
+        latitud: req.ubicacion.latitud,
+        longitud: req.ubicacion.longitud,
+        direccion: req.ubicacion.direccion,
+      ),
+      fechaCreacion: ahora,
+      fechaActualizacion: ahora,
+    );
+    _store.reportes.add(reporte);
+    _store.registrarCambioEstado(id, null, EstadoReporte.PENDIENTE);
+    return reporte;
   }
 
-  String _msg(DioException e, String fallback) {
-    if (e.response?.data is Map) {
-      final m = e.response!.data['message'];
-      if (m != null) return m.toString();
+  /// CU-06: el operador acepta -> PENDIENTE pasa a REVISION.
+  Future<ReporteResponse> aceptarReporte(int id) async {
+    return _transicion(id, EstadoReporte.REVISION);
+  }
+
+  /// CU-06: el operador rechaza con motivo -> PENDIENTE pasa a RECHAZADO.
+  Future<ReporteResponse> rechazarReporte(int id, String motivo) async {
+    final i = _requireIndex(id);
+    final anterior = _store.reportes[i].estado;
+    final actualizado = _store.reportes[i].copyWith(
+      estado: EstadoReporte.RECHAZADO,
+      comentarioResolucion: motivo,
+      fechaActualizacion: _ahora(),
+      fechaCierre: _ahora(),
+    );
+    _store.reportes[i] = actualizado;
+    _store.registrarCambioEstado(id, anterior, EstadoReporte.RECHAZADO);
+    return actualizado;
+  }
+
+  /// CU-07: asigna un tecnico. El estado se mantiene en REVISION.
+  Future<ReporteResponse> asignarTecnico(int id, TecnicoResponse tecnico) async {
+    final i = _requireIndex(id);
+    final actualizado = _store.reportes[i].copyWith(
+      tecnicoAsignadoId: tecnico.id,
+      tecnicoNombre: tecnico.nombreCompleto,
+      fechaActualizacion: _ahora(),
+    );
+    _store.reportes[i] = actualizado;
+    return actualizado;
+  }
+
+  /// CU-08: el tecnico finaliza -> REVISION pasa a FINALIZADO.
+  Future<ReporteResponse> finalizarReporte(
+    int id,
+    String comentarioResolucion,
+    List<String> urlsFotos,
+  ) async {
+    final i = _requireIndex(id);
+    final anterior = _store.reportes[i].estado;
+    final actualizado = _store.reportes[i].copyWith(
+      estado: EstadoReporte.FINALIZADO,
+      comentarioResolucion: comentarioResolucion,
+      fechaActualizacion: _ahora(),
+      fechaCierre: _ahora(),
+    );
+    _store.reportes[i] = actualizado;
+    for (final url in urlsFotos) {
+      _store.fotos.add(Foto(
+        id: _store.nextFotoId(),
+        reporteId: id,
+        url: url,
+        tipo: TipoFoto.FINAL,
+        descripcion: 'Foto de resolucion',
+        fechaCarga: _ahora(),
+      ));
     }
-    return e.message ?? fallback;
+    _store.registrarCambioEstado(id, anterior, EstadoReporte.FINALIZADO);
+    return actualizado;
+  }
+
+  // ---------------- internos ----------------
+
+  Future<ReporteResponse> _transicion(int id, String nuevo) async {
+    final i = _requireIndex(id);
+    final anterior = _store.reportes[i].estado;
+    final actualizado = _store.reportes[i].copyWith(
+      estado: nuevo,
+      fechaActualizacion: _ahora(),
+    );
+    _store.reportes[i] = actualizado;
+    _store.registrarCambioEstado(id, anterior, nuevo);
+    return actualizado;
+  }
+
+  int _requireIndex(int id) {
+    final i = _store.indexReporte(id);
+    if (i < 0) throw Exception('Reporte no encontrado');
+    return i;
   }
 }

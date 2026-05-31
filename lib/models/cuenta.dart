@@ -1,3 +1,6 @@
+import 'enums.dart';
+
+/// Datos para registrar una cuenta (CU-02). Por ahora solo CIUDADANO.
 class CrearCuentaRequest {
   final String tipoCuenta;
   final String usuario;
@@ -10,7 +13,7 @@ class CrearCuentaRequest {
   final bool activo;
 
   CrearCuentaRequest({
-    required this.tipoCuenta,
+    this.tipoCuenta = TipoCuenta.CIUDADANO,
     required this.usuario,
     required this.contrasena,
     required this.nombres,
@@ -18,7 +21,7 @@ class CrearCuentaRequest {
     required this.dni,
     required this.telefono,
     required this.correo,
-    required this.activo,
+    this.activo = true,
   });
 
   Map<String, dynamic> toJson() => {
@@ -44,6 +47,7 @@ class CuentaResponse {
   final String telefono;
   final String correo;
   final bool activo;
+  final String? contrasena; // solo uso local (JSON semilla); no se expone en UI
 
   CuentaResponse({
     required this.id,
@@ -55,7 +59,10 @@ class CuentaResponse {
     required this.telefono,
     required this.correo,
     required this.activo,
+    this.contrasena,
   });
+
+  String get nombreCompleto => '$nombres $apellidos';
 
   factory CuentaResponse.fromJson(Map<String, dynamic> json) => CuentaResponse(
         id: json['id'] as int,
@@ -66,6 +73,7 @@ class CuentaResponse {
         dni: json['dni'] as String,
         telefono: json['telefono'] as String,
         correo: json['correo'] as String,
-        activo: json['activo'] as bool,
+        activo: json['activo'] as bool? ?? true,
+        contrasena: json['contrasena'] as String?,
       );
 }

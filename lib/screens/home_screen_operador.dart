@@ -1,120 +1,152 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
+import '../controllers/operador_reportes_controller.dart';
+import '../models/enums.dart';
 import '../routes/app_routes.dart';
 import '../widgets/app_colors.dart';
-import '../widgets/confirmation_modal.dart';
-import '../widgets/gradient_scaffold.dart';
+import '../widgets/report_card.dart';
+import 'gestion_reportes_screen.dart';
 
-class HomeScreenOperador extends StatelessWidget {
+/// Vista 01 Cola de reportes (CU-06 / CU-07).
+class HomeScreenOperador extends StatefulWidget {
   const HomeScreenOperador({super.key});
+  @override
+  State<HomeScreenOperador> createState() => _HomeScreenOperadorState();
+}
+
+class _HomeScreenOperadorState extends State<HomeScreenOperador> {
+  final _auth = Get.find<AuthController>();
+  final _ctrl = Get.find<OperadorReportesController>();
+  final RxString _filtro = ''.obs;
+
+  static const _chips = <String>[
+    '', EstadoReporte.PENDIENTE, EstadoReporte.REVISION,
+    EstadoReporte.FINALIZADO, EstadoReporte.RECHAZADO,
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _ctrl.cargar());
+  }
 
   @override
   Widget build(BuildContext context) {
-    final auth = Get.find<AuthController>();
-
-    Future<void> handleLogout() async {
-      final ok = await ConfirmationModal.show(
-        title: 'Cerrar Sesión',
-        message: '¿Estás seguro de que quieres cerrar sesión?',
-        confirmText: 'Cerrar Sesión',
-        danger: true,
-      );
-      if (ok == true) {
-        await auth.logout();
-        Get.offAllNamed(AppRoutes.login);
-      }
-    }
-
-    return GradientScaffold(
-      colors: AppColors.ciudadanoGradient,
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F4F8),
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 52, 20, 22),
+            width: double.infinity,
+            decoration: const BoxDecoration(gradient: LinearGradient(colors: AppColors.operadorGradient)),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Obx(() {
-                    final u = auth.usuario.value;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Panel de Operador',
-                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
-                        if (u != null)
-                          Text('Hola, ${u.nombre}', style: const TextStyle(color: Colors.white70, fontSize: 14)),
-                      ],
-                    );
-                  }),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Panel del', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                      Text('Operador Municipal',
+                          style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 2),
+                      Text('Gestiona y valida reportes ciudadanos',
+                          style: TextStyle(color: Colors.white70, fontSize: 13)),
+                    ],
+                  ),
                 ),
-                Container(
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(12)),
-                  child: IconButton(icon: const Icon(Icons.logout, color: Colors.white), onPressed: handleLogout),
+                IconButton(
+                  onPressed: () { _auth.logout(); Get.offAllNamed(AppRoutes.login); },
+                  icon: const Icon(Icons.logout, color: Colors.white),
                 ),
               ],
             ),
-            const SizedBox(height: 30),
-            const Text('¿Qué deseas hacer hoy?',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-            const SizedBox(height: 20),
-            _menuCard(
-              icon: Icons.description_outlined,
-              iconBg: const Color(0xFFF0EAFF),
-              iconColor: const Color(0xFFA27EFF),
-              title: 'Gestión de Reportes',
-              description: 'Ver, asignar y gestionar los reportes ciudadanos.',
-              onTap: () => Get.toNamed(AppRoutes.gestionReportes),
+          ),
+          Transform.translate(
+            offset: const Offset(0, -14),
+            child: Obx(() => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      _contador('Pendientes', _ctrl.pendientes, AppColors.estadoPendiente),
+                      const SizedBox(width: 10),
+                      _contador('En revision', _ctrl.enRevision, AppColors.estadoRevision),
+                      const SizedBox(width: 10),
+                      _contador('Finalizados', _ctrl.finalizados, AppColors.estadoFinalizado),
+                    ],
+                  ),
+                )),
+          ),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(20, 0, 0, 8),
+              child: Text('COLA DE REPORTES',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.primary, letterSpacing: 1)),
             ),
-          ],
-        ),
+          ),
+          SizedBox(
+            height: 44,
+            child: Obx(() => ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: _chips.map((c) {
+                    final on = _filtro.value == c;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(c.isEmpty ? 'Todos' : AppColors.textoEstado(c)),
+                        selected: on,
+                        onSelected: (_) => _filtro.value = c,
+                        selectedColor: c.isEmpty ? AppColors.primary : AppColors.forEstado(c),
+                        backgroundColor: Colors.white,
+                        labelStyle: TextStyle(color: on ? Colors.white : const Color(0xFF5B5F6B), fontWeight: FontWeight.w600),
+                      ),
+                    );
+                  }).toList(),
+                )),
+          ),
+          Expanded(
+            child: Obx(() {
+              if (_ctrl.loading.value) return const Center(child: CircularProgressIndicator());
+              final list = _ctrl.filtrar(_filtro.value);
+              if (list.isEmpty) {
+                return const Center(child: Text('No hay reportes en este estado.', style: TextStyle(color: Color(0xFF9AA0AB))));
+              }
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
+                children: list
+                    .map((r) => ReportCard(
+                          reporte: r,
+                          mostrarTecnico: r.estado == EstadoReporte.REVISION,
+                          onTap: () => Get.to(() => GestionReportesScreen(reporteId: r.id)),
+                        ))
+                    .toList(),
+              );
+            }),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _menuCard({
-    required IconData icon,
-    required Color iconBg,
-    required Color iconColor,
-    required String title,
-    required String description,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 4))],
+  Widget _contador(String label, int n, Color color) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: const [BoxShadow(color: Color(0x11141028), blurRadius: 6, offset: Offset(0, 1))],
+          ),
+          child: Column(
+            children: [
+              Text('$n', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
+              const SizedBox(height: 2),
+              Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280))),
+            ],
+          ),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
-              child: Icon(icon, size: 36, color: iconColor),
-            ),
-            const SizedBox(width: 15),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF333333))),
-                  const SizedBox(height: 4),
-                  Text(description, style: const TextStyle(fontSize: 13, color: Color(0xFF666666), height: 1.3)),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right, color: Color(0xFFCCCCCC)),
-          ],
-        ),
-      ),
-    );
-  }
+      );
 }

@@ -1,65 +1,32 @@
 import 'package:get/get.dart';
-import '../models/reporte.dart';
-import '../services/servicio_tecnicos.dart';
-import 'auth_controller.dart';
+import '../models/models.dart';
+import '../services/servicio_reportes.dart';
 
+/// Estado de las asignaciones del tecnico (vistas 01/02/03, CU-08).
 class TecnicoReportesController extends GetxController {
-  final ServicioTecnicos _service = ServicioTecnicos();
+  final ServicioReportes _service = ServicioReportes();
 
-  final RxList<ReporteResponse> reportes = <ReporteResponse>[].obs;
+  final RxList<ReporteResponse> asignaciones = <ReporteResponse>[].obs;
   final RxBool loading = false.obs;
-  final RxnString error = RxnString();
-  final RxInt currentPage = 0.obs;
-  final RxInt totalPages = 0.obs;
-  final RxnString filtroEstado = RxnString();
+  int _tecnicoId = 0;
 
-  Future<void> cargarReportes({int page = 0, String? estadoParam}) async {
-    try {
-      loading.value = true;
-      error.value = null;
-      final auth = Get.find<AuthController>();
-      final usuario = auth.usuario.value;
-      if (usuario == null) {
-        throw Exception('Usuario no autenticado');
-      }
-      final estado = estadoParam ?? filtroEstado.value;
-      final pageData = await _service.obtenerReportesAsignados(
-        usuario.id,
-        estado: estado,
-        page: page,
-      );
-      reportes.assignAll(pageData.content);
-      currentPage.value = page;
-      totalPages.value = pageData.totalPages;
-    } catch (e) {
-      error.value = e.toString();
-    } finally {
-      loading.value = false;
-    }
+  int get porAtender => asignaciones.where((r) => r.estado == EstadoReporte.REVISION).length;
+  int get resueltos => asignaciones.where((r) => r.estado == EstadoReporte.FINALIZADO).length;
+
+  List<ReporteResponse> get pendientes =>
+      asignaciones.where((r) => r.estado == EstadoReporte.REVISION).toList();
+
+  Future<void> cargar(int tecnicoId) async {
+    _tecnicoId = tecnicoId;
+    loading.value = true;
+    final list = await _service.obtenerAsignadosATecnico(tecnicoId);
+    asignaciones.assignAll(list);
+    loading.value = false;
   }
 
-  Future<void> setFiltroEstado(String? estado) async {
-    filtroEstado.value = estado;
-    await cargarReportes(page: 0, estadoParam: estado);
-  }
-
-  Future<void> nextPage() async {
-    if (currentPage.value < totalPages.value - 1 && !loading.value) {
-      await cargarReportes(page: currentPage.value + 1);
-    }
-  }
-
-  Future<void> prevPage() async {
-    if (currentPage.value > 0 && !loading.value) {
-      await cargarReportes(page: currentPage.value - 1);
-    }
-  }
-
-  void limpiarReportes() {
-    reportes.clear();
-    currentPage.value = 0;
-    totalPages.value = 0;
-    filtroEstado.value = null;
-    error.value = null;
+  Future<ReporteResponse> finalizar(int id, String comentario, List<String> urlsFotos) async {
+    final r = await _service.finalizarReporte(id, comentario, urlsFotos);
+    await cargar(_tecnicoId);
+    return r;
   }
 }

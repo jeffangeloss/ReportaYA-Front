@@ -1,20 +1,34 @@
-import 'package:dio/dio.dart';
-import '../models/cuenta.dart';
-import 'http_service.dart';
+import '../data/local_store.dart';
+import '../models/models.dart';
 
+/// CU-02 Registrarse (solo CIUDADANO). Fuente local.
 class ServicioCuenta {
-  static const String _endpoint = '/api/cuenta';
-  final HttpService _http = HttpService.instance;
+  final LocalStore _store = LocalStore.instance;
 
-  Future<CuentaResponse> crearCuenta(CrearCuentaRequest cuenta) async {
-    try {
-      final data = await _http.post(_endpoint, data: cuenta.toJson());
-      return CuentaResponse.fromJson(data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      final errMsg = e.response?.data is Map
-          ? e.response!.data['message']
-          : null;
-      throw Exception(errMsg ?? 'Error al crear la cuenta');
+  Future<CuentaResponse> crearCuenta(CrearCuentaRequest req) async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    for (final c in _store.cuentas) {
+      if (c.usuario.toLowerCase() == req.usuario.toLowerCase()) {
+        throw Exception('El usuario ya esta registrado');
+      }
+      if (c.correo.toLowerCase() == req.correo.toLowerCase()) {
+        throw Exception('El correo ya esta registrado');
+      }
     }
+    final nuevaId = (_store.cuentas.map((c) => c.id).fold<int>(0, (a, b) => a > b ? a : b)) + 1;
+    final cuenta = CuentaResponse(
+      id: nuevaId,
+      tipoCuenta: TipoCuenta.CIUDADANO,
+      usuario: req.usuario,
+      nombres: req.nombres,
+      apellidos: req.apellidos,
+      dni: req.dni,
+      telefono: req.telefono,
+      correo: req.correo,
+      activo: true,
+      contrasena: req.contrasena,
+    );
+    _store.cuentas.add(cuenta);
+    return cuenta;
   }
 }

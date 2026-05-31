@@ -1,0 +1,17 @@
+[
+  { "id": 1, "tipoCuenta": "CIUDADANO", "usuario": "ciudadano", "contrasena": "123456",
+    "nombres": "Ana", "apellidos": "Quispe", "dni": "45781230", "telefono": "987654321",
+    "correo": "ana.quispe@mail.com", "activo": true },
+  { "id": 2, "tipoCuenta": "CIUDADANO", "usuario": "jose", "contrasena": "123456",
+    "nombres": "Jose", "apellidos": "Rios", "dni": "41239876", "telefono": "986112233",
+    "correo": "jose.rios@mail.com", "activo": true },
+  { "id": 3, "tipoCuenta": "OPERADOR_MUNICIPAL", "usuario": "op.maria", "contrasena": "123456",
+    "nombres": "Maria", "apellidos": "Rojas", "dni": "09887766", "telefono": "955443322",
+    "correo": "maria.rojas@muni.gob.pe", "activo": true },
+  { "id": 4, "tipoCuenta": "TECNICO", "usuario": "tec.carlos", "contrasena": "123456",
+    "nombres": "Carlos", "apellidos": "Mendoza", "dni": "70123456", "telefono": "933221100",
+    "correo": "carlos.mendoza@muni.gob.pe", "activo": true },
+  { "id": 5, "tipoCuenta": "TECNICO", "usuario": "tec.lucia", "contrasena": "123456",
+    "nombres": "Lucia", "apellidos": "Paredes", "dni": "70988111", "telefono": "933000111",
+    "correo": "lucia.paredes@muni.gob.pe", "activo": true }
+]

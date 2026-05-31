@@ -1,103 +1,121 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
+import '../controllers/tecnico_reportes_controller.dart';
 import '../routes/app_routes.dart';
 import '../widgets/app_colors.dart';
-import '../widgets/confirmation_modal.dart';
-import '../widgets/gradient_scaffold.dart';
+import '../widgets/report_card.dart';
+import 'ejecutar_reporte_screen.dart';
 
-class HomeScreenTecnico extends StatelessWidget {
+/// Vista 01 Mis asignaciones (CU-08).
+class HomeScreenTecnico extends StatefulWidget {
   const HomeScreenTecnico({super.key});
+  @override
+  State<HomeScreenTecnico> createState() => _HomeScreenTecnicoState();
+}
+
+class _HomeScreenTecnicoState extends State<HomeScreenTecnico> {
+  final _auth = Get.find<AuthController>();
+  final _ctrl = Get.find<TecnicoReportesController>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _ctrl.cargar(_auth.cuentaId));
+  }
 
   @override
   Widget build(BuildContext context) {
-    final auth = Get.find<AuthController>();
-
-    Future<void> handleLogout() async {
-      final ok = await ConfirmationModal.show(
-        title: 'Cerrar Sesión',
-        message: '¿Estás seguro de que quieres cerrar sesión?',
-        confirmText: 'Cerrar Sesión',
-        danger: true,
-      );
-      if (ok == true) {
-        await auth.logout();
-        Get.offAllNamed(AppRoutes.login);
-      }
-    }
-
-    return GradientScaffold(
-      colors: AppColors.tecnicoGradient,
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
+    final nombre = _auth.usuario.value?.nombre ?? 'Tecnico';
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F4F8),
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 52, 20, 22),
+            width: double.infinity,
+            decoration: const BoxDecoration(gradient: LinearGradient(colors: AppColors.tecnicoGradient)),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Obx(() {
-                    final u = auth.usuario.value;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Panel de Técnico',
-                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
-                        if (u != null)
-                          Text('Hola, ${u.nombre}', style: const TextStyle(color: Colors.white70, fontSize: 14)),
-                      ],
-                    );
-                  }),
+                  child: Obx(() => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Hola,', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                          Text(nombre, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 2),
+                          Text('Tienes ${_ctrl.porAtender} reporte(s) por atender',
+                              style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                        ],
+                      )),
                 ),
-                Container(
-                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(12)),
-                  child: IconButton(icon: const Icon(Icons.logout, color: Colors.white), onPressed: handleLogout),
+                IconButton(
+                  onPressed: () { _auth.logout(); Get.offAllNamed(AppRoutes.login); },
+                  icon: const Icon(Icons.logout, color: Colors.white),
                 ),
               ],
             ),
-            const SizedBox(height: 30),
-            const Text('¿Qué deseas hacer hoy?',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-            const SizedBox(height: 20),
-            InkWell(
-              onTap: () => Get.toNamed(AppRoutes.tecnicoReportes),
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8, offset: const Offset(0, 4))],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: const BoxDecoration(color: Color(0xFFE8F5E9), shape: BoxShape.circle),
-                      child: const Icon(Icons.description_outlined, size: 36, color: Color(0xFF4CAF50)),
-                    ),
-                    const SizedBox(width: 15),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Reportes Asignados',
-                              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Color(0xFF333333))),
-                          SizedBox(height: 4),
-                          Text('Ver y ejecutar los reportes que te han sido asignados.',
-                              style: TextStyle(fontSize: 13, color: Color(0xFF666666), height: 1.3)),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.chevron_right, color: Color(0xFFCCCCCC)),
-                  ],
-                ),
-              ),
+          ),
+          Transform.translate(
+            offset: const Offset(0, -14),
+            child: Obx(() => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      _contador('Por atender', _ctrl.porAtender, AppColors.estadoRevision),
+                      const SizedBox(width: 10),
+                      _contador('Resueltos', _ctrl.resueltos, AppColors.estadoFinalizado),
+                    ],
+                  ),
+                )),
+          ),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(20, 0, 0, 8),
+              child: Text('MIS ASIGNACIONES',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.tecnicoPrimary, letterSpacing: 1)),
             ),
-          ],
-        ),
+          ),
+          Expanded(
+            child: Obx(() {
+              if (_ctrl.loading.value) return const Center(child: CircularProgressIndicator());
+              final list = _ctrl.pendientes;
+              if (list.isEmpty) {
+                return const Center(child: Text('No tienes reportes por atender.', style: TextStyle(color: Color(0xFF9AA0AB))));
+              }
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
+                children: list
+                    .map((r) => ReportCard(
+                          reporte: r,
+                          onTap: () => Get.to(() => EjecutarReporteScreen(reporteId: r.id)),
+                        ))
+                    .toList(),
+              );
+            }),
+          ),
+        ],
       ),
     );
   }
+
+  Widget _contador(String label, int n, Color color) => Expanded(
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: const [BoxShadow(color: Color(0x11141028), blurRadius: 6, offset: Offset(0, 1))],
+          ),
+          child: Column(
+            children: [
+              Text('$n', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
+              const SizedBox(height: 2),
+              Text(label, style: const TextStyle(fontSize: 11.5, color: Color(0xFF6B7280))),
+            ],
+          ),
+        ),
+      );
 }

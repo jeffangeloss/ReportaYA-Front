@@ -1,29 +1,33 @@
-import 'package:dio/dio.dart';
-import '../models/auth.dart';
-import 'http_service.dart';
+import '../data/local_store.dart';
+import '../models/models.dart';
 
+/// CU-01 Iniciar sesion. Fuente local (JSON). En entrega 3/4 solo cambia
+/// la implementacion para llamar a la API; la firma se mantiene.
 class ServicioAuth {
-  static const String _endpoint = '/api/auth';
-  final HttpService _http = HttpService.instance;
+  final LocalStore _store = LocalStore.instance;
 
   Future<AuthLoginResponse> login(String usuario, String password) async {
-    try {
-      final data = await _http.post(
-        '$_endpoint/login',
-        data: AuthLoginRequest(usuario: usuario, password: password).toJson(),
-      );
-      return AuthLoginResponse.fromJson(data as Map<String, dynamic>);
-    } on DioException catch (e) {
-      final status = e.response?.statusCode;
-      if (status == 401) {
-        throw Exception('Usuario o contraseña incorrectos');
-      } else if (status == 400) {
-        throw Exception('Datos de login inválidos');
+    await Future.delayed(const Duration(milliseconds: 300)); // simula latencia
+    CuentaResponse? cuenta;
+    for (final c in _store.cuentas) {
+      if (c.usuario.toLowerCase() == usuario.toLowerCase()) {
+        cuenta = c;
+        break;
       }
-      final errMsg = e.response?.data is Map
-          ? (e.response!.data['error'] ?? e.response!.data['message'])
-          : null;
-      throw Exception(errMsg ?? e.message ?? 'Error al iniciar sesión');
     }
+    if (cuenta == null) {
+      throw Exception('El usuario no esta registrado');
+    }
+    if (cuenta.contrasena != null && cuenta.contrasena != password) {
+      throw Exception('Usuario o contrasena incorrectos');
+    }
+    return AuthLoginResponse(
+      cuentaId: cuenta.id,
+      usuario: cuenta.usuario,
+      nombreCompleto: cuenta.nombreCompleto,
+      message: 'Inicio de sesion exitoso',
+      tipoCuenta: cuenta.tipoCuenta,
+      token: 'local-token-${cuenta.id}',
+    );
   }
 }

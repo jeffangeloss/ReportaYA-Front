@@ -1,29 +1,26 @@
 import 'dart:convert';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import '../models/auth.dart';
-import '../models/enums.dart';
-import '../services/http_service.dart';
+import '../models/models.dart';
 import '../services/servicio_auth.dart';
-import '../services/servicio_notificaciones.dart';
 
 enum AuthState { checking, authenticated, unauthenticated }
 
+/// CU-01. Sesion local con persistencia en GetStorage (TTL 24h).
+/// Sin Firebase ni HTTP: el login consulta el almacen local via ServicioAuth.
 class AuthController extends GetxController {
   static const String _storageKey = 'auth_user';
   final GetStorage _box = GetStorage();
   final ServicioAuth _auth = ServicioAuth();
-  final ServicioNotificaciones _notif = ServicioNotificaciones();
 
   final Rxn<UsuarioAutenticado> usuario = Rxn<UsuarioAutenticado>();
   final Rx<AuthState> estado = AuthState.checking.obs;
 
   bool get isAuthenticated => estado.value == AuthState.authenticated;
-  bool get isLoading => estado.value == AuthState.checking;
   bool get isCiudadano => usuario.value?.tipoCuenta == TipoCuenta.CIUDADANO;
   bool get isTecnico => usuario.value?.tipoCuenta == TipoCuenta.TECNICO;
   bool get isOperador => usuario.value?.tipoCuenta == TipoCuenta.OPERADOR_MUNICIPAL;
+  int get cuentaId => usuario.value?.id ?? 0;
 
   @override
   void onInit() {
@@ -36,24 +33,17 @@ class AuthController extends GetxController {
       estado.value = AuthState.checking;
       final raw = _box.read<String>(_storageKey);
       if (raw != null) {
-        final user = UsuarioAutenticado.fromJson(
-            jsonDecode(raw) as Map<String, dynamic>);
-        final ahora = DateTime.now();
-        final horas = ahora.difference(user.loginTime).inHours;
+        final user = UsuarioAutenticado.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+        final horas = DateTime.now().difference(user.loginTime).inHours;
         if (horas < 24) {
           usuario.value = user;
           estado.value = AuthState.authenticated;
-          if (user.token != null) {
-            HttpService.instance.setAuthToken(user.token!);
-          }
-          _registrarTokenFCM(user.id);
           return;
-        } else {
-          await _box.remove(_storageKey);
         }
+        await _box.remove(_storageKey);
       }
       estado.value = AuthState.unauthenticated;
-    } catch (e) {
+    } catch (_) {
       estado.value = AuthState.unauthenticated;
     }
   }
@@ -72,11 +62,7 @@ class AuthController extends GetxController {
       );
       usuario.value = u;
       estado.value = AuthState.authenticated;
-      if (response.token != null) {
-        HttpService.instance.setAuthToken(response.token!);
-      }
       await _box.write(_storageKey, jsonEncode(u.toJson()));
-      _registrarTokenFCM(u.id);
       return response;
     } catch (e) {
       estado.value = AuthState.unauthenticated;
@@ -87,23 +73,6 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     usuario.value = null;
     estado.value = AuthState.unauthenticated;
-    HttpService.instance.removeAuthToken();
     await _box.remove(_storageKey);
-  }
-
-  Future<void> _registrarTokenFCM(int cuentaId) async {
-    try {
-      final settings = await FirebaseMessaging.instance.requestPermission();
-      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
-          settings.authorizationStatus == AuthorizationStatus.provisional) {
-        final token = await FirebaseMessaging.instance.getToken();
-        if (token != null) {
-          await _notif.registrarToken(cuentaId: cuentaId, token: token);
-        }
-      }
-    } catch (e) {
-      // Silenciar — notificaciones son best-effort.
-      print('FCM register failed: $e');
-    }
   }
 }

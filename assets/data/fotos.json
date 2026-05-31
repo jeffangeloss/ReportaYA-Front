@@ -1,0 +1,9 @@
+[
+  { "id": 1, "reporteId": 1042, "url": "assets/img/sample/hueco_1.jpg", "tipo": "INICIAL", "descripcion": "Vista del hueco", "fechaCarga": "2026-04-27T08:42:00" },
+  { "id": 2, "reporteId": 1042, "url": "assets/img/sample/hueco_2.jpg", "tipo": "INICIAL", "descripcion": "Detalle del dano", "fechaCarga": "2026-04-27T08:42:00" },
+  { "id": 3, "reporteId": 1041, "url": "assets/img/sample/poste_1.jpg", "tipo": "INICIAL", "descripcion": "Poste apagado", "fechaCarga": "2026-04-26T19:02:00" },
+  { "id": 4, "reporteId": 1040, "url": "assets/img/sample/basura_1.jpg", "tipo": "INICIAL", "descripcion": "Acumulacion", "fechaCarga": "2026-04-26T14:05:00" },
+  { "id": 5, "reporteId": 1039, "url": "assets/img/sample/semaforo_1.jpg", "tipo": "INICIAL", "descripcion": "Semaforo intermitente", "fechaCarga": "2026-04-24T07:30:00" },
+  { "id": 6, "reporteId": 1039, "url": "assets/img/sample/semaforo_fin_1.jpg", "tipo": "FINAL", "descripcion": "Semaforo reparado", "fechaCarga": "2026-04-25T16:40:00" },
+  { "id": 7, "reporteId": 1038, "url": "assets/img/sample/vidrio_1.jpg", "tipo": "INICIAL", "descripcion": "Vidrios rotos", "fechaCarga": "2026-04-26T11:20:00" }
+]

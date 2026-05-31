@@ -1,0 +1,13 @@
+[
+  { "id": 1, "reporteId": 1042, "estadoAnterior": null, "estadoNuevo": "PENDIENTE", "fechaCambio": "2026-04-27T08:42:00" },
+  { "id": 2, "reporteId": 1042, "estadoAnterior": "PENDIENTE", "estadoNuevo": "REVISION", "fechaCambio": "2026-04-27T10:15:00" },
+  { "id": 3, "reporteId": 1041, "estadoAnterior": null, "estadoNuevo": "PENDIENTE", "fechaCambio": "2026-04-26T19:02:00" },
+  { "id": 4, "reporteId": 1041, "estadoAnterior": "PENDIENTE", "estadoNuevo": "REVISION", "fechaCambio": "2026-04-26T21:10:00" },
+  { "id": 5, "reporteId": 1040, "estadoAnterior": null, "estadoNuevo": "PENDIENTE", "fechaCambio": "2026-04-26T14:05:00" },
+  { "id": 6, "reporteId": 1039, "estadoAnterior": null, "estadoNuevo": "PENDIENTE", "fechaCambio": "2026-04-24T07:30:00" },
+  { "id": 7, "reporteId": 1039, "estadoAnterior": "PENDIENTE", "estadoNuevo": "REVISION", "fechaCambio": "2026-04-24T09:00:00" },
+  { "id": 8, "reporteId": 1039, "estadoAnterior": "REVISION", "estadoNuevo": "FINALIZADO", "fechaCambio": "2026-04-25T16:40:00" },
+  { "id": 9, "reporteId": 1038, "estadoAnterior": null, "estadoNuevo": "PENDIENTE", "fechaCambio": "2026-04-26T11:20:00" },
+  { "id": 10, "reporteId": 1037, "estadoAnterior": null, "estadoNuevo": "PENDIENTE", "fechaCambio": "2026-04-23T10:00:00" },
+  { "id": 11, "reporteId": 1037, "estadoAnterior": "PENDIENTE", "estadoNuevo": "RECHAZADO", "fechaCambio": "2026-04-23T15:30:00" }
+]

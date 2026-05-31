@@ -1,62 +1,42 @@
 import 'package:get/get.dart';
-import '../models/reporte.dart';
+import '../models/models.dart';
 import '../services/servicio_reportes.dart';
 
+/// Estado de los reportes del ciudadano (vistas 02 Inicio y 03 Mis reportes).
 class ReportesController extends GetxController {
   final ServicioReportes _service = ServicioReportes();
 
   final RxList<ReporteResponse> reportes = <ReporteResponse>[].obs;
   final RxBool loading = false.obs;
   final RxnString error = RxnString();
-  final RxInt currentPage = 0.obs;
-  final RxInt totalPages = 0.obs;
 
-  Future<void> cargarReportes(int cuentaId, {int page = 0}) async {
+  Future<void> cargarReportes(int cuentaId) async {
     try {
       loading.value = true;
       error.value = null;
-      final pageData = await _service.obtenerReportesPorCuenta(cuentaId, page: page);
-      reportes.assignAll(pageData.content);
-      currentPage.value = page;
-      totalPages.value = pageData.totalPages;
+      final list = await _service.obtenerReportesPorCuenta(cuentaId);
+      reportes.assignAll(list);
     } catch (e) {
-      error.value = e.toString();
+      error.value = e.toString().replaceFirst('Exception: ', '');
     } finally {
       loading.value = false;
     }
   }
 
-  Future<void> nextPage(int cuentaId) async {
-    if (currentPage.value < totalPages.value - 1 && !loading.value) {
-      await cargarReportes(cuentaId, page: currentPage.value + 1);
-    }
+  List<ReporteResponse> get recientes => reportes.take(5).toList();
+
+  List<ReporteResponse> filtrar({String? estado, String? busqueda}) {
+    return reportes.where((r) {
+      final okEstado = estado == null || estado.isEmpty || r.estado == estado;
+      final okBusqueda = busqueda == null ||
+          busqueda.isEmpty ||
+          r.titulo.toLowerCase().contains(busqueda.toLowerCase());
+      return okEstado && okBusqueda;
+    }).toList();
   }
 
-  Future<void> prevPage(int cuentaId) async {
-    if (currentPage.value > 0 && !loading.value) {
-      await cargarReportes(cuentaId, page: currentPage.value - 1);
-    }
-  }
-
-  Future<void> reloadCurrentPage(int cuentaId) async {
-    await cargarReportes(cuentaId, page: currentPage.value);
-  }
-
-  Future<void> agregarReporte(ReporteResponse reporte, int cuentaId) async {
-    await cargarReportes(cuentaId, page: 0);
-  }
-
-  void actualizarEstadoReporte(int reporteId, String nuevoEstado) {
-    final idx = reportes.indexWhere((r) => r.id == reporteId);
-    if (idx >= 0) {
-      reportes[idx] = reportes[idx].copyWith(estado: nuevoEstado);
-    }
-  }
-
-  void limpiarReportes() {
+  void limpiar() {
     reportes.clear();
-    currentPage.value = 0;
-    totalPages.value = 0;
     error.value = null;
   }
 }

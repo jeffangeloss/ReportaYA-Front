@@ -1,0 +1,35 @@
+@startuml
+title CU-02 · Registrarse
+skinparam maxMessageSize 160
+autonumber
+actor Ciudadano
+boundary "Vista 01 Login" as V1
+boundary "Vista 07 Registro" as V7
+control "Backend (Ruby)" as Backend
+database "Base de Datos (SQLite)" as DB
+
+note over V7: Vista pendiente de diseno (CU futuro)
+
+group Flujo Principal y Escenarios alternativos
+    Ciudadano -> V1: Clic en "Registrarse"
+    V1 -> V7: Redirige a la vista Registro
+    Ciudadano -> V7: Ingresa nombre, apellido, dni, telefono,\ncorreo, usuario y contrasena
+    Ciudadano -> V7: Clic en "Registrarse"
+    V7 -> Backend: Envia datos de registro
+    Backend -> DB: Query(SELECT cuenta WHERE usuario OR correo)
+    DB --> Backend: Retorna coincidencias
+
+    alt Datos validos y unicos
+        Backend -> DB: Query(INSERT persona, cuenta, ciudadano)
+        DB --> Backend: Confirma insercion
+        Backend --> V7: Cuenta creada (envia correo de confirmacion)
+        V7 --> Ciudadano: Muestra mensaje de exito
+    else Datos invalidos o incompletos (Escenario 1)
+        Backend --> V7: Notifica datos invalidos
+        V7 --> Ciudadano: Muestra error y solicita corregir
+    else Usuario o correo ya registrado (Escenario 2)
+        Backend --> V7: Notifica usuario/correo ya registrado
+        V7 --> Ciudadano: Muestra error y sugiere usar otro
+    end
+end
+@enduml

@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ReportaYA · Prototipo navegable</title>
+<style>
+  :root{
+    --pri:#7C5CFF; --pri2:#A78BFA; --pri-soft:#EFEAFF;
+    --pend:#ff6b6b; --rev:#ffa500; --fin:#4caf50; --rech:#9e9e9e;
+    --ink:#1f2330; --muted:#6b7280; --line:#ececf1; --bg:#f4f4f8; --card:#ffffff;
+    --green:#36b37e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  body{background:#15131f;color:var(--ink);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 12px 60px}
+  h1.brand{color:#fff;font-size:20px;font-weight:800;letter-spacing:.3px;margin-bottom:2px}
+  .sub{color:#b9b3d6;font-size:13px;margin-bottom:18px;text-align:center}
+  .roles{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:20px}
+  .roles button{border:1px solid #3a3550;background:#221d33;color:#cfc8e8;padding:9px 16px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s}
+  .roles button:hover{border-color:var(--pri2)}
+  .roles button.active{background:var(--pri);border-color:var(--pri);color:#fff}
+
+  /* phone frame */
+  .phone{width:390px;max-width:96vw;height:812px;background:#000;border-radius:46px;padding:11px;box-shadow:0 30px 70px rgba(0,0,0,.55);position:relative}
+  .screen{position:relative;width:100%;height:100%;background:var(--bg);border-radius:36px;overflow:hidden;display:flex;flex-direction:column}
+  .notch{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:120px;height:26px;background:#000;border-radius:0 0 16px 16px;z-index:50}
+  .statusbar{height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:12px;font-weight:600;color:var(--ink);flex:0 0 auto;background:transparent;position:absolute;width:100%;top:6px;z-index:40}
+  .statusbar.onpri{color:#fff}
+  .body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .body::-webkit-scrollbar{width:0}
+
+  /* header */
+  .hdr{padding:46px 20px 20px;color:#fff;background:linear-gradient(135deg,var(--pri),var(--pri2))}
+  .hdr.green{background:linear-gradient(135deg,#2fa56b,#46c98a)}
+  .hdr .small{font-size:13px;opacity:.92}
+  .hdr .big{font-size:23px;font-weight:800;margin:2px 0 4px}
+  .hdr .row{display:flex;justify-content:space-between;align-items:flex-start}
+  .iconbtn{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;color:#fff;border:none;cursor:pointer}
+  .iconbtn+.iconbtn{margin-left:8px}
+
+  .topbar{display:flex;align-items:center;gap:10px;padding:44px 16px 16px;color:#fff;background:linear-gradient(135deg,var(--pri),var(--pri2));font-weight:700;font-size:17px}
+  .topbar.green{background:linear-gradient(135deg,#2fa56b,#46c98a)}
+  .topbar .back{cursor:pointer;font-size:20px;line-height:1}
+  .topbar .sp{flex:1}
+
+  .pad{padding:16px}
+  .card{background:var(--card);border-radius:16px;padding:14px;box-shadow:0 2px 10px rgba(20,16,40,.05)}
+  .card+.card{margin-top:12px}
+  .menu{display:flex;align-items:center;gap:14px;cursor:pointer}
+  .menu .ic{width:46px;height:46px;border-radius:13px;background:var(--pri-soft);display:flex;align-items:center;justify-content:center;color:var(--pri)}
+  .menu .t{font-weight:700;font-size:16px}
+  .menu .d{font-size:12.5px;color:var(--muted)}
+  .menu .chev{margin-left:auto;color:#c4c4cf}
+
+  .section-t{font-size:12px;font-weight:800;letter-spacing:1px;color:var(--pri);margin:18px 4px 10px}
+  .rep{background:var(--card);border-radius:14px;padding:12px 12px 12px 16px;position:relative;cursor:pointer;box-shadow:0 1px 6px rgba(20,16,40,.05);overflow:hidden}
+  .rep+.rep{margin-top:10px}
+  .rep .bar{position:absolute;left:0;top:0;bottom:0;width:5px}
+  .rep .tt{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
+  .rep .addr{font-size:12.5px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:4px}
+  .rep .ft{display:flex;align-items:center;gap:8px;margin-top:9px}
+  .rep .date{margin-left:auto;font-size:11.5px;color:#9aa0ab}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px;color:#fff;letter-spacing:.3px}
+  .pill.pend{background:var(--pend)} .pill.rev{background:var(--rev)} .pill.fin{background:var(--fin)} .pill.rech{background:var(--rech)}
+  .pill.ghost{background:#f0f0f4;color:#5b5f6b}
+
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:14px 16px 4px}
+  .chips::-webkit-scrollbar{height:0}
+  .chip{flex:0 0 auto;border:1px solid var(--line);background:#fff;color:#5b5f6b;border-radius:999px;padding:8px 15px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+  .chip.on{color:#fff;border-color:transparent}
+  .chip.on[data-c=todos]{background:var(--pri)} .chip.on[data-c=pendiente]{background:var(--pend)}
+  .chip.on[data-c=revision]{background:var(--rev)} .chip.on[data-c=finalizado]{background:var(--fin)}
+  .chip.on[data-c=rechazado]{background:var(--rech)}
+
+  .counters{display:flex;gap:10px;padding:0 16px}
+  .counters .c{flex:1;background:#fff;border-radius:14px;padding:12px;text-align:center;box-shadow:0 1px 6px rgba(20,16,40,.05)}
+  .counters .c .n{font-size:22px;font-weight:800}
+  .counters .c .l{font-size:11px;color:var(--muted);margin-top:2px}
+
+  .bottomnav{flex:0 0 auto;height:64px;background:#fff;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;padding-bottom:6px}
+  .nav{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:#9aa0ab;cursor:pointer;flex:1}
+  .nav.on{color:var(--pri)}
+  .nav.on .pillnav{background:var(--pri-soft)}
+  .pillnav{width:46px;height:30px;border-radius:999px;display:flex;align-items:center;justify-content:center}
+
+  label.fld{display:block;font-size:12px;font-weight:700;color:#444;margin:14px 4px 6px}
+  input.ipt,textarea.ipt{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14px;background:#fff;outline:none}
+  input.ipt:focus,textarea.ipt:focus{border-color:var(--pri2)}
+  textarea.ipt{resize:none;min-height:88px}
+  .typegrid{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .type{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;font-size:13px;font-weight:600;color:#555;cursor:pointer}
+  .type.on{background:var(--pri);border-color:var(--pri);color:#fff}
+  .btn{display:block;width:100%;text-align:center;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:800;cursor:pointer;margin-top:18px}
+  .btn.pri{background:var(--pri);color:#fff} .btn.green{background:var(--green);color:#fff}
+  .btn.red{background:#fff;color:#e0533f;border:1.5px solid #f1b5ab} .btn.ghost{background:#fff;color:var(--pri);border:1.5px solid var(--pri-soft)}
+
+  .map{height:260px;background:
+      linear-gradient(0deg,rgba(120,140,160,.12),rgba(120,140,160,.12)),
+      repeating-linear-gradient(0deg,#e8eef0 0 38px,#e2e9ec 38px 39px),
+      repeating-linear-gradient(90deg,#e8eef0 0 38px,#e2e9ec 38px 39px);
+      position:relative;border-radius:14px;overflow:hidden}
+  .map.full{height:100%;border-radius:0}
+  .pin{position:absolute;transform:translate(-50%,-100%);width:26px;height:26px;border-radius:50% 50% 50% 0;rotate:45deg;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 8px rgba(0,0,0,.25)}
+  .pin i{width:9px;height:9px;background:#fff;border-radius:50%;rotate:-45deg}
+  .legend{position:absolute;top:12px;right:12px;background:#fff;border-radius:12px;padding:10px 12px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+  .legend .li{display:flex;align-items:center;gap:7px;margin:4px 0}
+  .legend .dot{width:10px;height:10px;border-radius:50%}
+
+  .photos{display:flex;gap:8px;overflow-x:auto;padding-top:8px}
+  .photos::-webkit-scrollbar{height:0}
+  .ph{flex:0 0 auto;width:120px;height:84px;border-radius:10px;background:linear-gradient(135deg,#5b4636,#2d231b);display:flex;align-items:flex-end;color:#fff;font-size:10px;padding:6px}
+  .ph.add{background:#f0f0f4;color:#9aa0ab;align-items:center;justify-content:center;font-size:24px}
+  .ph.solu{background:linear-gradient(135deg,#2f5d3a,#1d3a25)}
+
+  .kv{padding:10px 0;border-bottom:1px solid var(--line)}
+  .kv .k{font-size:11.5px;color:var(--muted)} .kv .v{font-size:14.5px;font-weight:600;margin-top:2px}
+  .kv:last-child{border-bottom:none}
+  .timeline{margin-top:6px}
+  .tl{display:flex;gap:10px;position:relative;padding-bottom:14px}
+  .tl .dotc{width:12px;height:12px;border-radius:50%;margin-top:3px;flex:0 0 auto;z-index:2}
+  .tl:not(:last-child):before{content:"";position:absolute;left:5px;top:14px;bottom:0;width:2px;background:var(--line)}
+  .tl .te{font-size:13.5px;font-weight:700} .tl .td{font-size:11.5px;color:var(--muted)}
+  .tabs{display:flex;background:#fff;border-bottom:1px solid var(--line)}
+  .tab{flex:1;text-align:center;padding:13px;font-size:14px;font-weight:700;color:#9aa0ab;cursor:pointer;border-bottom:2.5px solid transparent}
+  .tab.on{color:var(--green);border-color:var(--green)}
+  .callout{background:var(--pri-soft);border-left:3px solid var(--pri);border-radius:10px;padding:11px 13px;font-size:12.5px;color:#4a3f7a;margin-top:14px}
+  .empty{text-align:center;color:#9aa0ab;padding:50px 24px;font-size:14px}
+  .seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:6px}
+  .seg button{flex:1;border:none;background:#fff;padding:11px;font-weight:700;font-size:13px;color:var(--pri);cursor:pointer}
+  .seg button.on{background:var(--pri);color:#fff}
+  .state-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .state-actions .sa{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;color:#555}
+  .state-actions .sa.on[data-s=pendiente]{background:var(--pend);color:#fff;border-color:transparent}
+  .state-actions .sa.on[data-s=revision]{background:var(--rev);color:#fff;border-color:transparent}
+  .state-actions .sa.on[data-s=finalizado]{background:var(--fin);color:#fff;border-color:transparent}
+  .state-actions .sa.on[data-s=rechazado]{background:var(--rech);color:#fff;border-color:transparent}
+  .toast{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);background:#1f2330;color:#fff;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;opacity:0;transition:.25s;z-index:80;max-width:80%;text-align:center}
+  .toast.show{opacity:1}
+  .modal{position:absolute;inset:0;background:rgba(15,12,25,.45);display:none;align-items:flex-end;z-index:70}
+  .modal.show{display:flex}
+  .sheet{background:#fff;width:100%;border-radius:22px 22px 0 0;padding:20px}
+  .sheet h3{font-size:17px;margin-bottom:6px}
+  .sheet p{font-size:13px;color:var(--muted);margin-bottom:12px}
+  .hint{color:#b9b3d6;font-size:12px;text-align:center;margin-top:14px;max-width:390px}
+  a.dl{color:#cfc8e8;font-size:12px;margin-top:8px}
+</style>
+</head>
+<body>
+  <h1 class="brand">ReportaYA · Prototipo navegable</h1>
+  <div class="sub">Modelo de 4 estados — Pendiente · Revisión · Finalizado · Rechazado · (sin auditoría)</div>
+  <div class="roles" id="roles">
+    <button data-r="login" class="active">Login</button>
+    <button data-r="ciudadano">Ciudadano</button>
+    <button data-r="operador">Operador</button>
+    <button data-r="tecnico">Técnico</button>
+  </div>
+
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="screen">
+      <div class="statusbar" id="sb"><span>9:30</span><span>▦ ▮ ▮</span></div>
+      <div class="body" id="app"></div>
+      <div id="navwrap"></div>
+      <div class="toast" id="toast"></div>
+      <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+    </div>
+  </div>
+  <div class="hint">Prototipo de referencia para diseño. Datos de ejemplo. Toca tarjetas, filtros y botones para navegar el flujo de cada rol.</div>
+
+<script>
+/* ---------- Catálogo de estados (4) ---------- */
+const ST = {
+  pendiente:{label:'Pendiente', cls:'pend', color:'#ff6b6b'},
+  revision:{label:'En Revisión', cls:'rev', color:'#ffa500'},
+  finalizado:{label:'Finalizado', cls:'fin', color:'#4caf50'},
+  rechazado:{label:'Rechazado', cls:'rech', color:'#9e9e9e'},
+};
+const TIPO = {
+  infraestructura:{l:'Infraestructura', i:'🛠️'},
+  residuos:{l:'Residuos', i:'🗑️'},
+  alumbrado:{l:'Alumbrado', i:'💡'},
+  seguridad:{l:'Seguridad', i:'🛡️'},
+  otro:{l:'Otro', i:'⚠️'},
+};
+/* ---------- Datos de ejemplo ---------- */
+let REPORTS = [
+  {id:1042,t:'Hueco profundo en la pista',tipo:'infraestructura',estado:'revision',dir:'Av. Arequipa 1234, Lince',autor:'Ana Quispe',fecha:'27 abr 2026',x:30,y:55,
+   desc:'Hueco de unos 40 cm en el carril derecho. Ya provocó dos llantas pinchadas esta semana. Pasa frente a la entrada del colegio.',tec:'Carlos Mendoza',
+   crono:[['Reporte creado','27 abr · 08:42','pendiente'],['Aceptado por operador','27 abr · 10:15','revision'],['Técnico asignado: Carlos Mendoza','27 abr · 10:20','revision']]},
+  {id:1041,t:'Poste sin alumbrado',tipo:'alumbrado',estado:'revision',dir:'Jr. Las Begonias 245, San Isidro',autor:'Ana Quispe',fecha:'26 abr 2026',x:62,y:30,
+   desc:'El poste lleva 5 días sin luz, la cuadra queda totalmente a oscuras de noche.',tec:'Lucía Paredes',
+   crono:[['Reporte creado','26 abr · 19:02','pendiente'],['Aceptado por operador','26 abr · 21:10','revision'],['Técnico asignado: Lucía Paredes','26 abr · 21:12','revision']]},
+  {id:1040,t:'Acumulación de basura',tipo:'residuos',estado:'pendiente',dir:'Av. Brasil 800, Pueblo Libre',autor:'Ana Quispe',fecha:'26 abr 2026',x:45,y:72,
+   desc:'Punto de acopio improvisado lleva 3 días sin recojo. Mal olor y presencia de roedores.',tec:null,
+   crono:[['Reporte creado','26 abr · 14:05','pendiente']]},
+  {id:1039,t:'Semáforo intermitente',tipo:'seguridad',estado:'finalizado',dir:'Av. Javier Prado 4500, Surco',autor:'Ana Quispe',fecha:'25 abr 2026',x:20,y:40,
+   desc:'El semáforo de la intersección quedó en amarillo intermitente, riesgo de choques.',tec:'Carlos Mendoza',
+   comRes:'Se reemplazó el módulo de control del semáforo y se verificó el ciclo completo. Operativo.',
+   crono:[['Reporte creado','24 abr · 07:30','pendiente'],['Aceptado por operador','24 abr · 09:00','revision'],['Técnico asignado: Carlos Mendoza','24 abr · 09:05','revision'],['Reporte finalizado','25 abr · 16:40','finalizado']]},
+  {id:1038,t:'Vidrio roto en parque infantil',tipo:'seguridad',estado:'pendiente',dir:'Parque Reducto, Miraflores',autor:'José Ríos',fecha:'26 abr 2026',x:78,y:60,
+   desc:'Botellas rotas en la zona de juegos para niños.',tec:null,
+   crono:[['Reporte creado','26 abr · 11:20','pendiente']]},
+  {id:1037,t:'Rampa rota para sillas de ruedas',tipo:'infraestructura',estado:'rechazado',dir:'Av. Petit Thouars 3300, San Isidro',autor:'Ana Quispe',fecha:'23 abr 2026',x:55,y:48,
+   desc:'La rampa de acceso está fracturada.',tec:null,comRes:'Rechazado: la rampa pertenece a un predio privado, no corresponde a la vía pública municipal.',
+   crono:[['Reporte creado','23 abr · 10:00','pendiente'],['Reporte rechazado','23 abr · 15:30','rechazado']]},
+];
+
+/* ---------- Estado de navegación ---------- */
+let role='login', screen='login', cur=null, tab='info', filt='todos';
+let draftType='infraestructura';
+
+const app=()=>document.getElementById('app');
+const navwrap=()=>document.getElementById('navwrap');
+
+function pill(estado){const s=ST[estado];return `<span class="pill ${s.cls}">${s.label.toUpperCase()}</span>`;}
+
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1900);}
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+function openModal(html){document.getElementById('sheet').innerHTML=html;document.getElementById('modal').classList.add('show');}
+
+/* ---------- Router ---------- */
+function go(s,id){screen=s;if(id!==undefined)cur=REPORTS.find(r=>r.id===id);render();}
+function setRole(r){role=r;filt='todos';tab='info';
+  if(r==='login')screen='login';
+  if(r==='ciudadano')screen='inicio';
+  if(r==='operador')screen='cola';
+  if(r==='tecnico')screen='asign';
+  document.querySelectorAll('#roles button').forEach(b=>b.classList.toggle('active',b.dataset.r===r));
+  render();
+}
+document.getElementById('roles').addEventListener('click',e=>{if(e.target.dataset.r)setRole(e.target.dataset.r);});
+
+/* ---------- Render principal ---------- */
+function render(){
+  const sb=document.getElementById('sb');
+  const onPri=['login','inicio','asign','cola','mapa'].includes(screen);
+  sb.className='statusbar'+(onPri?' onpri':'');
+  navwrap().innerHTML='';
+  let h='';
+  if(screen==='login')h=vLogin();
+  else if(role==='ciudadano')h=ciudadano();
+  else if(role==='operador')h=operador();
+  else if(role==='tecnico')h=tecnico();
+  app().innerHTML=h;
+  bind();
+}
+
+/* ---------- LOGIN ---------- */
+function vLogin(){
+  return `<div style="background:linear-gradient(135deg,var(--pri),var(--pri2));padding:60px 0 38px;text-align:center;color:#fff">
+      <div style="width:74px;height:74px;border-radius:20px;background:rgba(255,255,255,.25);margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px">RY</div>
+      <div style="font-size:30px;font-weight:800">ReportaYA</div>
+      <div style="opacity:.9;font-size:13px;margin-top:4px;font-weight:600">Tu ciudad, tus reportes</div>
+    </div>
+    <div class="pad" style="background:#fff;border-radius:24px 24px 0 0;margin-top:-22px;min-height:430px">
+      <div style="font-size:22px;font-weight:800;color:var(--pri)">Iniciar Sesión</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:6px">Ingresa con tu cuenta para continuar</div>
+      <label class="fld">Usuario</label><input class="ipt" value="ciudadano">
+      <label class="fld">Contraseña</label><input class="ipt" type="password" value="123456">
+      <div style="text-align:right;font-size:12.5px;color:var(--muted);margin-top:8px;cursor:pointer" onclick="toast('CU-03 · Recuperar contraseña (pendiente de diseño)')">¿Olvidaste tu contraseña?</div>
+      <button class="btn pri" id="doLogin">Iniciar Sesión</button>
+      <div style="text-align:center;font-size:13px;color:var(--muted);margin-top:14px">¿No tienes cuenta? <b style="color:var(--pri);cursor:pointer" onclick="toast('CU-02 · Registro (pendiente de diseño)')">Regístrate</b></div>
+      <div class="callout" style="margin-top:18px">Modo demo · usa los botones de rol de arriba para entrar como <b>Ciudadano</b>, <b>Operador</b> o <b>Técnico</b>.</div>
+    </div>`;
+}
+
+/* ---------- CIUDADANO ---------- */
+function ciudadano(){
+  if(screen==='inicio')return cInicio();
+  if(screen==='mis')return cMis();
+  if(screen==='reportar')return cReportar();
+  if(screen==='detalle')return cDetalle();
+  if(screen==='mapa')return cMapa();
+  return cInicio();
+}
+function navBar(active){
+  const items=[['inicio','Inicio','🏠'],['mapa','Mapa','🗺️'],['reportar','Reportar','➕'],['mis','Mis reportes','📋']];
+  navwrap().innerHTML=`<div class="bottomnav">${items.map(([s,l,i])=>
+    `<div class="nav ${active===s?'on':''}" onclick="go('${s}')"><div class="pillnav">${i}</div>${l}</div>`).join('')}</div>`;
+  return '';
+}
+function repCard(r,onclick){const s=ST[r.estado];
+  return `<div class="rep" onclick="${onclick}"><div class="bar" style="background:${s.color}"></div>
+    <div class="tt">${TIPO[r.tipo].i} ${r.t}</div>
+    <div class="addr">📍 ${r.dir}</div>
+    <div class="ft">${pill(r.estado)}<span class="date">${r.fecha}</span></div></div>`;
+}
+function cInicio(){
+  navBar('inicio');
+  const recientes=REPORTS.filter(r=>r.autor==='Ana Quispe').slice(0,3);
+  return `<div class="hdr"><div class="row"><div>
+      <div class="small">Hola,</div><div class="big">Ana Quispe</div>
+      <div class="small">¿Qué quieres reportar hoy?</div></div>
+      <div style="display:flex"><button class="iconbtn">🔔</button><button class="iconbtn" onclick="setRole('login')">⤴</button></div></div></div>
+    <div class="pad" style="margin-top:-18px">
+      <div class="card menu" onclick="go('reportar')"><div class="ic">⊕</div><div><div class="t">Reportar Incidencia</div><div class="d">Crea un nuevo reporte con foto y ubicación</div></div><div class="chev">›</div></div>
+      <div class="card menu" onclick="go('mis')"><div class="ic">📋</div><div><div class="t">Mis Reportes</div><div class="d">Revisa el estado de tus reportes</div></div><div class="chev">›</div></div>
+      <div class="section-t">RECIENTES</div>
+      ${recientes.map(r=>repCard(r,`go('detalle',${r.id})`)).join('')}
+      <div style="height:14px"></div>
+    </div>`;
+}
+function cMis(){
+  navBar('mis');
+  const mine=REPORTS.filter(r=>r.autor==='Ana Quispe');
+  const list=filt==='todos'?mine:mine.filter(r=>r.estado===filt);
+  const chips=['todos','pendiente','revision','finalizado','rechazado'];
+  return `<div class="topbar"><span class="back" onclick="go('inicio')">‹</span> Mis Reportes <span class="sp"></span> 🔍</div>
+    <div class="chips">${chips.map(c=>`<div class="chip ${filt===c?'on':''}" data-c="${c}" onclick="filt='${c}';render()">${c==='todos'?'Todos':ST[c].label.replace('En ','')}</div>`).join('')}</div>
+    <div class="pad" style="padding-top:10px"><div style="font-size:12.5px;color:var(--muted);margin:2px 4px 10px">${list.length} reporte(s)</div>
+    ${list.length?list.map(r=>repCard(r,`go('detalle',${r.id})`)).join(''):'<div class="empty">No tienes reportes en este estado.<br>¡Crea uno nuevo!</div>'}</div>`;
+}
+function cReportar(){
+  return `<div class="topbar"><span class="back" onclick="go('inicio')">‹</span> Reportar Incidencia</div>
+    <div class="pad">
+      <label class="fld">Título</label><input class="ipt" placeholder="Ej. Hueco en la pista" value="Hueco profundo en la pista">
+      <label class="fld">Tipo de problema</label>
+      <div class="typegrid" id="types">${Object.entries(TIPO).map(([k,v])=>`<div class="type ${draftType===k?'on':''}" data-k="${k}">${v.i} ${v.l}</div>`).join('')}</div>
+      <label class="fld">Descripción detallada</label>
+      <textarea class="ipt" placeholder="Describe la incidencia con detalle">Hueco de unos 40 cm en el carril derecho frente al colegio. Ya provocó dos llantas pinchadas.</textarea>
+      <label class="fld">Ubicación</label>
+      <div class="map" style="height:150px"><div class="pin" style="left:50%;top:55%;background:var(--pri)"><i></i></div></div>
+      <div style="font-size:11.5px;color:var(--muted);margin-top:6px">-12.08530, -77.03760 · Av. Arequipa 1234, Lince</div>
+      <label class="fld">Fotos (2/5)</label>
+      <div class="photos"><div class="ph">IMG_01</div><div class="ph">IMG_02</div><div class="ph add">＋</div></div>
+      <button class="btn pri" onclick="enviarReporte()">Enviar reporte</button>
+    </div>`;
+}
+function enviarReporte(){
+  const id=Math.max(...REPORTS.map(r=>r.id))+1;
+  REPORTS.unshift({id,t:'Hueco profundo en la pista',tipo:draftType,estado:'pendiente',dir:'Av. Arequipa 1234, Lince',autor:'Ana Quispe',fecha:'31 may 2026',x:40,y:50,desc:'Hueco de unos 40 cm en el carril derecho frente al colegio.',tec:null,crono:[['Reporte creado','31 may · ahora','pendiente']]});
+  toast('¡Reporte enviado! 🎉');
+  setTimeout(()=>go('mis'),700);
+}
+function cDetalle(){
+  const r=cur;const s=ST[r.estado];
+  let extra='';
+  if(r.estado==='pendiente')extra=`<div class="callout">⏳ Tu reporte está <b>pendiente</b> de revisión por la oficina municipal.</div>`;
+  if(r.estado==='revision')extra=`<div class="kv"><div class="k">Técnico asignado</div><div class="v">${r.tec||'Sin asignar técnico'}</div></div>`;
+  if(r.estado==='finalizado')extra=`<div class="kv"><div class="k">Técnico asignado</div><div class="v">${r.tec}</div></div>
+      <div class="kv"><div class="k">Comentario de resolución</div><div class="v" style="font-weight:500">${r.comRes||''}</div></div>
+      <div class="section-t" style="color:var(--fin)">FOTOS DE RESOLUCIÓN</div><div class="photos"><div class="ph solu">FIN_01</div><div class="ph solu">FIN_02</div></div>`;
+  if(r.estado==='rechazado')extra=`<div class="callout" style="background:#f3f3f5;border-color:var(--rech);color:#555">🚫 <b>Motivo del rechazo:</b> ${r.comRes||''}</div>`;
+  return `<div class="topbar"><span class="back" onclick="go('${backFromDetail()}')">‹</span> Reporte #${r.id}<span class="sp"></span> ⋯</div>
+    <div class="pad">
+      <div class="photos" style="margin-bottom:4px"><div class="ph">IMG_01</div><div class="ph">IMG_02</div><div class="ph">IMG_03</div></div>
+      <div style="display:flex;gap:8px;margin:12px 0 4px">${pill(r.estado)}</div>
+      <div class="card">
+        <div class="kv"><div class="k">Descripción</div><div class="v" style="font-weight:500">${r.desc}</div></div>
+        <div class="kv"><div class="k">Tipo</div><div class="v">${TIPO[r.tipo].i} ${TIPO[r.tipo].l}</div></div>
+        <div class="kv"><div class="k">Dirección</div><div class="v">${r.dir}</div></div>
+        ${extra}
+      </div>
+      <div style="height:12px"></div><div class="map" style="height:150px"><div class="pin" style="left:${r.x}%;top:${r.y}%;background:${s.color}"><i></i></div></div>
+      <div class="section-t">CRONOLOGÍA</div>
+      <div class="card timeline">${r.crono.map((c,i)=>`<div class="tl"><div class="dotc" style="background:${ST[c[2]].color}"></div><div><div class="te">${c[0]}</div><div class="td">${c[1]}</div></div></div>`).join('')}</div>
+      <div style="height:16px"></div>
+    </div>`;
+}
+function backFromDetail(){if(role==='operador')return 'cola';if(role==='tecnico')return 'asign';return 'mis';}
+function cMapa(){
+  navBar('mapa');
+  const pins=REPORTS.filter(r=>r.autor==='Ana Quispe');
+  return `<div class="topbar"><span class="sp" style="flex:0"></span> Mapa de incidencias <span class="sp"></span> ⛃</div>
+    <div style="flex:1;position:relative">
+      <div class="map full">
+        <div class="legend"><b style="font-size:12px">Estados</b>
+          ${Object.values(ST).map(s=>`<div class="li"><span class="dot" style="background:${s.color}"></span>${s.label}</div>`).join('')}</div>
+        ${pins.map(r=>`<div class="pin" style="left:${r.x}%;top:${r.y}%;background:${ST[r.estado].color}" onclick="go('detalle',${r.id})"><i></i></div>`).join('')}
+      </div>
+    </div>`;
+}
+
+/* ---------- OPERADOR ---------- */
+function operador(){
+  if(screen==='gestion')return opGestion();
+  if(screen==='detalle')return cDetalle();
+  return opCola();
+}
+function opCola(){
+  const cP=REPORTS.filter(r=>r.estado==='pendiente').length;
+  const cR=REPORTS.filter(r=>r.estado==='revision').length;
+  const cF=REPORTS.filter(r=>r.estado==='finalizado').length;
+  const list=filt==='todos'?REPORTS:REPORTS.filter(r=>r.estado===filt);
+  const chips=['todos','pendiente','revision','finalizado','rechazado'];
+  return `<div class="hdr"><div class="row"><div><div class="small">Panel del</div><div class="big">Operador Municipal</div><div class="small">Gestiona y valida reportes ciudadanos</div></div>
+      <div style="display:flex"><button class="iconbtn">🔔</button><button class="iconbtn" onclick="setRole('login')">⤴</button></div></div></div>
+    <div style="margin-top:-18px"></div>
+    <div class="counters" style="padding-top:10px">
+      <div class="c"><div class="n" style="color:var(--pend)">${cP}</div><div class="l">Pendientes</div></div>
+      <div class="c"><div class="n" style="color:var(--rev)">${cR}</div><div class="l">En revisión</div></div>
+      <div class="c"><div class="n" style="color:var(--fin)">${cF}</div><div class="l">Finalizados</div></div>
+    </div>
+    <div class="section-t" style="padding-left:16px">COLA DE REPORTES</div>
+    <div class="chips" style="padding-top:0">${chips.map(c=>`<div class="chip ${filt===c?'on':''}" data-c="${c}" onclick="filt='${c}';render()">${c==='todos'?'Todos':ST[c].label.replace('En ','')}</div>`).join('')}</div>
+    <div class="pad" style="padding-top:10px">${list.length?list.map(r=>repCard(r,`go('gestion',${r.id})`)).join(''):'<div class="empty">No hay reportes en este estado.</div>'}</div>`;
+}
+function opGestion(){
+  const r=cur;
+  const isPend=r.estado==='pendiente', isRev=r.estado==='revision';
+  return `<div class="topbar"><span class="back" onclick="go('cola')">‹</span> Gestión del Reporte</div>
+    <div class="pad">
+      <div class="card">
+        <div style="display:flex;gap:8px;margin-bottom:8px">${pill(r.estado)}<span style="margin-left:auto;color:#9aa0ab;font-size:12px">#${r.id}</span></div>
+        <div style="font-weight:800;font-size:17px">${TIPO[r.tipo].i} ${r.t}</div>
+        <div style="font-size:12.5px;color:var(--muted);margin:4px 0 8px">${r.dir} · ${r.fecha}</div>
+        <div style="font-size:13.5px">${r.desc}</div>
+      </div>
+      <div class="card" style="margin-top:12px"><div class="k" style="font-size:12px;font-weight:700;color:#444">Detalle</div>
+        <div class="kv"><div class="k">Tipo</div><div class="v">${TIPO[r.tipo].l}</div></div>
+        <div class="kv"><div class="k">Reportado por</div><div class="v">${r.autor}</div></div>
+        <div class="kv"><div class="k">Técnico asignado</div><div class="v">${r.tec||'Sin asignar técnico'}</div></div>
+      </div>
+      ${isPend?`<button class="btn green" onclick="aceptar(${r.id})">✓ Aceptar reporte</button>
+                <button class="btn red" onclick="rechazarModal(${r.id})">✕ Rechazar reporte</button>`:''}
+      ${isRev?`<div class="callout">Reporte aceptado y en <b>Revisión</b>. ${r.tec?'Técnico asignado: <b>'+r.tec+'</b>':'Falta asignar técnico (CU-07).'}</div>
+               <button class="btn green" onclick="asignarModal(${r.id})">⊕ Asignar Técnico</button>`:''}
+      ${r.estado==='finalizado'?`<div class="callout" style="background:#eafaf0;border-color:var(--fin);color:#2c7a4f">✓ Reporte finalizado por ${r.tec}.</div>`:''}
+      ${r.estado==='rechazado'?`<div class="callout" style="background:#f3f3f5;border-color:var(--rech);color:#555">🚫 ${r.comRes||''}</div>`:''}
+      <div style="height:12px"></div>
+    </div>`;
+}
+function aceptar(id){const r=REPORTS.find(x=>x.id===id);r.estado='revision';r.crono.push(['Aceptado por operador','31 may · ahora','revision']);toast('Reporte aceptado → En Revisión');render();}
+function rechazarModal(id){openModal(`<h3>Rechazar reporte</h3><p>Indica el motivo del rechazo. Se notificará al ciudadano.</p>
+  <textarea class="ipt" id="motivo" placeholder="Motivo del rechazo"></textarea>
+  <button class="btn red" onclick="confirmarRechazo(${id})">Confirmar rechazo</button>
+  <button class="btn ghost" onclick="closeModal()">Cancelar</button>`);}
+function confirmarRechazo(id){const r=REPORTS.find(x=>x.id===id);const m=document.getElementById('motivo').value||'No corresponde a la vía pública municipal.';r.estado='rechazado';r.comRes='Rechazado: '+m;r.crono.push(['Reporte rechazado','31 may · ahora','rechazado']);closeModal();toast('Reporte rechazado');go('cola');}
+function asignarModal(id){const tecs=['Carlos Mendoza','Lucía Paredes','María Rojas'];
+  openModal(`<h3>Asignar Técnico</h3><p>Selecciona un técnico disponible. El estado se mantiene en Revisión.</p>
+  ${tecs.map(t=>`<div class="rep" style="margin-top:8px" onclick="confirmarAsignacion(${id},'${t}')"><div class="bar" style="background:var(--rev)"></div><div class="tt">👷 ${t}</div><div class="addr">Disponible</div></div>`).join('')}
+  <button class="btn ghost" onclick="closeModal()">Cancelar</button>`);}
+function confirmarAsignacion(id,t){const r=REPORTS.find(x=>x.id===id);r.tec=t;r.crono.push(['Técnico asignado: '+t,'31 may · ahora','revision']);closeModal();toast('Técnico asignado: '+t);render();}
+
+/* ---------- TÉCNICO ---------- */
+function tecnico(){
+  if(screen==='ejecutar')return tEjecutar();
+  return tAsign();
+}
+function tAsign(){
+  const mine=REPORTS.filter(r=>(r.tec==='Carlos Mendoza')&&['revision','finalizado'].includes(r.estado));
+  const enRev=mine.filter(r=>r.estado==='revision').length;
+  const fin=mine.filter(r=>r.estado==='finalizado').length;
+  const pend=mine.filter(r=>r.estado==='revision');
+  return `<div class="hdr green"><div class="row"><div><div class="small">Hola,</div><div class="big">Carlos Mendoza</div><div class="small">Tienes ${enRev} reporte(s) por atender</div></div>
+      <div style="display:flex"><button class="iconbtn">🔔</button><button class="iconbtn" onclick="setRole('login')">⤴</button></div></div></div>
+    <div class="counters" style="padding-top:14px;margin-top:-10px">
+      <div class="c"><div class="n" style="color:var(--rev)">${enRev}</div><div class="l">En Revisión (por atender)</div></div>
+      <div class="c"><div class="n" style="color:var(--fin)">${fin}</div><div class="l">Finalizados</div></div>
+    </div>
+    <div class="section-t" style="padding-left:16px">MIS ASIGNACIONES</div>
+    <div class="pad" style="padding-top:6px">${pend.length?pend.map(r=>repCard(r,`tabset('info');go('ejecutar',${r.id})`)).join(''):'<div class="empty">No tienes reportes asignados por ahora.</div>'}</div>`;
+}
+function tabset(t){tab=t;}
+function tEjecutar(){
+  const r=cur;
+  const infoTab=`<div class="pad">
+      <div class="card"><div style="display:flex;gap:8px;margin-bottom:6px">${pill(r.estado)}<span style="margin-left:auto;color:#9aa0ab;font-size:12px">#${r.id}</span></div>
+      <div style="font-weight:800;font-size:17px">${TIPO[r.tipo].i} ${r.t}</div>
+      <div class="kv" style="margin-top:8px"><div class="k">Descripción</div><div class="v" style="font-weight:500">${r.desc}</div></div>
+      <div class="kv"><div class="k">Dirección</div><div class="v">${r.dir}</div></div>
+      <div class="kv"><div class="k">Reportado por</div><div class="v">${r.autor} · ${r.fecha}</div></div></div>
+      <div style="height:12px"></div><div class="map" style="height:140px"><div class="pin" style="left:${r.x}%;top:${r.y}%;background:var(--rev)"><i></i></div></div>
+      <button class="btn ghost">🧭 Cómo llegar</button>
+      <button class="btn green" onclick="tabset('evi');render()">▶ Iniciar trabajo de campo</button></div>`;
+  const eviTab=`<div class="pad">
+      <div class="callout" style="background:#eafaf0;border-color:var(--fin);color:#2c7a4f">Registra la evidencia de la solución y finaliza el reporte. El ciudadano será notificado.</div>
+      <label class="fld">Comentarios de la solución</label>
+      <textarea class="ipt" id="comRes" placeholder="Describe el trabajo realizado">Se realizó el bacheo del carril con asfalto en caliente y se señalizó la zona.</textarea>
+      <label class="fld">Fotos de la solución (2/5)</label>
+      <div class="photos"><div class="ph solu">FIN_01</div><div class="ph solu">FIN_02</div><div class="ph add">＋</div></div>
+      <button class="btn green" onclick="finalizar(${r.id})">✓ Finalizar reporte</button></div>`;
+  return `<div class="topbar green"><span class="back" onclick="go('asign')">‹</span> Ejecutar Reporte</div>
+    <div class="tabs"><div class="tab ${tab==='info'?'on':''}" onclick="tabset('info');render()">Información</div>
+      <div class="tab ${tab==='evi'?'on':''}" onclick="tabset('evi');render()">Evidencia</div></div>
+    ${tab==='info'?infoTab:eviTab}`;
+}
+function finalizar(id){const r=REPORTS.find(x=>x.id===id);r.estado='finalizado';r.comRes=document.getElementById('comRes').value||'Trabajo realizado.';r.crono.push(['Reporte finalizado','31 may · ahora','finalizado']);toast('Reporte finalizado ✓');setTimeout(()=>go('asign'),700);}
+
+/* ---------- binds ---------- */
+function bind(){
+  const dl=document.getElementById('doLogin');if(dl)dl.onclick=()=>setRole('ciudadano');
+  const types=document.getElementById('types');if(types)types.addEventListener('click',e=>{const k=e.target.closest('.type');if(k){draftType=k.dataset.k;render();}});
+}
+render();
+</script>
+</body>
+</html>
