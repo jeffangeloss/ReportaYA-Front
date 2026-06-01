@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import '../models/models.dart';
-import '../services/servicio_reportes.dart';
-import '../utils/fechas.dart';
-import '../widgets/app_colors.dart';
-import '../widgets/estado_pill.dart';
-import '../widgets/foto_view.dart';
+import '../../models/models.dart';
+import '../../services/servicio_reportes.dart';
+import '../../utils/fechas.dart';
+import '../../widgets/app_colors.dart';
+import '../../widgets/estado_pill.dart';
+import '../../widgets/foto_view.dart';
+import '../../widgets/common/gradient_header.dart';
+import '../../widgets/common/detail_widgets.dart';
 
 /// Vista 05 Detalle (CU-05). El contenido varia segun el estado del reporte.
 class DetalleScreen extends StatefulWidget {
@@ -54,16 +56,15 @@ class _DetalleScreenState extends State<DetalleScreen> {
                 const SizedBox(height: 12),
                 Row(children: [EstadoPill(r.estado)]),
                 const SizedBox(height: 12),
-                _card([
-                  _kv('Descripcion', r.descripcion),
-                  _kv('Tipo', TipoProblema.label(r.tipoProblema)),
-                  _kv('Direccion', r.ubicacion.direccion ?? 'Sin direccion'),
-                  _kv('Ultima actualizacion', fmtFechaHora(r.fechaActualizacion)),
+                WhiteCard([
+                  KeyValue('Descripcion', r.descripcion),
+                  KeyValue('Tipo', TipoProblema.label(r.tipoProblema)),
+                  KeyValue('Direccion', r.ubicacion.direccion ?? 'Sin direccion'),
+                  KeyValue('Ultima actualizacion', fmtFechaHora(r.fechaActualizacion)),
                   ..._extraPorEstado(),
                 ]),
                 const SizedBox(height: 16),
-                const Text('CRONOLOGIA',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.primary, letterSpacing: 1)),
+                const SectionLabel('CRONOLOGIA'),
                 const SizedBox(height: 10),
                 _timeline(),
               ],
@@ -74,20 +75,20 @@ class _DetalleScreenState extends State<DetalleScreen> {
   List<Widget> _extraPorEstado() {
     switch (r.estado) {
       case EstadoReporte.PENDIENTE:
-        return [_callout('Tu reporte esta pendiente de revision por la oficina municipal.')];
+        return [const SizedBox(height: 8), const InfoCallout('Tu reporte esta pendiente de revision por la oficina municipal.')];
       case EstadoReporte.REVISION:
-        return [_kv('Tecnico asignado', r.tieneTecnico ? r.tecnicoNombre! : 'Sin asignar tecnico')];
+        return [KeyValue('Tecnico asignado', r.tieneTecnico ? r.tecnicoNombre! : 'Sin asignar tecnico')];
       case EstadoReporte.FINALIZADO:
         return [
-          _kv('Tecnico asignado', r.tecnicoNombre ?? '-'),
-          _kv('Comentario de resolucion', r.comentarioResolucion ?? '-'),
+          KeyValue('Tecnico asignado', r.tecnicoNombre ?? '-'),
+          KeyValue('Comentario de resolucion', r.comentarioResolucion ?? '-'),
           const SizedBox(height: 8),
           const Text('Fotos de resolucion', style: TextStyle(fontSize: 11.5, color: Color(0xFF6B7280))),
           const SizedBox(height: 6),
           FotosStrip(fotos: _finales, vacioTexto: 'Sin fotos de resolucion'),
         ];
       case EstadoReporte.RECHAZADO:
-        return [_callout('Motivo del rechazo: ${r.comentarioResolucion ?? '-'}')];
+        return [const SizedBox(height: 8), InfoCallout('Motivo del rechazo: ${r.comentarioResolucion ?? '-'}')];
       default:
         return [];
     }
@@ -97,7 +98,7 @@ class _DetalleScreenState extends State<DetalleScreen> {
     if (_historial.isEmpty) {
       return const Text('Sin cambios de estado', style: TextStyle(color: Color(0xFF9AA0AB)));
     }
-    return _card(_historial.map((h) {
+    return WhiteCard(_historial.map((h) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: Row(
@@ -112,10 +113,8 @@ class _DetalleScreenState extends State<DetalleScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppColors.textoEstado(h.estadoNuevo),
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
-                  Text(fmtFechaHora(h.fechaCambio),
-                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF6B7280))),
+                  Text(AppColors.textoEstado(h.estadoNuevo), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
+                  Text(fmtFechaHora(h.fechaCambio), style: const TextStyle(fontSize: 11.5, color: Color(0xFF6B7280))),
                 ],
               ),
             ),
@@ -124,33 +123,4 @@ class _DetalleScreenState extends State<DetalleScreen> {
       );
     }).toList());
   }
-
-  Widget _card(List<Widget> children) => Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
-      );
-
-  Widget _kv(String k, String v) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(k, style: const TextStyle(fontSize: 11.5, color: Color(0xFF6B7280))),
-            const SizedBox(height: 2),
-            Text(v, style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500)),
-          ],
-        ),
-      );
-
-  Widget _callout(String text) => Container(
-        margin: const EdgeInsets.only(top: 8),
-        padding: const EdgeInsets.all(11),
-        decoration: BoxDecoration(
-          color: const Color(0xFFEFEAFF),
-          borderRadius: BorderRadius.circular(10),
-          border: const Border(left: BorderSide(color: AppColors.primary, width: 3)),
-        ),
-        child: Text(text, style: const TextStyle(fontSize: 12.5, color: Color(0xFF4A3F7A))),
-      );
 }

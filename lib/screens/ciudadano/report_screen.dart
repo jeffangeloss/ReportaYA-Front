@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/auth_controller.dart';
-import '../controllers/reportes_controller.dart';
-import '../models/models.dart';
-import '../services/servicio_geocoding.dart';
-import '../services/servicio_reportes.dart';
-import '../widgets/app_colors.dart';
-import '../widgets/custom_toast.dart';
+import '../../controllers/auth_controller.dart';
+import '../../controllers/reportes_controller.dart';
+import '../../models/models.dart';
+import '../../services/servicio_geocoding.dart';
+import '../../services/servicio_reportes.dart';
+import '../../widgets/app_colors.dart';
+import '../../widgets/custom_toast.dart';
+import '../../widgets/common/gradient_header.dart';
+import '../../widgets/common/detail_widgets.dart';
 import 'main_tabs.dart';
 
 /// Vista 04 Reportar (CU-04). Crea un reporte en estado PENDIENTE.
@@ -29,8 +31,6 @@ class _ReportScreenState extends State<ReportScreen> {
   int _fotos = 0;
   bool _enviando = false;
 
-  static const _tipos = TipoProblema.values;
-
   Future<void> _usarUbicacion() async {
     _lat = -12.08530; _lng = -77.03760;
     final dir = await _geo.obtenerDireccion(_lat!, _lng!);
@@ -42,10 +42,7 @@ class _ReportScreenState extends State<ReportScreen> {
       AppToast.error('Completa titulo y descripcion');
       return;
     }
-    if (_lat == null) {
-      AppToast.error('Selecciona una ubicacion');
-      return;
-    }
+    if (_lat == null) { AppToast.error('Selecciona una ubicacion'); return; }
     setState(() => _enviando = true);
     try {
       await _service.crearReporte(
@@ -83,13 +80,7 @@ class _ReportScreenState extends State<ReportScreen> {
       body: ListView(
         padding: EdgeInsets.zero,
         children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 52, 16, 14),
-            width: double.infinity,
-            decoration: const BoxDecoration(gradient: LinearGradient(colors: AppColors.ciudadanoGradient)),
-            child: const Text('Reportar Incidencia',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-          ),
+          const GradientHeader(title: 'Reportar Incidencia', compact: true),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -101,7 +92,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 _label('Tipo de problema'),
                 Wrap(
                   spacing: 8, runSpacing: 8,
-                  children: _tipos.map((t) {
+                  children: TipoProblema.values.map((t) {
                     final on = _tipo == t;
                     return ChoiceChip(
                       avatar: Icon(AppColors.iconoTipo(t), size: 16, color: on ? Colors.white : AppColors.primary),
@@ -162,21 +153,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   ],
                 ),
                 const SizedBox(height: 22),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
-                    onPressed: _enviando ? null : _enviar,
-                    child: _enviando
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : const Text('Enviar reporte',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
-                  ),
-                ),
+                WideButton('Enviar reporte', AppColors.primary, _enviando ? null : _enviar, icon: Icons.send),
               ],
             ),
           ),

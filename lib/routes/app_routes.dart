@@ -2,9 +2,9 @@ import 'package:get/get.dart';
 import '../screens/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
-import '../screens/main_tabs.dart';
-import '../screens/home_screen_operador.dart';
-import '../screens/home_screen_tecnico.dart';
+import '../screens/ciudadano/main_tabs.dart';
+import '../screens/operador/home_screen_operador.dart';
+import '../screens/tecnico/home_screen_tecnico.dart';
 
 class AppRoutes {
   static const String splash = '/';

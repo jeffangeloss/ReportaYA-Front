@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/tabs_controller.dart';
-import '../models/models.dart';
-import '../services/servicio_reportes.dart';
-import '../widgets/app_colors.dart';
+import '../../models/models.dart';
+import '../../services/servicio_reportes.dart';
+import '../../widgets/app_colors.dart';
+import '../../widgets/common/gradient_header.dart';
 import 'detalle_screen.dart';
 
-/// Vista 06 Mapa (CU-05). Version nativa simple (sin WebView) con leyenda
-/// de estados y los reportes como marcadores. Toca un reporte para ver detalle.
+/// Vista 06 Mapa (CU-05). Version nativa simple con leyenda de estados.
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
   @override
@@ -18,28 +17,14 @@ class _MapScreenState extends State<MapScreen> {
   final _service = ServicioReportes();
   List<ReporteResponse> _reportes = [];
   bool _loading = true;
-  Worker? _tabWorker;
 
   @override
   void initState() {
     super.initState();
     _cargar();
-    // Recargar cada vez que el usuario navega a la pestaña Mapa (índice 1)
-    // para reflejar reportes nuevos creados durante la sesión.
-    final tabs = Get.find<TabsController>();
-    _tabWorker = ever(tabs.index, (int idx) {
-      if (idx == 1 && mounted) _cargar();
-    });
-  }
-
-  @override
-  void dispose() {
-    _tabWorker?.dispose();
-    super.dispose();
   }
 
   Future<void> _cargar() async {
-    if (mounted) setState(() => _loading = true);
     final list = await _service.obtenerParaMapa();
     if (mounted) setState(() { _reportes = list; _loading = false; });
   }
@@ -50,13 +35,7 @@ class _MapScreenState extends State<MapScreen> {
       backgroundColor: const Color(0xFFF4F4F8),
       body: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 52, 16, 14),
-            width: double.infinity,
-            decoration: const BoxDecoration(gradient: LinearGradient(colors: AppColors.ciudadanoGradient)),
-            child: const Text('Mapa de incidencias',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-          ),
+          const GradientHeader(title: 'Mapa de incidencias', compact: true),
           _leyenda(),
           Expanded(
             child: _loading
@@ -102,8 +81,7 @@ class _MapScreenState extends State<MapScreen> {
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(999)),
-          child: Text(AppColors.textoEstado(r.estado),
-              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+          child: Text(AppColors.textoEstado(r.estado), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
         ),
         onTap: () => Get.to(() => DetalleScreen(reporte: r)),
       ),

@@ -7,7 +7,12 @@ class FotoThumb extends StatelessWidget {
   final Foto foto;
   final double width;
   final double height;
-  const FotoThumb({super.key, required this.foto, this.width = 130, this.height = 96});
+  const FotoThumb({
+    super.key,
+    required this.foto,
+    this.width = 130,
+    this.height = 96,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,11 +25,14 @@ class FotoThumb extends StatelessWidget {
           width: width,
           height: height,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
+          errorBuilder: (_, _, _) => Container(
             width: width,
             height: height,
             color: const Color(0xFFE6E2F0),
-            child: const Icon(Icons.image_not_supported_outlined, color: Color(0xFF9AA0AB)),
+            child: const Icon(
+              Icons.image_not_supported_outlined,
+              color: Color(0xFF9AA0AB),
+            ),
           ),
         ),
       ),
@@ -42,16 +50,23 @@ void _abrirVisor(Foto foto) {
         children: [
           Align(
             alignment: Alignment.topRight,
-            child: IconButton(onPressed: Get.back, icon: const Icon(Icons.close, color: Colors.white)),
+            child: IconButton(
+              onPressed: Get.back,
+              icon: const Icon(Icons.close, color: Colors.white),
+            ),
           ),
           Flexible(
             child: InteractiveViewer(
               child: Image.asset(
                 foto.url,
                 fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const Padding(
+                errorBuilder: (_, _, _) => const Padding(
                   padding: EdgeInsets.all(40),
-                  child: Icon(Icons.image_not_supported_outlined, color: Colors.white54, size: 60),
+                  child: Icon(
+                    Icons.image_not_supported_outlined,
+                    color: Colors.white54,
+                    size: 60,
+                  ),
                 ),
               ),
             ),
@@ -59,7 +74,10 @@ void _abrirVisor(Foto foto) {
           if (foto.descripcion != null)
             Padding(
               padding: const EdgeInsets.all(12),
-              child: Text(foto.descripcion!, style: const TextStyle(color: Colors.white70)),
+              child: Text(
+                foto.descripcion!,
+                style: const TextStyle(color: Colors.white70),
+              ),
             ),
         ],
       ),
@@ -72,7 +90,12 @@ class FotosStrip extends StatelessWidget {
   final List<Foto> fotos;
   final double height;
   final String vacioTexto;
-  const FotosStrip({super.key, required this.fotos, this.height = 96, this.vacioTexto = 'Sin fotos'});
+  const FotosStrip({
+    super.key,
+    required this.fotos,
+    this.height = 96,
+    this.vacioTexto = 'Sin fotos',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -80,8 +103,14 @@ class FotosStrip extends StatelessWidget {
       return Container(
         height: height,
         alignment: Alignment.center,
-        decoration: BoxDecoration(color: const Color(0xFFEDEDF2), borderRadius: BorderRadius.circular(10)),
-        child: Text(vacioTexto, style: const TextStyle(color: Color(0xFF9AA0AB))),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEDEDF2),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Text(
+          vacioTexto,
+          style: const TextStyle(color: Color(0xFF9AA0AB)),
+        ),
       );
     }
     return SizedBox(
@@ -89,7 +118,7 @@ class FotosStrip extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: fotos.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (_, i) => FotoThumb(foto: fotos[i], height: height),
       ),
     );

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/auth_controller.dart';
-import '../controllers/reportes_controller.dart';
-import '../models/enums.dart';
-import '../widgets/app_colors.dart';
-import '../widgets/report_card.dart';
+import '../../controllers/auth_controller.dart';
+import '../../controllers/reportes_controller.dart';
+import '../../widgets/report_card.dart';
+import '../../widgets/common/gradient_header.dart';
+import '../../widgets/common/estado_chips.dart';
 import 'detalle_screen.dart';
 
 /// Vista 03 Mis reportes (CU-05). Filtros por estado y busqueda por titulo.
@@ -17,13 +17,8 @@ class MisReportesScreen extends StatefulWidget {
 class _MisReportesScreenState extends State<MisReportesScreen> {
   final _auth = Get.find<AuthController>();
   final _reportes = Get.find<ReportesController>();
-  final RxString _filtro = ''.obs; // '' = Todos
+  final RxString _filtro = ''.obs;
   final RxString _busqueda = ''.obs;
-
-  static const _chips = <String>[
-    '', EstadoReporte.PENDIENTE, EstadoReporte.REVISION,
-    EstadoReporte.FINALIZADO, EstadoReporte.RECHAZADO,
-  ];
 
   @override
   void initState() {
@@ -39,13 +34,7 @@ class _MisReportesScreenState extends State<MisReportesScreen> {
       backgroundColor: const Color(0xFFF4F4F8),
       body: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 52, 16, 14),
-            width: double.infinity,
-            decoration: const BoxDecoration(gradient: LinearGradient(colors: AppColors.ciudadanoGradient)),
-            child: const Text('Mis Reportes',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-          ),
+          const GradientHeader(title: 'Mis Reportes', compact: true),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
             child: TextField(
@@ -59,32 +48,10 @@ class _MisReportesScreenState extends State<MisReportesScreen> {
               ),
             ),
           ),
-          SizedBox(
-            height: 46,
-            child: Obx(() => ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  children: _chips.map((c) {
-                    final on = _filtro.value == c;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        label: Text(c.isEmpty ? 'Todos' : AppColors.textoEstado(c)),
-                        selected: on,
-                        onSelected: (_) => _filtro.value = c,
-                        selectedColor: c.isEmpty ? AppColors.primary : AppColors.forEstado(c),
-                        labelStyle: TextStyle(color: on ? Colors.white : const Color(0xFF5B5F6B), fontWeight: FontWeight.w600),
-                        backgroundColor: Colors.white,
-                      ),
-                    );
-                  }).toList(),
-                )),
-          ),
+          Obx(() => EstadoFilterChips(selected: _filtro.value, onSelected: (c) => _filtro.value = c)),
           Expanded(
             child: Obx(() {
-              if (_reportes.loading.value) {
-                return const Center(child: CircularProgressIndicator());
-              }
+              if (_reportes.loading.value) return const Center(child: CircularProgressIndicator());
               final list = _reportes.filtrar(
                 estado: _filtro.value.isEmpty ? null : _filtro.value,
                 busqueda: _busqueda.value,
@@ -104,10 +71,7 @@ class _MisReportesScreenState extends State<MisReportesScreen> {
                     padding: const EdgeInsets.only(left: 4, bottom: 8),
                     child: Text('${list.length} reporte(s)', style: const TextStyle(fontSize: 12.5, color: Color(0xFF6B7280))),
                   ),
-                  ...list.map((r) => ReportCard(
-                        reporte: r,
-                        onTap: () => Get.to(() => DetalleScreen(reporte: r)),
-                      )),
+                  ...list.map((r) => ReportCard(reporte: r, onTap: () => Get.to(() => DetalleScreen(reporte: r)))),
                 ],
               );
             }),

@@ -1,5 +1,6 @@
 /// Catalogos del dominio ReportaYA, alineados a los CU refinados.
 /// Solo 4 estados, sin prioridad y sin paso de auditoria.
+library;
 
 class EstadoReporte {
   static const String PENDIENTE = 'PENDIENTE';
@@ -7,7 +8,12 @@ class EstadoReporte {
   static const String FINALIZADO = 'FINALIZADO';
   static const String RECHAZADO = 'RECHAZADO';
 
-  static const List<String> values = [PENDIENTE, REVISION, FINALIZADO, RECHAZADO];
+  static const List<String> values = [
+    PENDIENTE,
+    REVISION,
+    FINALIZADO,
+    RECHAZADO,
+  ];
 }
 
 class TipoProblema {
@@ -18,24 +24,34 @@ class TipoProblema {
   static const String OTRO = 'OTRO';
 
   static const List<String> values = [
-    INFRAESTRUCTURA, RESIDUOS, SEGURIDAD, ALUMBRADO, OTRO,
+    INFRAESTRUCTURA,
+    RESIDUOS,
+    SEGURIDAD,
+    ALUMBRADO,
+    OTRO,
   ];
 
   static String label(String? tipo) {
     switch (tipo) {
-      case INFRAESTRUCTURA: return 'Infraestructura';
-      case RESIDUOS: return 'Residuos';
-      case SEGURIDAD: return 'Seguridad';
-      case ALUMBRADO: return 'Alumbrado';
-      case OTRO: return 'Otro';
-      default: return 'Otro';
+      case INFRAESTRUCTURA:
+        return 'Infraestructura';
+      case RESIDUOS:
+        return 'Residuos';
+      case SEGURIDAD:
+        return 'Seguridad';
+      case ALUMBRADO:
+        return 'Alumbrado';
+      case OTRO:
+        return 'Otro';
+      default:
+        return 'Otro';
     }
   }
 }
 
 class TipoFoto {
   static const String INICIAL = 'INICIAL'; // foto del incidente (ciudadano)
-  static const String FINAL = 'FINAL';     // foto de la solucion (tecnico)
+  static const String FINAL = 'FINAL'; // foto de la solucion (tecnico)
 }
 
 class TipoCuenta {

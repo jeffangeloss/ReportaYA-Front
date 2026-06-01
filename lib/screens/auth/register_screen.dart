@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../models/models.dart';
+import '../../routes/app_routes.dart';
 import '../../services/servicio_cuenta.dart';
 import '../../widgets/app_colors.dart';
 import '../../widgets/custom_toast.dart';
@@ -41,7 +42,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ));
       AppToast.success('Cuenta creada! Ya puedes iniciar sesion.');
       await Future.delayed(const Duration(milliseconds: 600));
-      Get.back();
+      Get.offAllNamed(AppRoutes.login);
     } catch (e) {
       AppToast.error(e.toString().replaceFirst('Exception: ', ''));
     } finally {
