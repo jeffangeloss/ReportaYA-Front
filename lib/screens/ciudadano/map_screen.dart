@@ -5,6 +5,7 @@ import '../../services/servicio_reportes.dart';
 import '../../widgets/app_colors.dart';
 import '../../widgets/common/gradient_header.dart';
 import 'detalle_screen.dart';
+import 'main_tabs.dart';
 
 /// Vista 06 Mapa (CU-05). Version nativa simple con leyenda de estados.
 class MapScreen extends StatefulWidget {
@@ -17,14 +18,26 @@ class _MapScreenState extends State<MapScreen> {
   final _service = ServicioReportes();
   List<ReporteResponse> _reportes = [];
   bool _loading = true;
+  Worker? _tabWorker;
 
   @override
   void initState() {
     super.initState();
     _cargar();
+    // Recarga cada vez que el usuario navega al tab del mapa (index 1).
+    _tabWorker = ever(Get.find<TabsController>().index, (int i) {
+      if (i == 1 && mounted) _cargar();
+    });
+  }
+
+  @override
+  void dispose() {
+    _tabWorker?.dispose();
+    super.dispose();
   }
 
   Future<void> _cargar() async {
+    if (mounted) setState(() => _loading = true);
     final list = await _service.obtenerParaMapa();
     if (mounted) setState(() { _reportes = list; _loading = false; });
   }

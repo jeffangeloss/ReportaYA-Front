@@ -27,20 +27,24 @@ class _EjecutarReporteScreenState extends State<EjecutarReporteScreen>
 
   final _comentarioCtrl = TextEditingController();
   List<Foto> _fotosIniciales = [];
+  List<Foto> _fotosFinales = [];
   int _fotos = 0;
   bool _busy = false;
+
+  bool get _esFinalizado => r.estado == EstadoReporte.FINALIZADO;
 
   @override
   void initState() {
     super.initState();
     _tabs = TabController(length: 2, vsync: this);
     r = _ctrl.asignaciones.firstWhere((x) => x.id == widget.reporteId);
-    _cargarFotosIniciales();
+    _cargarFotos();
   }
 
-  Future<void> _cargarFotosIniciales() async {
-    final f = await _service.obtenerFotos(r.id, tipo: TipoFoto.INICIAL);
-    if (mounted) setState(() => _fotosIniciales = f);
+  Future<void> _cargarFotos() async {
+    final iniciales = await _service.obtenerFotos(r.id, tipo: TipoFoto.INICIAL);
+    final finales = await _service.obtenerFotos(r.id, tipo: TipoFoto.FINAL);
+    if (mounted) setState(() { _fotosIniciales = iniciales; _fotosFinales = finales; });
   }
 
   @override
@@ -108,7 +112,11 @@ class _EjecutarReporteScreenState extends State<EjecutarReporteScreen>
           child: const Center(child: Icon(Icons.place, color: AppColors.tecnicoPrimary, size: 34)),
         ),
         const SizedBox(height: 16),
-        WideButton('Iniciar trabajo de campo', AppColors.tecnicoPrimary, () => _tabs.animateTo(1), icon: Icons.play_arrow),
+        if (!_esFinalizado)
+          WideButton('Iniciar trabajo de campo', AppColors.tecnicoPrimary, () => _tabs.animateTo(1), icon: Icons.play_arrow)
+        else
+          InfoCallout('Reporte ya finalizado. Consulta el tab Evidencia para ver los detalles.',
+              color: AppColors.estadoFinalizado, bg: const Color(0xFFEAFAF0), fg: const Color(0xFF2C7A4F)),
       ],
     );
   }
@@ -122,45 +130,72 @@ class _EjecutarReporteScreenState extends State<EjecutarReporteScreen>
         const SizedBox(height: 6),
         FotosStrip(fotos: _fotosIniciales, vacioTexto: 'Sin fotos del ciudadano', height: 96),
         const SizedBox(height: 14),
-        const InfoCallout(
-          'Registra la evidencia de la solucion y finaliza el reporte. El ciudadano sera notificado.',
-          color: AppColors.tecnicoPrimary, bg: Color(0xFFEAFAF0), fg: Color(0xFF2C7A4F),
-        ),
-        const SizedBox(height: 14),
-        const Text('Comentarios de la solucion', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF444444))),
-        const SizedBox(height: 6),
-        TextField(
-          controller: _comentarioCtrl,
-          maxLines: 4,
-          decoration: InputDecoration(
-            hintText: 'Describe el trabajo realizado',
-            filled: true, fillColor: Colors.white,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        if (_esFinalizado) ...[
+          // Vista de solo lectura: el reporte ya fue resuelto
+          const InfoCallout('Reporte finalizado. A continuacion se muestra la resolucion registrada.',
+              color: AppColors.estadoFinalizado, bg: Color(0xFFEAFAF0), fg: Color(0xFF2C7A4F)),
+          const SizedBox(height: 14),
+          const Text('Comentario de la solucion',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF444444))),
+          const SizedBox(height: 6),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            child: Text(
+              r.comentarioResolucion ?? '-',
+              style: const TextStyle(fontSize: 13.5),
+            ),
           ),
-        ),
-        const SizedBox(height: 14),
-        Text('Fotos de la solucion ($_fotos/5)', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF444444))),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            ...List.generate(_fotos, (i) => Container(
-                  width: 56, height: 56, margin: const EdgeInsets.only(right: 8),
-                  decoration: BoxDecoration(color: const Color(0xFF2F5D3A), borderRadius: BorderRadius.circular(10)),
-                  child: const Icon(Icons.image, color: Colors.white54, size: 20),
-                )),
-            if (_fotos < 5)
-              GestureDetector(
-                onTap: () => setState(() => _fotos++),
-                child: Container(
-                  width: 56, height: 56,
-                  decoration: BoxDecoration(color: const Color(0xFFEDEDF2), borderRadius: BorderRadius.circular(10)),
-                  child: const Icon(Icons.add, color: Color(0xFF9AA0AB)),
+          const SizedBox(height: 14),
+          const Text('Fotos de la solucion',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF444444))),
+          const SizedBox(height: 6),
+          FotosStrip(fotos: _fotosFinales, vacioTexto: 'Sin fotos de resolucion', height: 96),
+        ] else ...[
+          // Formulario de resolucion activo
+          const InfoCallout(
+            'Registra la evidencia de la solucion y finaliza el reporte. El ciudadano sera notificado.',
+            color: AppColors.tecnicoPrimary, bg: Color(0xFFEAFAF0), fg: Color(0xFF2C7A4F),
+          ),
+          const SizedBox(height: 14),
+          const Text('Comentarios de la solucion',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF444444))),
+          const SizedBox(height: 6),
+          TextField(
+            controller: _comentarioCtrl,
+            maxLines: 4,
+            decoration: InputDecoration(
+              hintText: 'Describe el trabajo realizado',
+              filled: true, fillColor: Colors.white,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Text('Fotos de la solucion ($_fotos/5)',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF444444))),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              ...List.generate(_fotos, (i) => Container(
+                    width: 56, height: 56, margin: const EdgeInsets.only(right: 8),
+                    decoration: BoxDecoration(color: const Color(0xFF2F5D3A), borderRadius: BorderRadius.circular(10)),
+                    child: const Icon(Icons.image, color: Colors.white54, size: 20),
+                  )),
+              if (_fotos < 5)
+                GestureDetector(
+                  onTap: () => setState(() => _fotos++),
+                  child: Container(
+                    width: 56, height: 56,
+                    decoration: BoxDecoration(color: const Color(0xFFEDEDF2), borderRadius: BorderRadius.circular(10)),
+                    child: const Icon(Icons.add, color: Color(0xFF9AA0AB)),
+                  ),
                 ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 22),
-        WideButton('Finalizar reporte', AppColors.tecnicoPrimary, _busy ? null : _finalizar, icon: Icons.check),
+            ],
+          ),
+          const SizedBox(height: 22),
+          WideButton('Finalizar reporte', AppColors.tecnicoPrimary, _busy ? null : _finalizar, icon: Icons.check),
+        ],
       ],
     );
   }
