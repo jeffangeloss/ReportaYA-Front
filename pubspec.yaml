@@ -19,6 +19,13 @@ dependencies:
   # Formato de fechas
   intl: ^0.20.0
 
+  # Mapas reales (OpenStreetMap, sin API key)
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.0
+
+  # HTTP para geocoding Nominatim
+  http: ^1.2.0
+
   # --- Pendientes para la entrega 3/4 (backend real, GPS, camara) ---
   # dio: ^5.7.0
   # geolocator: ^13.0.1

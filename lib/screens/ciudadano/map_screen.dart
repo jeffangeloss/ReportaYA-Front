@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
+import 'package:latlong2/latlong.dart';
 import '../../models/models.dart';
 import '../../services/servicio_reportes.dart';
 import '../../widgets/app_colors.dart';
@@ -7,7 +9,7 @@ import '../../widgets/common/gradient_header.dart';
 import 'detalle_screen.dart';
 import 'main_tabs.dart';
 
-/// Vista 06 Mapa (CU-05). Version nativa simple con leyenda de estados.
+/// Vista 06 Mapa (CU-05). Mapa real con OSM + marcadores por estado.
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
   @override
@@ -20,11 +22,13 @@ class _MapScreenState extends State<MapScreen> {
   bool _loading = true;
   Worker? _tabWorker;
 
+  // Centro de Lima por defecto
+  static const _defaultCenter = LatLng(-12.0464, -77.0428);
+
   @override
   void initState() {
     super.initState();
     _cargar();
-    // Recarga cada vez que el usuario navega al tab del mapa (index 1).
     _tabWorker = ever(Get.find<TabsController>().index, (int i) {
       if (i == 1 && mounted) _cargar();
     });
@@ -42,6 +46,16 @@ class _MapScreenState extends State<MapScreen> {
     if (mounted) setState(() { _reportes = list; _loading = false; });
   }
 
+  LatLng _centroMapa() {
+    final validos = _reportes
+        .where((r) => r.ubicacion.latitud != 0 && r.ubicacion.longitud != 0)
+        .toList();
+    if (validos.isEmpty) return _defaultCenter;
+    final avgLat = validos.map((r) => r.ubicacion.latitud).reduce((a, b) => a + b) / validos.length;
+    final avgLng = validos.map((r) => r.ubicacion.longitud).reduce((a, b) => a + b) / validos.length;
+    return LatLng(avgLat, avgLng);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,16 +63,60 @@ class _MapScreenState extends State<MapScreen> {
       body: Column(
         children: [
           const GradientHeader(title: 'Mapa de incidencias', compact: true),
-          _leyenda(),
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
-                : ListView(
-                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
-                    children: _reportes.map(_pinTile).toList(),
+                : Stack(
+                    children: [
+                      _mapa(),
+                      Positioned(top: 10, left: 10, right: 10, child: _leyenda()),
+                    ],
                   ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _mapa() {
+    return FlutterMap(
+      options: MapOptions(
+        initialCenter: _centroMapa(),
+        initialZoom: 13.0,
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+          userAgentPackageName: 'com.reportaya.app',
+        ),
+        MarkerLayer(
+          markers: _reportes
+              .where((r) => r.ubicacion.latitud != 0 && r.ubicacion.longitud != 0)
+              .map((r) => _marker(r))
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Marker _marker(ReporteResponse r) {
+    final color = AppColors.forEstado(r.estado);
+    return Marker(
+      point: LatLng(r.ubicacion.latitud, r.ubicacion.longitud),
+      width: 44,
+      height: 44,
+      child: GestureDetector(
+        onTap: () => Get.to(() => DetalleScreen(reporte: r)),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(Icons.location_on, color: color, size: 40),
+            Positioned(
+              top: 4,
+              child: Icon(AppColors.iconoTipo(r.tipoProblema), color: Colors.white, size: 14),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -67,36 +125,25 @@ class _MapScreenState extends State<MapScreen> {
     Widget item(String estado) => Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 10, height: 10, decoration: BoxDecoration(color: AppColors.forEstado(estado), shape: BoxShape.circle)),
+            Container(
+              width: 10, height: 10,
+              decoration: BoxDecoration(color: AppColors.forEstado(estado), shape: BoxShape.circle),
+            ),
             const SizedBox(width: 5),
-            Text(AppColors.textoEstado(estado), style: const TextStyle(fontSize: 11.5)),
+            Text(AppColors.textoEstado(estado), style: const TextStyle(fontSize: 11)),
           ],
         );
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.fromLTRB(12, 10, 12, 6),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-      child: Wrap(spacing: 16, runSpacing: 8, children: EstadoReporte.values.map(item).toList()),
-    );
-  }
-
-  Widget _pinTile(ReporteResponse r) {
-    final color = AppColors.forEstado(r.estado);
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: Icon(Icons.location_on, color: color, size: 30),
-        title: Text(r.titulo, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-        subtitle: Text(r.ubicacion.direccion ?? '', maxLines: 1, overflow: TextOverflow.ellipsis),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-          decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(999)),
-          child: Text(AppColors.textoEstado(r.estado), style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-        ),
-        onTap: () => Get.to(() => DetalleScreen(reporte: r)),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.92),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2))],
+      ),
+      child: Wrap(
+        spacing: 14,
+        runSpacing: 6,
+        children: EstadoReporte.values.map(item).toList(),
       ),
     );
   }

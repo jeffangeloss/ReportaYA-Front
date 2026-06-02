@@ -9,6 +9,7 @@ import '../../widgets/app_colors.dart';
 import '../../widgets/custom_toast.dart';
 import '../../widgets/estado_pill.dart';
 import '../../widgets/foto_view.dart';
+import '../../widgets/map_view.dart';
 import '../../widgets/common/detail_widgets.dart';
 
 /// Vista 02 Gestion (CU-06 aceptar/rechazar, CU-07 asignar tecnico).
@@ -150,17 +151,11 @@ class _GestionReportesScreenState extends State<GestionReportesScreen> {
               KeyValue('Tecnico asignado', r.tieneTecnico ? r.tecnicoNombre! : 'Sin tecnico asignado'),
             ]),
             const SizedBox(height: 12),
-            Container(
-              height: 130,
-              decoration: BoxDecoration(color: const Color(0xFFE6ECEF), borderRadius: BorderRadius.circular(12)),
-              child: Stack(children: [
-                const Center(child: Icon(Icons.place, color: AppColors.primary, size: 34)),
-                Positioned(
-                  left: 10, bottom: 8,
-                  child: Text('${r.ubicacion.latitud.toStringAsFixed(5)}, ${r.ubicacion.longitud.toStringAsFixed(5)}',
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF6B7280))),
-                ),
-              ]),
+            MapPinView(
+              lat: r.ubicacion.latitud,
+              lng: r.ubicacion.longitud,
+              color: AppColors.forEstado(r.estado),
+              height: 150,
             ),
             const SizedBox(height: 16),
             if (esPendiente) ...[

@@ -7,6 +7,7 @@ import '../../services/servicio_geocoding.dart';
 import '../../services/servicio_reportes.dart';
 import '../../widgets/app_colors.dart';
 import '../../widgets/custom_toast.dart';
+import '../../widgets/map_view.dart';
 import '../../widgets/common/gradient_header.dart';
 import '../../widgets/common/detail_widgets.dart';
 import 'main_tabs.dart';
@@ -28,13 +29,14 @@ class _ReportScreenState extends State<ReportScreen> {
   String _tipo = TipoProblema.INFRAESTRUCTURA;
   double? _lat, _lng;
   String? _direccion;
+  bool _geocodificando = false;
   int _fotos = 0;
   bool _enviando = false;
 
-  Future<void> _usarUbicacion() async {
-    _lat = -12.08530; _lng = -77.03760;
-    final dir = await _geo.obtenerDireccion(_lat!, _lng!);
-    setState(() => _direccion = dir.direccionCompleta);
+  Future<void> _onUbicacionSeleccionada(double lat, double lng) async {
+    setState(() { _lat = lat; _lng = lng; _geocodificando = true; });
+    final dir = await _geo.obtenerDireccion(lat, lng);
+    if (mounted) setState(() { _direccion = dir.direccionCompleta; _geocodificando = false; });
   }
 
   Future<void> _enviar() async {
@@ -42,7 +44,7 @@ class _ReportScreenState extends State<ReportScreen> {
       AppToast.error('Completa titulo y descripcion');
       return;
     }
-    if (_lat == null) { AppToast.error('Selecciona una ubicacion'); return; }
+    if (_lat == null) { AppToast.error('Selecciona una ubicacion en el mapa'); return; }
     setState(() => _enviando = true);
     try {
       await _service.crearReporte(
@@ -70,7 +72,11 @@ class _ReportScreenState extends State<ReportScreen> {
   void _reset() {
     _tituloCtrl.clear();
     _descCtrl.clear();
-    setState(() { _tipo = TipoProblema.INFRAESTRUCTURA; _lat = null; _lng = null; _direccion = null; _fotos = 0; });
+    setState(() {
+      _tipo = TipoProblema.INFRAESTRUCTURA;
+      _lat = null; _lng = null; _direccion = null;
+      _fotos = 0;
+    });
   }
 
   @override
@@ -109,29 +115,35 @@ class _ReportScreenState extends State<ReportScreen> {
                 _label('Descripcion detallada'),
                 _input(_descCtrl, 'Describe la incidencia con detalle', maxLines: 4),
                 const SizedBox(height: 14),
-                _label('Ubicacion'),
-                GestureDetector(
-                  onTap: _usarUbicacion,
-                  child: Container(
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE6ECEF),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFD7DEE2)),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(_lat == null ? Icons.add_location_alt_outlined : Icons.place, color: AppColors.primary, size: 30),
-                          const SizedBox(height: 6),
-                          Text(_direccion ?? 'Toca para usar una ubicacion de ejemplo',
-                              style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12.5)),
-                        ],
-                      ),
+                _label('Ubicacion — toca el mapa para marcar'),
+                MapPickerView(
+                  initialLat: _lat,
+                  initialLng: _lng,
+                  onLocationPicked: _onUbicacionSeleccionada,
+                  height: 200,
+                ),
+                if (_geocodificando)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 6),
+                    child: Row(children: [
+                      SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+                      SizedBox(width: 8),
+                      Text('Obteniendo direccion...', style: TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                    ]),
+                  )
+                else if (_direccion != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.place, size: 14, color: Color(0xFF7C3AED)),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(_direccion!, style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280))),
+                        ),
+                      ],
                     ),
                   ),
-                ),
                 const SizedBox(height: 14),
                 _label('Fotos ($_fotos/5)'),
                 Row(

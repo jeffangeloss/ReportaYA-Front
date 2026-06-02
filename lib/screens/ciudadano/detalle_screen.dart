@@ -5,6 +5,7 @@ import '../../utils/fechas.dart';
 import '../../widgets/app_colors.dart';
 import '../../widgets/estado_pill.dart';
 import '../../widgets/foto_view.dart';
+import '../../widgets/map_view.dart';
 import '../../widgets/common/gradient_header.dart';
 import '../../widgets/common/detail_widgets.dart';
 
@@ -63,6 +64,13 @@ class _DetalleScreenState extends State<DetalleScreen> {
                   KeyValue('Ultima actualizacion', fmtFechaHora(r.fechaActualizacion)),
                   ..._extraPorEstado(),
                 ]),
+                const SizedBox(height: 16),
+                MapPinView(
+                  lat: r.ubicacion.latitud,
+                  lng: r.ubicacion.longitud,
+                  color: AppColors.forEstado(r.estado),
+                  height: 150,
+                ),
                 const SizedBox(height: 16),
                 const SectionLabel('CRONOLOGIA'),
                 const SizedBox(height: 10),

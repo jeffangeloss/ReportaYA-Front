@@ -9,12 +9,11 @@
 ```
 ┌────────────────────────────────────────────────────────────────────┐
 │  SCREENS  (UI + lógica de presentación)                            │
-│  Ciudadano: SplashScreen → LoginScreen / RegisterScreen            │
-│             MainTabs → InicioScreen | MapScreen | ReportScreen     │
+│  Auth:     SplashScreen → LoginScreen / RegisterScreen             │
+│  Ciudadano: MainTabs → InicioScreen | MapScreen | ReportScreen     │
 │                         MisReportesScreen → DetalleScreen          │
 │  Operador: HomeScreenOperador → GestionReportesScreen              │
 │  Técnico:  HomeScreenTecnico  → EjecutarReporteScreen              │
-│                                 DetalleScreen (completados)        │
 ├────────────────────────────────────────────────────────────────────┤
 │  CONTROLLERS  (estado reactivo con GetX)                           │
 │  AuthController · ReportesController · OperadorReportesController  │
@@ -54,7 +53,7 @@ Los IDs se autoincrementan con contadores internos (`_reporteSeq`, etc.) que arr
 
 **Helpers clave:**
 - `indexReporte(id)` → índice en la lista para mutación.
-- `fotosDe(reporteId, {tipo})` → fotos filtradas.
+- `fotosDe(reporteId, {tipo})` → fotos filtradas por tipo (`INICIAL` / `FINAL`).
 - `historialDe(reporteId)` → historial ordenado por fecha.
 - `registrarCambioEstado(...)` → inserta en `historial` automáticamente.
 
@@ -75,7 +74,7 @@ Define las constantes de dominio como clases con `static const String`:
 | `TipoCuenta` | `CIUDADANO` · `TECNICO` · `OPERADOR_MUNICIPAL` |
 
 ### `auth.dart`
-- `AuthLoginRequest` — credenciales que va a enviar el cliente.
+- `AuthLoginRequest` — credenciales enviadas por el cliente.
 - `AuthLoginResponse` — respuesta del login con `cuentaId`, `tipoCuenta`, `token`.
 - `UsuarioAutenticado` — objeto en memoria de la sesión activa; incluye `loginTime` para el TTL de 24h; se serializa a/desde `GetStorage`.
 
@@ -84,17 +83,17 @@ Define las constantes de dominio como clases con `static const String`:
 - `CuentaResponse` — registro completo de cuenta, con `contrasena` solo para uso interno del JSON semilla.
 
 ### `reporte.dart`
-- `ReporteResponse` — objeto principal de la app. Tiene todos los campos que cambian durante el ciclo de vida: `estado`, `tecnicoAsignadoId`, `comentarioResolucion`, `fechaCierre`. Incluye `copyWith` para mutaciones inmutables.
+- `ReporteResponse` — objeto principal de la app. Contiene todos los campos que cambian durante el ciclo de vida: `estado`, `tecnicoAsignadoId`, `comentarioResolucion`, `fechaCierre`. Incluye `copyWith` para mutaciones inmutables.
 - `CrearReporteRequest` — payload de alta de reporte.
 - `FiltrosReporte` — filtros opcionales de estado, tipo y búsqueda (uso interno).
-- `HistorialEstado` — un entrada del timeline de cambios de estado.
+- `HistorialEstado` — una entrada del timeline de cambios de estado.
 
 ### `foto.dart`
 - `Foto` — una foto asociada a un reporte, con `tipo` (`INICIAL`/`FINAL`), `url` y `fechaCarga`.
 
 ### `tecnico.dart`
 - `TecnicoResponse` — datos del técnico (derivado de `CuentaResponse`).
-- `FotoRequest` / `CompletarReporteRequest` / `CompletarReporteResponse` — contratos **preparados para la API REST futura**, actualmente sin uso en la UI.
+- `FotoRequest` / `CompletarReporteRequest` / `CompletarReporteResponse` — contratos preparados para la API REST futura, actualmente sin uso en la UI.
 
 ### `ubicacion.dart`
 - `Ubicacion` — coordenadas + dirección textual.
@@ -126,7 +125,7 @@ Es el servicio más completo. Todas sus operaciones simulan latencia con `Future
 | `obtenerAsignadosATecnico(tecnicoId)` | Reportes donde `tecnicoAsignadoId == tecnicoId` |
 | `obtenerDetalle(id)` | Reporte por ID |
 | `obtenerHistorialEstados(reporteId)` | Historial ordenado |
-| `obtenerFotos(reporteId, {tipo})` | Fotos filtradas por tipo |
+| `obtenerFotos(reporteId, {tipo})` | Fotos filtradas por tipo (`INICIAL` / `FINAL` / todas) |
 | `contarPorEstado()` | Mapa `estado → count` (operador) |
 | `contarPorEstadoTecnico(tecnicoId)` | Conteos REVISION/FINALIZADO del técnico |
 | `crearReporte(req, urlsFotos)` | Alta del reporte + fotos INICIAL + historial |
@@ -178,9 +177,9 @@ Todos registrados como permanentes en `main()` via `Get.put(..., permanent: true
 - Getters reactivos: `pendientes` (REVISION), `completados` (FINALIZADO), `porAtender`, `resueltos`.
 
 ### `TabsController`
+- Definido dentro de `main_tabs.dart` (no en un archivo propio).
 - Controla el índice activo del `IndexedStack` del ciudadano.
-- Extraído a `controllers/tabs_controller.dart` para evitar importación circular con `MapScreen`.
-- `main_tabs.dart` lo re-exporta con `export` para compatibilidad con `InicioScreen` y `ReportScreen`.
+- `go(int i)` cambia la pestaña activa. `MapScreen` escucha este observable mediante un `Worker` para recargarse automáticamente.
 
 ---
 
@@ -192,7 +191,7 @@ Todos registrados como permanentes en `main()` via `Get.put(..., permanent: true
 |---|---|---|
 | `SplashScreen` | Todos | Lee el `AuthState` y redirige según rol. Muestra spinner mientras verifica. |
 | `LoginScreen` | Todos | Formulario usuario + contraseña. Redirige a `mainTabs`, `homeOperador` o `homeTecnico` según `tipoCuenta`. |
-| `RegisterScreen` | Ciudadano | 7 campos. Llama directamente a `ServicioCuenta` (sin controller). Redirige a login tras éxito. |
+| `RegisterScreen` | Ciudadano | 7 campos. Llama directamente a `ServicioCuenta` (sin controller). Tras éxito usa `Get.offAllNamed(AppRoutes.login)` para garantizar navegación limpia al login. |
 
 ### Flujo Ciudadano (`MainTabs`)
 
@@ -200,26 +199,40 @@ Usa `IndexedStack` — las 4 pestañas se mantienen vivas en memoria:
 
 | Pestaña | Pantalla | CU | Qué hace |
 |---|---|---|---|
-| 0 Inicio | `InicioScreen` | CU-05 | Saludo, 2 accesos rápidos, últimos 5 reportes del ciudadano. |
-| 1 Mapa | `MapScreen` | CU-05 | Lista de todos los reportes (todos los ciudadanos) con color por estado. Recarga al seleccionar la pestaña. Toca → `DetalleScreen`. |
-| 2 Reportar | `ReportScreen` | CU-04 | Formulario de alta: título, tipo, descripción, ubicación (hardcoded), fotos (contador). Redirige a pestaña Mis reportes. |
+| 0 Inicio | `InicioScreen` | CU-05 | Saludo, 2 accesos rápidos (Reportar / Mis reportes), últimos 5 reportes del ciudadano. |
+| 1 Mapa | `MapScreen` | CU-05 | Lista de todos los reportes con leyenda de colores por estado. **Se recarga automáticamente cada vez que el usuario activa este tab** (Worker sobre `TabsController.index`). Toca → `DetalleScreen`. |
+| 2 Reportar | `ReportScreen` | CU-04 | Formulario de alta: título, tipo, descripción, ubicación (hardcoded), fotos (contador). Tras envío recarga `ReportesController` y redirige a pestaña Mis reportes. |
 | 3 Mis reportes | `MisReportesScreen` | CU-05 | Lista propia del ciudadano con chips de estado + buscador por título. Toca → `DetalleScreen`. |
 
-**`DetalleScreen`** — CU-05: vista de solo lectura del reporte. Carga fotos INICIAL + historial. Muestra contenido extra según estado (técnico asignado, comentario de resolución, fotos FINAL, motivo de rechazo).
+**`DetalleScreen`** — CU-05: vista de solo lectura del reporte. Carga todas las fotos del reporte (INICIAL y FINAL) + historial de estados. Muestra contenido extra según estado:
+- `PENDIENTE` → callout informativo.
+- `REVISION` → nombre del técnico asignado (o "Sin asignar").
+- `FINALIZADO` → técnico asignado, comentario de resolución, `FotosStrip` de fotos FINAL.
+- `RECHAZADO` → motivo del rechazo.
 
 ### Flujo Operador
 
 | Pantalla | CU | Qué hace |
 |---|---|---|
-| `HomeScreenOperador` | CU-06/07 | Cola de todos los reportes con chips de filtro y 3 contadores. Toca → `GestionReportesScreen`. |
-| `GestionReportesScreen` | CU-06/07 | Vista completa del reporte con fotos del ciudadano. Si PENDIENTE: botones Aceptar / Rechazar. Si REVISION: botón Asignar/Reasignar Técnico (bottom sheet). Rechazar redirige a Cola con `Get.until`. |
+| `HomeScreenOperador` | CU-06/07 | Cola de todos los reportes con chips de filtro por estado y 3 contadores (Pendiente / En revisión / Finalizado). Toca → `GestionReportesScreen`. |
+| `GestionReportesScreen` | CU-06/07/08 | Carga fotos `INICIAL` y `FINAL` del reporte al entrar. Muestra el detalle completo. Acciones condicionales por estado: **PENDIENTE** → botones Aceptar / Rechazar; **REVISION** → botón Asignar/Reasignar Técnico (bottom sheet); **FINALIZADO** → callout verde + comentario del técnico + `FotosStrip` de fotos FINAL; **RECHAZADO** → callout con motivo. Rechazar navega de vuelta a la cola con `Get.until`. |
 
 ### Flujo Técnico
 
 | Pantalla | CU | Qué hace |
 |---|---|---|
-| `HomeScreenTecnico` | CU-08 | Asignaciones del técnico en 2 secciones: **POR ATENDER** (REVISION) → `EjecutarReporteScreen` y **COMPLETADOS** (FINALIZADO) → `DetalleScreen`. |
-| `EjecutarReporteScreen` | CU-08 | 2 pestañas: **Información** (fotos del ciudadano + datos + mapa placeholder + botón "Iniciar trabajo") y **Evidencia** (comentario + fotos solución + botón "Finalizar"). |
+| `HomeScreenTecnico` | CU-08 | Asignaciones del técnico divididas en 2 secciones: **MIS ASIGNACIONES** (reportes en REVISION) y **RESUELTOS** (reportes FINALIZADO). Ambas secciones navegan a `EjecutarReporteScreen`. |
+| `EjecutarReporteScreen` | CU-08 | 2 pestañas con comportamiento diferente según `r.estado`: |
+
+**Pestaña Información (`EjecutarReporteScreen`):**
+- Muestra estado, datos del reporte, mapa placeholder.
+- Si `REVISION`: botón "Iniciar trabajo de campo" que lleva al tab Evidencia.
+- Si `FINALIZADO`: callout informativo en lugar del botón (el proceso no se puede reiniciar).
+
+**Pestaña Evidencia (`EjecutarReporteScreen`):**
+- Siempre muestra las fotos `INICIAL` del ciudadano arriba (`FotosStrip`).
+- Si `REVISION`: formulario editable (comentario de resolución + selector de fotos + botón "Finalizar reporte").
+- Si `FINALIZADO`: vista de solo lectura con el comentario guardado y las fotos `FINAL` de resolución. Sin botones de acción.
 
 ---
 
@@ -233,8 +246,14 @@ Usa `IndexedStack` — las 4 pestañas se mantienen vivas en memoria:
 | `FotoThumb` | Dentro de `FotosStrip` | Miniatura que abre visor fullscreen (`InteractiveViewer`) al tocar. |
 | `AppColors` | Toda la app | Fuente única de colores, gradientes, mapeo `estado → Color` y `tipo → IconData`. |
 | `AppToast` | Toda la app | Snackbars con GetX en 3 variantes: `success`, `error`, `info`. |
-| `GradientScaffold` | `LoginScreen`, `RegisterScreen`, `SplashScreen` | Scaffold con fondo degradado, evita repetir la lógica de gradiente. |
-| `gradient_scaffold.dart` | Login / Register / Splash | Contenedor con LinearGradient configurable, soporte opcional de SafeArea. |
+| `GradientScaffold` | `LoginScreen`, `RegisterScreen`, `SplashScreen` | Scaffold con fondo degradado configurable. |
+| `GradientHeader` | Pantallas principales | Cabecera con gradiente, título, subtítulo y botón de logout opcional. |
+| `WhiteCard` | Vistas de detalle | Contenedor blanco con `borderRadius` y padding estándar para agrupar campos. |
+| `KeyValue` | Vistas de detalle | Fila de etiqueta + valor con estilos consistentes. |
+| `InfoCallout` | `EjecutarReporteScreen`, `GestionReportesScreen`, `DetalleScreen` | Caja informativa con fondo y texto de color configurable. |
+| `WideButton` | Vistas de acción | Botón ancho con ícono, color y estado deshabilitado. |
+| `CounterCard` / `CountersRow` | `HomeScreenTecnico`, `HomeScreenOperador` | Tarjetas de contador con color por estado. |
+| `SectionLabel` | Varias | Texto de sección en mayúsculas con color. |
 
 **Utilidades:**
 - `fechas.dart`: `fmtFecha(iso)` y `fmtFechaHora(iso)` usando `intl` con locale `es`.
@@ -246,10 +265,10 @@ Usa `IndexedStack` — las 4 pestañas se mantienen vivas en memoria:
 | Ruta | Pantalla | Quién navega allí |
 |---|---|---|
 | `/` | `SplashScreen` | App start |
-| `/login` | `LoginScreen` | Splash, logout |
-| `/register` | `RegisterScreen` | Login |
+| `/login` | `LoginScreen` | Splash, logout, registro exitoso |
+| `/register` | `RegisterScreen` | LoginScreen |
 | `/main` | `MainTabs` | Login (ciudadano) |
-| `/operador` | `HomeScreenOperador` | Login (operador), `Get.until` tras rechazar |
+| `/operador` | `HomeScreenOperador` | Login (operador), `Get.until` tras rechazar reporte |
 | `/tecnico` | `HomeScreenTecnico` | Login (técnico) |
 
 `GestionReportesScreen`, `EjecutarReporteScreen` y `DetalleScreen` se navegan con `Get.to()` sin nombre de ruta (rutas anónimas en el stack).
@@ -274,12 +293,38 @@ main()
 
 ---
 
-## 10. Qué falta implementar de los Casos de Uso
+## 10. Estado de implementación por Caso de Uso
+
+### CU-01 — Iniciar sesión ✅ Implementado
+
+| Punto del flujo | Estado |
+|---|---|
+| Formulario usuario / contraseña | ✅ |
+| Validación de credenciales contra LocalStore | ✅ |
+| Redirección por rol (Ciudadano / Operador / Técnico) | ✅ |
+| Token simulado en memoria | ✅ (cadena literal, sin JWT real) |
+| Mensaje de error por credenciales incorrectas | ✅ |
+
+---
+
+### CU-02 — Registrarse ✅ Implementado
+
+| Punto del flujo | Estado |
+|---|---|
+| Formulario 7 campos (nombres, apellidos, DNI, teléfono, correo, usuario, contraseña) | ✅ |
+| Validación de campos no vacíos | ✅ |
+| Validación de unicidad de usuario y correo | ✅ |
+| Creación de cuenta CIUDADANO en LocalStore | ✅ |
+| Redirección a Login tras registro exitoso (pila limpia) | ✅ |
+| Validación de formato/longitud de campos | ❌ Solo valida "no vacío" |
+
+---
 
 ### CU-03 — Recuperar contraseña ❌ No implementado
+
 - El botón "¿Olvidaste tu contraseña?" en `LoginScreen` llama a `AppToast.info('Función no implementada aún')`.
 - Faltan las vistas **08 Recuperar contraseña** y **09 Restablecer contraseña**.
-- Falta la lógica de envío de correo electrónico (requiere backend o Firebase Auth).
+- Requiere backend o Firebase Auth para el envío de correo.
 
 ---
 
@@ -288,12 +333,12 @@ main()
 | Punto del flujo | Estado |
 |---|---|
 | Formulario título / tipo / descripción | ✅ |
-| Selección de ubicación en mapa interactivo | ❌ Hardcoded a `(-12.08530, -77.03760)`. No hay mapa real ni GPS. |
-| Adjuntar fotos reales (cámara / galería) | ❌ `_fotos` es un contador entero; se guardan paths de assets fake. |
-| Upload de fotos a Firebase | ❌ Sin integración Firebase Storage. |
-| Validación de campos (longitud, formato) | ⚠️ Solo valida "no vacío". Sin validación de longitud máxima o caracteres. |
-| Reporte creado en PENDIENTE | ✅ |
-| Redirección a "Mis reportes" tras envío | ✅ |
+| Reporte creado en PENDIENTE con fotos INICIAL | ✅ |
+| Redirección a Mis reportes tras envío | ✅ |
+| Selección de ubicación en mapa interactivo | ❌ Hardcoded a `(-12.08530, -77.03760)` |
+| Adjuntar fotos reales (cámara / galería) | ❌ `_fotos` es un contador entero; se guardan paths de assets de muestra |
+| Upload de fotos a Firebase Storage | ❌ Sin integración |
+| Validación de longitud/formato de campos | ❌ Solo valida "no vacío" |
 
 ---
 
@@ -301,14 +346,17 @@ main()
 
 | Punto del flujo | Estado |
 |---|---|
-| Listado de reportes recientes (Inicio) | ✅ |
-| Vista Detalle con cronología, fotos, estado condicional | ✅ |
-| Mis reportes con filtro y buscador | ✅ |
-| Mapa interactivo con marcadores por lat/lng | ❌ Es una lista de tiles, no un mapa real. Sin `google_maps_flutter` ni `flutter_map`. |
-| Mapa con íconos y colores por tipo/estado | ⚠️ Los colores sí (en lista), los íconos tipo en marcadores no (solo en tiles). |
-| Toca marcador del mapa → Detalle | ✅ (desde tile de lista) |
-| Notificaciones push de cambio de estado | ❌ Sin FCM / OneSignal. |
-| Mapa en `DetalleScreen` | ❌ Placeholder de ícono estático. |
+| Listado de reportes recientes en Inicio | ✅ |
+| Vista Detalle con estado condicional (pendiente / revisión / finalizado / rechazado) | ✅ |
+| Fotos INICIAL del ciudadano en Detalle | ✅ |
+| Fotos FINAL del técnico en Detalle (cuando FINALIZADO) | ✅ |
+| Cronología de cambios de estado | ✅ |
+| Mis reportes con filtro por estado y buscador | ✅ |
+| Vista Mapa con lista de reportes y leyenda de colores | ✅ |
+| Mapa se recarga automáticamente al navegar al tab | ✅ (Worker sobre TabsController.index) |
+| Mapa interactivo real con marcadores por lat/lng | ❌ Es una lista de tiles, no un mapa real |
+| Notificaciones push de cambio de estado | ❌ Sin FCM |
+| Mapa en `DetalleScreen` | ❌ Placeholder de ícono estático |
 
 ---
 
@@ -317,12 +365,13 @@ main()
 | Punto del flujo | Estado |
 |---|---|
 | Cola de reportes con filtros y contadores | ✅ |
-| Vista Gestión con fotos del ciudadano | ✅ |
+| Vista Gestión con fotos INICIAL del ciudadano | ✅ |
 | Aceptar reporte (PENDIENTE → REVISION) | ✅ |
 | Rechazar reporte con motivo | ✅ |
 | Redirigir a Cola tras rechazar | ✅ |
-| Mapa de ubicación en vista Gestión | ❌ Placeholder estático. |
-| Notificación al ciudadano (aceptado/rechazado) | ❌ Sin FCM. |
+| Ver fotos FINAL y comentario del técnico cuando FINALIZADO | ✅ |
+| Mapa de ubicación en vista Gestión | ❌ Placeholder estático |
+| Notificación al ciudadano (aceptado/rechazado) | ❌ Sin FCM |
 
 ---
 
@@ -333,8 +382,8 @@ main()
 | Bottom sheet con lista de técnicos activos | ✅ |
 | Asignar técnico sin cambiar estado | ✅ |
 | Reasignar técnico ya asignado | ✅ |
-| Disponibilidad real del técnico (carga de trabajo) | ❌ Se muestran todos los activos sin filtro de carga. |
-| Notificación al ciudadano y al técnico | ❌ Sin FCM. |
+| Disponibilidad real del técnico (carga de trabajo) | ❌ Se muestran todos los activos sin filtro |
+| Notificación al ciudadano y al técnico | ❌ Sin FCM |
 
 ---
 
@@ -342,14 +391,17 @@ main()
 
 | Punto del flujo | Estado |
 |---|---|
-| Lista de asignaciones con secciones Por atender / Completados | ✅ |
-| Vista Información con fotos del ciudadano | ✅ |
-| Mapa de ubicación en EjecutarReporteScreen | ❌ Placeholder estático. |
-| Pestaña Evidencia con comentario | ✅ |
-| Adjuntar fotos de solución reales | ❌ Igual que CU-04: contador entero, paths fake. |
+| Lista de asignaciones con sección **Por atender** (REVISION) | ✅ |
+| Lista de asignaciones con sección **Resueltos** (FINALIZADO) | ✅ |
+| Tab Información con datos del reporte | ✅ |
+| Botón "Iniciar trabajo de campo" visible solo si estado es REVISION | ✅ |
+| Tab Evidencia con fotos INICIAL del ciudadano visibles | ✅ |
+| Formulario de resolución (comentario + fotos) solo en REVISION | ✅ |
+| Vista de solo lectura (comentario + fotos FINAL) cuando FINALIZADO | ✅ |
 | Finalizar reporte (REVISION → FINALIZADO) | ✅ |
-| Notificación al ciudadano | ❌ Sin FCM. |
-| Ver detalle de tarea completada | ✅ (navega a `DetalleScreen`) |
+| Adjuntar fotos de solución reales | ❌ Contador entero, paths de assets de muestra |
+| Mapa de ubicación en EjecutarReporteScreen | ❌ Placeholder estático |
+| Notificación al ciudadano | ❌ Sin FCM |
 
 ---
 
@@ -358,14 +410,15 @@ main()
 | Pendiente | Descripción |
 |---|---|
 | **Backend REST** | Todos los servicios usan `LocalStore`. En entrega 3/4 se reemplazan por llamadas HTTP (Dio/http). Los modelos y firmas de servicio ya están diseñados para eso. |
-| **Persistencia entre sesiones** | `LocalStore` se re-siembra en cada arranque. Los datos del usuario (reportes, cuentas creadas en sesión) se pierden al cerrar la app. |
-| **Picker de imágenes real** | `image_picker` no está integrado. Las fotos son assets de muestra. |
-| **Mapa real** | Sin `google_maps_flutter` / `flutter_map`. La vista de mapa es una lista y los mapas de detalle son placeholders. |
+| **Persistencia entre sesiones** | `LocalStore` se re-siembra en cada arranque. Los datos creados en sesión se pierden al cerrar la app. |
+| **Picker de imágenes real** | `image_picker` no está integrado. Las fotos son assets de muestra con un contador entero. |
+| **Mapa real** | Sin `google_maps_flutter` / `flutter_map`. La vista de mapa es una lista y los mapas en pantallas de detalle son placeholders. |
 | **GPS / geolocalización** | Sin `geolocator`. La coordenada es hardcoded. |
 | **Geocoding real** | `ServicioGeocoding` devuelve dirección hardcoded. En entrega 3/4 conectar a Nominatim o Google Geocoding. |
-| **Notificaciones push** | Ningún flujo notifica al ciudadano. Requiere Firebase Messaging (FCM). |
+| **Notificaciones push** | Ningún flujo notifica al ciudadano ni al técnico. Requiere Firebase Messaging (FCM). |
 | **Validación de formularios** | Solo valida "no vacío". Faltan: formato email, longitud DNI, longitud mínima de contraseña, longitud máxima de descripción. |
 | **Manejo de errores de red** | Los servicios locales no fallan (excepto por excepción lógica). Con backend real habrá que manejar timeouts, 401, 500. |
 | **Seguridad del token** | El token es la cadena literal `'local-token-XXX'`. En entrega 3/4 debe ser un JWT real con validación. |
 | **Contraseña en texto plano en JSON** | `cuentas.json` tiene contraseñas en claro. En producción deben almacenarse con hash. |
-| **Disponibilidad de técnicos** | `ServicioTecnicos.obtenerDisponibles()` devuelve todos los activos sin considerar cuántos reportes tienen asignados. |
+| **Disponibilidad de técnicos** | `ServicioTecnicos.obtenerDisponibles()` devuelve todos los activos sin considerar carga de trabajo. |
+| **CU-03 — Recuperar contraseña** | Vistas 08 y 09 no implementadas. Botón en login muestra toast de "no implementado". |

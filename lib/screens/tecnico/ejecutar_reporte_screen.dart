@@ -8,6 +8,7 @@ import '../../widgets/app_colors.dart';
 import '../../widgets/custom_toast.dart';
 import '../../widgets/estado_pill.dart';
 import '../../widgets/foto_view.dart';
+import '../../widgets/map_view.dart';
 import '../../widgets/common/detail_widgets.dart';
 
 /// Vistas 02 Informacion y 03 Evidencia (CU-08), en pestanas.
@@ -106,10 +107,11 @@ class _EjecutarReporteScreenState extends State<EjecutarReporteScreen>
           KeyValue('Reportado por', '${r.nombreCiudadano ?? '-'} - ${fmtFecha(r.fechaCreacion)}'),
         ]),
         const SizedBox(height: 14),
-        Container(
-          height: 130,
-          decoration: BoxDecoration(color: const Color(0xFFE6ECEF), borderRadius: BorderRadius.circular(12)),
-          child: const Center(child: Icon(Icons.place, color: AppColors.tecnicoPrimary, size: 34)),
+        MapPinView(
+          lat: r.ubicacion.latitud,
+          lng: r.ubicacion.longitud,
+          color: AppColors.tecnicoPrimary,
+          height: 150,
         ),
         const SizedBox(height: 16),
         if (!_esFinalizado)
