@@ -1,0 +1,35 @@
+@startuml
+title CU-04 · Reportar incidencia urbana
+skinparam maxMessageSize 160
+autonumber
+actor Ciudadano
+boundary "Vista 02 Inicio" as V2
+boundary "Vista 04 Reportar" as V4
+boundary "Vista 03 Mis reportes" as V3
+control "Backend (Ruby)" as Backend
+database "Base de Datos (SQLite)" as DB
+
+group Flujo Principal y Escenario 1
+    Ciudadano -> V2: Clic en "Reportar incidencia"
+    V2 -> V4: Redirige a la vista Reportar
+    Ciudadano -> V4: Ingresa titulo, descripcion y selecciona el tipo\n(Infraestructura/Residuos/Seguridad/Alumbrado/Otro)
+    Ciudadano -> V4: Selecciona la ubicacion en el mapa
+    Ciudadano -> V4: Adjunta fotos (max 5)
+    Ciudadano -> V4: Clic en "Enviar reporte"
+    V4 -> Backend: Envia datos del reporte y fotos
+
+    alt Datos validos
+        Backend -> DB: Query(INSERT ubicacion)
+        Backend -> DB: Query(INSERT reporte [estado=Pendiente])
+        Backend -> DB: Query(INSERT fotos)
+        Backend -> DB: Query(INSERT historial_estados [null -> Pendiente])
+        DB --> Backend: Confirma insercion
+        Backend --> V4: Reporte creado correctamente
+        V4 -> V3: Redirige a la vista Mis reportes
+        V3 --> Ciudadano: Muestra mensaje de exito y el nuevo reporte
+    else Datos invalidos (Escenario 1)
+        Backend --> V4: Notifica datos invalidos
+        V4 --> Ciudadano: Muestra error y solicita corregir
+    end
+end
+@enduml

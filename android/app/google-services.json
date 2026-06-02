@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "745861650150",
+    "project_id": "backendreporte",
+    "storage_bucket": "backendreporte.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:745861650150:android:e552fad88423d682564d27",
+        "android_client_info": {
+          "package_name": "com.reportayatemp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxdJ2ObhH4me7XDozQ_AlsDjdhgz0toPY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

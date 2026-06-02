@@ -1,0 +1,56 @@
+@startuml
+title CU-06 · Validar reportes ciudadanos
+skinparam maxMessageSize 160
+autonumber
+actor "Operador de Oficina Municipal" as Operador
+boundary "Vista 01 Cola de reportes" as V1
+boundary "Vista 02 Gestion" as V2
+control "Backend (Ruby)" as Backend
+database "Base de Datos (SQLite)" as DB
+
+group Flujo Principal y Escenario 1: Carga de la cola
+    Operador -> V1: Accede a la Cola de reportes
+    V1 -> Backend: Solicita reportes y contadores
+    Backend -> DB: Query(SELECT reportes, COUNT por estado)
+    DB --> Backend: Retorna datos
+
+    alt Hay reportes
+        Backend --> V1: Retorna listado y contadores
+        V1 --> Operador: Muestra la cola con filtros y 3 contadores
+    else Sin reportes pendientes (Escenario 1)
+        Backend --> V1: Notifica que no hay reportes pendientes
+        V1 --> Operador: Muestra lista vacia
+    end
+end
+
+group Flujo Principal y Escenario 2: Ver detalle y decidir
+    Operador -> V1: Clic en un reporte (estado Pendiente)
+    V1 -> V2: Redirige a la vista Gestion
+    V2 -> Backend: Solicita detalle del reporte (ID)
+    Backend -> DB: Query(SELECT detalle)
+    DB --> Backend: Retorna datos
+    Backend --> V2: Retorna detalle del reporte
+    V2 --> Operador: Muestra el detalle del reporte
+
+    alt Aceptar reporte (Flujo Principal)
+        Operador -> V2: Clic en "Aceptar reporte"
+        V2 -> Backend: Solicita aceptar el reporte
+        Backend -> DB: Query(UPDATE estado = Revision)
+        Backend -> DB: Query(INSERT historial_estados [Pendiente -> Revision])
+        DB --> Backend: Confirma
+        Backend --> V2: Estado actualizado y notifica al ciudadano
+        V2 --> Operador: Confirma (falta asignar tecnico - CU-07)
+    else Rechazar reporte (Escenario 2)
+        Operador -> V2: Clic en "Rechazar"
+        V2 --> Operador: Muestra formulario de motivo
+        Operador -> V2: Ingresa el motivo y clic "Confirmar rechazo"
+        V2 -> Backend: Solicita rechazar el reporte (motivo)
+        Backend -> DB: Query(UPDATE estado = Rechazado, comentario_resolucion)
+        Backend -> DB: Query(INSERT historial_estados [Pendiente -> Rechazado])
+        DB --> Backend: Confirma
+        Backend --> V2: Estado actualizado y notifica al ciudadano
+        V2 -> V1: Redirige a la Cola de reportes
+        V1 --> Operador: Muestra mensaje de exito
+    end
+end
+@enduml

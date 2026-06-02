@@ -1,0 +1,48 @@
+@startuml
+title CU-08 · Atender reportes asignados
+skinparam maxMessageSize 160
+autonumber
+actor "Tecnico de Campo Municipal" as Tecnico
+boundary "Vista 01 Mis asignaciones" as V1
+boundary "Vista 02 Informacion" as V2
+boundary "Vista 03 Evidencia" as V3
+control "Backend (Ruby)" as Backend
+database "Base de Datos (SQLite)" as DB
+
+group Flujo Principal y Escenario 1: Carga de asignaciones
+    Tecnico -> V1: Accede a Mis asignaciones
+    V1 -> Backend: Solicita reportes asignados y contadores
+    Backend -> DB: Query(SELECT asignaciones WHERE tecnico_id)
+    DB --> Backend: Retorna datos
+
+    alt Hay reportes asignados
+        Backend --> V1: Retorna listado y 2 contadores
+        V1 --> Tecnico: Muestra las asignaciones
+    else Sin reportes asignados (Escenario 1)
+        Backend --> V1: Notifica que no hay asignaciones
+        V1 --> Tecnico: Muestra lista vacia
+    end
+end
+
+group Flujo Principal: Ejecucion del trabajo de campo
+    Tecnico -> V1: Clic en un reporte
+    V1 -> V2: Redirige a la vista Informacion
+    V2 -> Backend: Solicita detalle y cronologia (ID)
+    Backend -> DB: Query(SELECT detalle e historial)
+    DB --> Backend: Retorna datos
+    Backend --> V2: Retorna detalle del reporte
+    V2 --> Tecnico: Muestra la informacion del reporte
+    Tecnico -> V2: Clic en "Iniciar trabajo de campo"
+    V2 -> V3: Redirige a la vista Evidencia
+    Tecnico -> V3: Escribe comentarios y adjunta fotos (max 5)
+    Tecnico -> V3: Clic en "Finalizar reporte"
+    V3 -> Backend: Envia comentario y fotos de la solucion
+    Backend -> DB: Query(UPDATE estado = Finalizado, comentario_resolucion, fecha_cierre)
+    Backend -> DB: Query(INSERT fotos [FINAL])
+    Backend -> DB: Query(INSERT historial_estados [Revision -> Finalizado])
+    DB --> Backend: Confirma
+    Backend --> V3: Estado actualizado y notifica al ciudadano
+    V3 -> V1: Redirige a Mis asignaciones
+    V1 --> Tecnico: Muestra mensaje de exito
+end
+@enduml

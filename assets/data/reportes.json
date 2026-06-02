@@ -1,0 +1,39 @@
+[
+  { "id": 1042, "titulo": "Hueco profundo en la pista", "descripcion": "Hueco de unos 40 cm en el carril derecho. Ya provoco dos llantas pinchadas esta semana. Pasa frente a la entrada del colegio.",
+    "cuentaId": 1, "nombreCiudadano": "Ana Quispe", "estado": "REVISION", "tipoProblema": "INFRAESTRUCTURA",
+    "ubicacion": { "id": 1, "latitud": -12.08530, "longitud": -77.03760, "direccion": "Av. Arequipa 1234, Lince" },
+    "fechaCreacion": "2026-04-27T08:42:00", "fechaActualizacion": "2026-04-27T10:20:00",
+    "comentarioResolucion": null, "fechaCierre": null, "tecnicoAsignadoId": 4, "tecnicoNombre": "Carlos Mendoza" },
+
+  { "id": 1041, "titulo": "Poste sin alumbrado", "descripcion": "El poste lleva 5 dias sin luz, la cuadra queda totalmente a oscuras de noche.",
+    "cuentaId": 1, "nombreCiudadano": "Ana Quispe", "estado": "REVISION", "tipoProblema": "ALUMBRADO",
+    "ubicacion": { "id": 2, "latitud": -12.09650, "longitud": -77.03200, "direccion": "Jr. Las Begonias 245, San Isidro" },
+    "fechaCreacion": "2026-04-26T19:02:00", "fechaActualizacion": "2026-04-26T21:12:00",
+    "comentarioResolucion": null, "fechaCierre": null, "tecnicoAsignadoId": 5, "tecnicoNombre": "Lucia Paredes" },
+
+  { "id": 1040, "titulo": "Acumulacion de basura", "descripcion": "Punto de acopio improvisado lleva 3 dias sin recojo. Mal olor y presencia de roedores.",
+    "cuentaId": 1, "nombreCiudadano": "Ana Quispe", "estado": "PENDIENTE", "tipoProblema": "RESIDUOS",
+    "ubicacion": { "id": 3, "latitud": -12.07210, "longitud": -77.06320, "direccion": "Av. Brasil 800, Pueblo Libre" },
+    "fechaCreacion": "2026-04-26T14:05:00", "fechaActualizacion": "2026-04-26T14:05:00",
+    "comentarioResolucion": null, "fechaCierre": null, "tecnicoAsignadoId": null, "tecnicoNombre": null },
+
+  { "id": 1039, "titulo": "Semaforo intermitente", "descripcion": "El semaforo de la interseccion quedo en amarillo intermitente, riesgo de choques.",
+    "cuentaId": 1, "nombreCiudadano": "Ana Quispe", "estado": "FINALIZADO", "tipoProblema": "SEGURIDAD",
+    "ubicacion": { "id": 4, "latitud": -12.08900, "longitud": -76.99100, "direccion": "Av. Javier Prado 4500, Surco" },
+    "fechaCreacion": "2026-04-24T07:30:00", "fechaActualizacion": "2026-04-25T16:40:00",
+    "comentarioResolucion": "Se reemplazo el modulo de control del semaforo y se verifico el ciclo completo. Operativo.",
+    "fechaCierre": "2026-04-25T16:40:00", "tecnicoAsignadoId": 4, "tecnicoNombre": "Carlos Mendoza" },
+
+  { "id": 1038, "titulo": "Vidrio roto en parque infantil", "descripcion": "Botellas rotas en la zona de juegos para ninos.",
+    "cuentaId": 2, "nombreCiudadano": "Jose Rios", "estado": "PENDIENTE", "tipoProblema": "SEGURIDAD",
+    "ubicacion": { "id": 5, "latitud": -12.12050, "longitud": -77.02980, "direccion": "Parque Reducto, Miraflores" },
+    "fechaCreacion": "2026-04-26T11:20:00", "fechaActualizacion": "2026-04-26T11:20:00",
+    "comentarioResolucion": null, "fechaCierre": null, "tecnicoAsignadoId": null, "tecnicoNombre": null },
+
+  { "id": 1037, "titulo": "Rampa rota para sillas de ruedas", "descripcion": "La rampa de acceso esta fracturada y es peligrosa.",
+    "cuentaId": 1, "nombreCiudadano": "Ana Quispe", "estado": "RECHAZADO", "tipoProblema": "INFRAESTRUCTURA",
+    "ubicacion": { "id": 6, "latitud": -12.09980, "longitud": -77.03450, "direccion": "Av. Petit Thouars 3300, San Isidro" },
+    "fechaCreacion": "2026-04-23T10:00:00", "fechaActualizacion": "2026-04-23T15:30:00",
+    "comentarioResolucion": "Rechazado: la rampa pertenece a un predio privado, no corresponde a la via publica municipal.",
+    "fechaCierre": "2026-04-23T15:30:00", "tecnicoAsignadoId": null, "tecnicoNombre": null }
+]

@@ -13,47 +13,32 @@
   - [3.6 Verificacion general en macOS](#36-verificacion-general-en-macos)
   - [3.7 Configuracion del entorno en Windows](#37-configuracion-del-entorno-en-windows)
   - [3.8 Ejecucion y validacion del proyecto](#38-ejecucion-y-validacion-del-proyecto)
-- [4. Diagrama de despliegue](#4-diagrama-de-despliegue)
-- [5. Requisitos no funcionales](#5-requisitos-no-funcionales)
-  - [5.1 Enfoque](#51-enfoque)
-  - [5.2 Catalogo de RNF](#52-catalogo-de-rnf)
-  - [5.3 Trazabilidad RNF y diagrama de despliegue](#53-trazabilidad-rnf--diagrama-de-despliegue)
-  - [5.4 Verificacion de los RNF](#54-verificacion-de-los-rnf)
-- [6. Requerimientos funcionales](#6-requerimientos-funcionales)
-  - [6.1 Catalogo de requisitos funcionales](#61-catalogo-de-requisitos-funcionales)
-  - [6.2 Actores del sistema](#62-actores-del-sistema)
-  - [6.3 Diagrama de casos de uso](#63-diagrama-de-casos-de-uso)
-  - [6.4 Descripcion de casos de uso](#64-descripcion-de-casos-de-uso)
-- [7. Mockups](#7-mockups)
-  - [7.1 Sistema de diseno](#71-sistema-de-diseno)
-  - [7.2 Pantallas principales](#72-pantallas-principales)
-  - [7.3 Prototipo navegable](#73-prototipo-navegable)
-- [8. Diagrama de base de datos](#8-diagrama-de-base-de-datos)
-- [9. Tecnologias utilizadas](#9-tecnologias-utilizadas)
-- [10. Instalacion y ejecucion del proyecto](#10-instalacion-y-ejecucion-del-proyecto)
+- [4. Tecnologias utilizadas](#4-tecnologias-utilizadas)
+- [5. Requisitos funcionales](#5-requisitos-funcionales)
+- [6. Requisitos no funcionales](#6-requisitos-no-funcionales)
+- [7. Diagrama de casos de uso](#7-diagrama-de-casos-de-uso)
+- [8. Descripcion de casos de uso](#8-descripcion-de-casos-de-uso)
+- [9. Mockups](#9-mockups)
+- [10. Diagrama de despliegue](#10-diagrama-de-despliegue)
+- [11. Instalacion y ejecucion del proyecto](#11-instalacion-y-ejecucion-del-proyecto)
+- [12. Estructura base del proyecto](#12-estructura-base-del-proyecto)
+- [13. Pendientes](#13-pendientes)
 
 ## 1. Descripcion del proyecto
-<p align="center">
-  <img src="./docs/images/reportaya-logo.png" alt="Logo de ReportaYA" width="520">
-</p>
-
-**ReportaYA** es una aplicacion movil desarrollada en Flutter orientada al registro, seguimiento y gestion de reportes ciudadanos. El proyecto busca facilitar que los usuarios comuniquen incidencias de manera rapida, ordenada y accesible desde dispositivos moviles, centralizando la informacion necesaria para su revision y atencion.
-
-La propuesta contempla una interfaz simple y directa, pensada para que el usuario pueda crear reportes, consultar su estado y acceder a informacion relevante del proceso. Desde el lado del sistema, ReportaYA organiza los casos registrados y prepara una base funcional para futuras mejoras relacionadas con autenticacion, clasificacion de reportes, notificaciones y administracion de incidencias.
+> Completar por el equipo.
 
 ## 2. Integrantes
-- 20230622 - CASOLDA ALEGRIA MARIEL FERNANDA
-- 20221789 - ORDOÑEZ FLORES ENZO FABRIZIO
-- 20235218 - SANCHEZ PALACIOS JEFFERSON ANGELO
-- 20224203 - YANCE VALENZUELA ANTHONY
+> Completar nombres, codigos y responsabilidades.
 
 ## 3. Entorno de desarrollo
 
 Esta seccion describe la configuracion del entorno necesaria para desarrollar y ejecutar el proyecto Flutter **ReportaYA**. El objetivo es que cualquier integrante del equipo pueda preparar su equipo, validar las herramientas instaladas y ejecutar el proyecto en Android o iOS.
 
-**Flutter** es el framework utilizado para construir la aplicacion movil de ReportaYA desde una misma base de codigo en Dart. Permite compilar y ejecutar el proyecto en distintas plataformas, como Android e iOS, manteniendo una estructura comun para la interfaz, la logica de presentacion y la gestion de dependencias.
+La preparacion se realizo tomando como referencia la documentacion oficial de Flutter:
 
-**Android Studio** es el entorno de desarrollo usado para preparar la ejecucion en Android. Desde esta herramienta se instala y administra el Android SDK, las herramientas de compilacion, los emuladores y los dispositivos virtuales necesarios para probar la aplicacion.
+- [Comenzar: Instalar en macOS - Flutter](https://flutter-website-staging.firebaseapp.com/setup-macos/).
+- `Add Flutter to your PATH.pdf`.
+- `Configurar el desarrollo de Windows.pdf`.
 
 Flutter requiere tres bloques principales de configuracion:
 
@@ -256,6 +241,8 @@ flutter devices
 
 Nota: el documento **Configurar el desarrollo de Windows** tambien menciona Visual Studio con la carga de trabajo **Desarrollo de escritorio con C++**. Esta configuracion es necesaria si se desea compilar aplicaciones Flutter para escritorio Windows. Para el alcance movil de ReportaYA, Android Studio y Android SDK son los componentes principales en Windows.
 
+> Completar por el equipo con versiones y capturas del entorno Windows.
+
 ### 3.8 Ejecucion y validacion del proyecto
 
 El proyecto Flutter **ReportaYA-Front** fue creado inicialmente con el comando:
@@ -309,143 +296,8 @@ Para revisar el estado del codigo:
 flutter analyze
 flutter test
 ```
-## 4. Diagrama de despliegue
 
-<img src="./docs/images/DiagramaDedespliegue.png" alt="Diagrama de Despliegue de ReportaYA" width="900">
-
-## 5. Requisitos no funcionales
-
-Los requisitos no funcionales (RNF) describen las **cualidades** que debe cumplir el sistema **ReportaYA** mas alla de su funcionalidad: rendimiento, disponibilidad, seguridad, compatibilidad, etc. Cada RNF de esta seccion declara una **metrica medible** y se asocia explicitamente a un **nodo o enlace del diagrama de despliegue (seccion 4)**, garantizando trazabilidad entre lo que el sistema debe lograr y la infraestructura sobre la que se despliega.
-
-### 5.1 Enfoque
-
-- **Cada RNF tiene un identificador unico** (`RNF-NN`) para poder referenciarlo desde casos de uso, tareas y pruebas.
-- **Cada RNF incluye un criterio de aceptacion concreto** (latencia objetivo, porcentaje de disponibilidad, etc.) — un RNF sin metrica no es verificable.
-- **Cada RNF se ancla a un componente del diagrama de despliegue**, de modo que cuando se modifique la arquitectura sea evidente que requisitos pueden verse afectados.
-
-### 5.2 Catalogo de RNF
-
-| ID | Categoria | Descripcion | Criterio de aceptacion / metrica | Componente del diagrama de despliegue (seccion 4) |
-|---|---|---|---|---|
-| **RNF-01** | Compatibilidad | La aplicacion movil debe ejecutarse correctamente en Android y iOS. | Soporte para **Android 7.0 (API 24) y superiores** y **iOS 13.0 y superiores**. 100 % de los smoke tests aprobados en ambas plataformas en cada release. | Nodos `Mobile Device (Android)` y `Mobile Device (iOS)` |
-| **RNF-02** | Rendimiento | Las operaciones REST entre la app y el backend deben responder rapidamente bajo carga normal. | Tiempo de respuesta **< 2 s en el percentil 95** medido desde el cliente, en operaciones de lectura paginadas y creacion de reportes. | Enlace `Mobile App ↔ Backend (HTTPS REST)` |
-| **RNF-03** | Disponibilidad | El backend debe estar disponible la mayor parte del tiempo para no bloquear la creacion ni la consulta de reportes. | **Uptime ≥ 99 % mensual** en el servicio de API. | Nodo `Backend Spring Boot` desplegado en `Azure Container Apps` |
-| **RNF-04** | Seguridad — transporte | Toda comunicacion entre la app movil y el backend debe ir cifrada y autenticada. | Uso obligatorio de **TLS 1.2 o superior** y validacion de credenciales en cada login. Sin endpoints publicos sin autenticacion (a excepcion del propio `/api/auth/login`). | Enlace `Mobile App ↔ Backend (HTTPS REST)` |
-| **RNF-05** | Almacenamiento de evidencias | Las fotos adjuntadas por los tecnicos para resolver un reporte deben almacenarse fuera del backend para evitar saturacion. | **Subida de foto < 5 s** para imagenes ≤ 5 MB. URL publica devuelta al cliente. Respaldo en almacenamiento local del backend si Firebase Storage no esta disponible. | Enlace `Backend → Firebase Storage` |
-| **RNF-06** | Notificaciones en tiempo real | Los cambios de estado de un reporte deben llegar al usuario afectado sin que tenga que refrescar la app. | **Latencia de push < 5 s** entre el evento de cambio de estado y la entrega de la notificacion al dispositivo. | Enlace `Backend → Firebase Cloud Messaging → Mobile App` |
-| **RNF-07** | Persistencia local de sesion | El usuario no debe re-autenticarse cada vez que abre la aplicacion. | Sesion valida durante **24 horas** desde el ultimo login, almacenada de forma segura (almacenamiento cifrado del dispositivo, no en texto plano). | Componente local `Almacenamiento seguro` dentro del nodo `Mobile Device` |
-| **RNF-08** | Geolocalizacion y geocodificacion | El reporte debe registrar la ubicacion del incidente con precision suficiente para que un tecnico lo encuentre. | Precision GPS **< 50 m** en exteriores. Reverse geocoding (coordenadas → direccion textual) disponible para mostrar la calle al usuario. | Enlace `Mobile App → Nominatim (OpenStreetMap)` |
-
-### 5.3 Trazabilidad RNF ↔ Diagrama de despliegue
-
-El siguiente grafo resume como cada RNF se conecta con un componente o enlace del diagrama de despliegue. Sirve como ancla visual independiente de la seccion 4 y demuestra que los RNF se diseñaron pensando en la arquitectura objetivo.
-
-```mermaid
-graph LR
-  RNF01["RNF-01<br/>Compatibilidad"]
-  RNF02["RNF-02<br/>Rendimiento"]
-  RNF03["RNF-03<br/>Disponibilidad"]
-  RNF04["RNF-04<br/>Seguridad"]
-  RNF05["RNF-05<br/>Storage"]
-  RNF06["RNF-06<br/>Push"]
-  RNF07["RNF-07<br/>Sesion local"]
-  RNF08["RNF-08<br/>Geolocalizacion"]
-
-  Mobile(("Mobile Device<br/>Android / iOS"))
-  Link1(["Enlace<br/>App ↔ Backend<br/>HTTPS REST"])
-  Backend(("Backend Spring Boot<br/>Azure Container Apps"))
-  FStorage(("Firebase Storage"))
-  FCM(("Firebase Cloud<br/>Messaging"))
-  OSM(("Nominatim<br/>OpenStreetMap"))
-
-  RNF01 --> Mobile
-  RNF07 --> Mobile
-  RNF02 --> Link1
-  RNF04 --> Link1
-  RNF03 --> Backend
-  RNF05 --> FStorage
-  RNF06 --> FCM
-  RNF08 --> OSM
-```
-
-> Nota: el diagrama completo de despliegue se encuentra en la **seccion 4**. Los RNF de esta seccion ya estan alineados con los nodos y enlaces que ese diagrama incluye.
-
-### 5.4 Verificacion de los RNF
-
-Cada RNF se validara con una de las siguientes tecnicas durante las iteraciones del proyecto:
-
-| Tecnica | Aplicada a |
-|---|---|
-| Smoke tests automaticos en CI (Android + iOS) | RNF-01 |
-| Pruebas de carga con `k6` o `Apache JMeter` contra el backend | RNF-02, RNF-03 |
-| Inspeccion de cabeceras TLS y revision manual de endpoints | RNF-04 |
-| Medicion manual de tiempos de subida y entrega | RNF-05, RNF-06 |
-| Test de integracion sobre `flutter_secure_storage` y verificacion de TTL | RNF-07 |
-| Pruebas de campo con dispositivos reales en distintos puntos de Lima | RNF-08 |
-
-## 6. Requerimientos funcionales
-
-Los requerimientos funcionales de **ReportaYA** describen las acciones y capacidades que el sistema debe proporcionar a sus usuarios. Cada RF esta vinculado a un caso de uso especifico y se complementa con el diagrama y la descripcion de casos de uso.
-
-### 6.1 Catalogo de requisitos funcionales
-
-| ID | Requisito Funcional | Caso de Uso Relacionado | Actor(es) |
-|---|---|---|---|
-| **RF-01** | El sistema debe permitir a los usuarios (Ciudadano, Operador de Oficina Municipal, Técnico de Campo Municipal) autenticarse ingresando sus credenciales para acceder a la vista correspondiente a su rol. | CU01 - Iniciar sesión | Todos |
-| **RF-02** | El sistema debe permitir a los ciudadanos crear una cuenta proporcionando sus datos personales y debe enviar un correo de confirmación para activar el perfil. | CU02 - Registrarse | Todos |
-| **RF-03** | El sistema debe permitir a los usuarios solicitar la recuperación de su contraseña mediante el envío de un enlace o token al correo electrónico registrado. | CU03 - Recuperar contraseña | Todos |
-| **RF-04** | El sistema debe permitir a los ciudadanos crear, enviar y hacer seguimiento a nuevos reportes de incidentes urbanos, incluyendo la ubicación, tipo de problema, descripción detallada y evidencia multimedia. | CU04 - Reportar incidencia urbana | Ciudadano |
-| **RF-05** | El sistema debe permitir a los usuarios visualizar, filtrar y explorar los reportes mediante un listado detallado y un mapa interactivo (con leyenda de colores e íconos), además de enviar notificaciones de estado. | CU05 - Consultar reportes | Ciudadano, Operador, Técnico |
-| **RF-06** | El sistema debe permitir al Operador de Oficina Municipal revisar, aprobar o rechazar los reportes ingresados, asignarles un nivel de prioridad y notificar al ciudadano la decisión tomada. | CU06 - Validar reportes ciudadanos | Operador de Oficina |
-| **RF-07** | El sistema debe permitir al Operador de Oficina Municipal asignar un técnico de campo a un reporte previamente aprobado, y facilitar el seguimiento del mismo hasta su resolución. | CU07 - Asignar reportes | Operador de Oficina |
-| **RF-08** | El sistema debe permitir al Técnico de Campo Municipal revisar sus tareas asignadas, actualizar el estado del reporte, adjuntar evidencia fotográfica, añadir comentarios sobre la solución y confirmar la finalización en campo. | CU08 - Atender reporte | Técnico de Campo |
-
-### 6.2 Actores del sistema
-
-| Actor | Descripcion |
-|---|---|
-| **Ciudadano** | Usuario que reporta incidentes urbanos y hace seguimiento a sus reportes. Puede crear cuenta, autenticarse, crear reportes y visualizar su estado. |
-| **Operador de Oficina Municipal** | Usuario responsable de validar y priorizar reportes. Revisa reportes de ciudadanos, aprueba o rechaza, asigna técnicos, y notifica decisiones. |
-| **Técnico de Campo Municipal** | Usuario responsable de resolver reportes en el terreno. Recibe asignaciones, actualiza estados, adjunta evidencias fotográficas y cierra reportes. |
-
-### 6.3 Diagrama de casos de uso
-<img src="./docs/images/Diagrama_CasosDeUso.png" alt="Diagrama de Casos de Uso de ReportaYa">
-
-### 6.4 Descripcion de casos de uso
-
-| ID     | Caso de Uso           | Actor                           | Descripción                                                                 | Precondición                                      |
-|--------|-----------------------|--------------------------------|-----------------------------------------------------------------------------|---------------------------------------------------|
-| CU01 | Iniciar sesión | Usuario (Ciudadano, Operador de Oficina Municipal, Técnico de Campo Municipal) | Permitir que un usuario autenticado acceda a la aplicación ingresando sus credenciales y sea dirigido a la vista correspondiente a su rol. | La aplicación está disponible y el usuario dispone de conexión a Internet. |
-| CU02 | Registrarse | Usuario (Ciudadano, Operador de Oficina Municipal, Técnico de Campo Municipal) | Permitir que un ciudadano cree una cuenta proporcionando sus datos y reciba un correo de confirmación para activar su perfil. | La aplicación está disponible y el usuario dispone de conexión a Internet. |
-| CU03 | Recuperar contraseña | Usuario (Ciudadano, Operador de Oficina Municipal, Técnico de Campo Municipal) | Permitir que un usuario restablezca su contraseña recibiendo un enlace o token en el correo que tenga registrado | La aplicación está disponible y el usuario dispone de conexión a Internet. |
-| CU04 | Reportar incidencia urbana | Usuario (Ciudadano) | Permitir que un ciudadano cree  y envíe un nuevo reporte de incidente urbano, aportando ubicación, tipo de problema, descripción y evidencia multimedia, y posteriormente poder hacerle seguimiento. | El ciudadano ha iniciado sesión y ha accedido a la opción “Reportar incidencia” (Símbolo “+” en el mapa) en la aplicación. |
-| CU05 | Consultar reportes | Usuario (Ciudadano, Operador de Oficina Municipal, Técnico de Campo Municipal) | Permitir que un usuario visualice, filtre y explore reportes de incidentes en un listado detallado y sobre un mapa interactivo, con notificaciones de estado y una leyenda de colores e íconos para facilitar la interpretación. | El usuario ha iniciado sesión, el sistema ha cargado los datos de los reportes y el mapa base y la conexión a los servicios de datos está activa. |
-| CU06 | Validar reportes ciudadanos | Usuario (Operador de Oficina Municipal) | Permitir que un operador revise, apruebe o rechace los reportes recibidos, que asigne un nivel de prioridad y que notifique al ciudadano sobre la decisión tomada. | El usuario ha iniciado sesión como su rol correspondiente, existen reportes en estado “Pendiente de validación” y la interfaz de validación carga correctamente los datos del reporte. |
-| CU07 | Asignar reportes | Usuario (Operador de Oficina Municipal) | Permitir que un operador designe al personal responsable (técnico de campo) para atender un reporte aprobado y asegurar su seguimiento hasta la resolución. | El usuario ha iniciado sesión como su rol correspondiente, existen reportes en estado “Aprobado” listos para asignar y  La lista de técnicos de campo está cargada y disponible. |
-| CU08 | Atender reporte | Usuario (Técnico de Campo Municipal) | Permitir que un técnico revise las tareas asignadas, actualice el estado del reporte, aporte evidencia fotográfica y comentarios de la solución, y confirme la finalización del trabajo en campo. | El usuario ha iniciado sesión como su rol correspondiente y existe al menos un reporte en estado “Asignado” en su lista de tareas |
-
-## 7. Mockups
-Los mockups del proyecto se encuentran en el archivo HTML interactivo [ReportaYA_Diseno.html](./docs/images/ReportaYA_Diseno.html). GitHub muestra los archivos HTML como codigo fuente, por lo que para visualizarlos como prototipo se debe abrir el siguiente enlace: [ver mockups interactivos](https://htmlpreview.github.io/?https://github.com/jeffangeloss/ReportaYA-Front/blob/jeff/docs/images/ReportaYA_Diseno.html).
-
-Para que puedan visualizarse directamente desde este documento, se incluyen capturas del sistema de diseno, las pantallas principales y el prototipo navegable.
-
-### 7.1 Sistema de diseño
-
-<img src="./docs/images/mockups/reportaya-mockups-design-system.png" alt="Sistema de diseno de ReportaYA">
-
-### 7.2 Pantallas principales
-
-<img src="./docs/images/mockups/reportaya-mockups-pantallas.png" alt="Pantallas principales de ReportaYA">
-
-### 7.3 Prototipo navegable
-
-<img src="./docs/images/mockups/reportaya-mockups-prototipo.png" alt="Prototipo navegable de ReportaYA">
-
-## 8. Diagrama de base de datos
-
-<img src="./docs/images/diagrams/Diagrama_DB.png" alt="Modelo de base de datos ReportaYA" width="900">
-
-## 9. Tecnologias utilizadas
+## 4. Tecnologias utilizadas
 
 - Framework: Flutter.
 - Lenguaje: Dart.
@@ -478,7 +330,94 @@ Este comando descarga o actualiza las dependencias y regenera `pubspec.lock`, qu
   - `flutter_test`: pruebas automatizadas de widgets.
   - `flutter_lints: ^6.0.0`: reglas recomendadas de analisis estatico para mantener buenas practicas en Dart/Flutter.
 
-## 10. Instalacion y ejecucion del proyecto
+## 5. Requisitos funcionales
+> Completar por el equipo.
+
+## 6. Requisitos no funcionales
+
+Los requisitos no funcionales (RNF) describen las **cualidades** que debe cumplir el sistema **ReportaYA** mas alla de su funcionalidad: rendimiento, disponibilidad, seguridad, compatibilidad, etc. Cada RNF de esta seccion declara una **metrica medible** y se asocia explicitamente a un **nodo o enlace del diagrama de despliegue (seccion 10)**, garantizando trazabilidad entre lo que el sistema debe lograr y la infraestructura sobre la que se despliega.
+
+### 6.1 Enfoque
+
+- **Cada RNF tiene un identificador unico** (`RNF-NN`) para poder referenciarlo desde casos de uso, tareas y pruebas.
+- **Cada RNF incluye un criterio de aceptacion concreto** (latencia objetivo, porcentaje de disponibilidad, etc.) — un RNF sin metrica no es verificable.
+- **Cada RNF se ancla a un componente del diagrama de despliegue**, de modo que cuando se modifique la arquitectura sea evidente que requisitos pueden verse afectados.
+
+### 6.2 Catalogo de RNF
+
+| ID | Categoria | Descripcion | Criterio de aceptacion / metrica | Componente del diagrama de despliegue (seccion 10) |
+|---|---|---|---|---|
+| **RNF-01** | Compatibilidad | La aplicacion movil debe ejecutarse correctamente en Android y iOS. | Soporte para **Android 7.0 (API 24) y superiores** y **iOS 13.0 y superiores**. 100 % de los smoke tests aprobados en ambas plataformas en cada release. | Nodos `Mobile Device (Android)` y `Mobile Device (iOS)` |
+| **RNF-02** | Rendimiento | Las operaciones REST entre la app y el backend deben responder rapidamente bajo carga normal. | Tiempo de respuesta **< 2 s en el percentil 95** medido desde el cliente, en operaciones de lectura paginadas y creacion de reportes. | Enlace `Mobile App ↔ Backend (HTTPS REST)` |
+| **RNF-03** | Disponibilidad | El backend debe estar disponible la mayor parte del tiempo para no bloquear la creacion ni la consulta de reportes. | **Uptime ≥ 99 % mensual** en el servicio de API. | Nodo `Backend Spring Boot` desplegado en `Azure Container Apps` |
+| **RNF-04** | Seguridad — transporte | Toda comunicacion entre la app movil y el backend debe ir cifrada y autenticada. | Uso obligatorio de **TLS 1.2 o superior** y validacion de credenciales en cada login. Sin endpoints publicos sin autenticacion (a excepcion del propio `/api/auth/login`). | Enlace `Mobile App ↔ Backend (HTTPS REST)` |
+| **RNF-05** | Almacenamiento de evidencias | Las fotos adjuntadas por los tecnicos para resolver un reporte deben almacenarse fuera del backend para evitar saturacion. | **Subida de foto < 5 s** para imagenes ≤ 5 MB. URL publica devuelta al cliente. Respaldo en almacenamiento local del backend si Firebase Storage no esta disponible. | Enlace `Backend → Firebase Storage` |
+| **RNF-06** | Notificaciones en tiempo real | Los cambios de estado de un reporte deben llegar al usuario afectado sin que tenga que refrescar la app. | **Latencia de push < 5 s** entre el evento de cambio de estado y la entrega de la notificacion al dispositivo. | Enlace `Backend → Firebase Cloud Messaging → Mobile App` |
+| **RNF-07** | Persistencia local de sesion | El usuario no debe re-autenticarse cada vez que abre la aplicacion. | Sesion valida durante **24 horas** desde el ultimo login, almacenada de forma segura (almacenamiento cifrado del dispositivo, no en texto plano). | Componente local `Almacenamiento seguro` dentro del nodo `Mobile Device` |
+| **RNF-08** | Geolocalizacion y geocodificacion | El reporte debe registrar la ubicacion del incidente con precision suficiente para que un tecnico lo encuentre. | Precision GPS **< 50 m** en exteriores. Reverse geocoding (coordenadas → direccion textual) disponible para mostrar la calle al usuario. | Enlace `Mobile App → Nominatim (OpenStreetMap)` |
+
+### 6.3 Trazabilidad RNF ↔ Diagrama de despliegue
+
+El siguiente grafo resume como cada RNF se conecta con un componente o enlace del diagrama de despliegue. Sirve como ancla visual independiente de la seccion 10 y demuestra que los RNF se diseñaron pensando en la arquitectura objetivo.
+
+```mermaid
+graph LR
+  RNF01["RNF-01<br/>Compatibilidad"]
+  RNF02["RNF-02<br/>Rendimiento"]
+  RNF03["RNF-03<br/>Disponibilidad"]
+  RNF04["RNF-04<br/>Seguridad"]
+  RNF05["RNF-05<br/>Storage"]
+  RNF06["RNF-06<br/>Push"]
+  RNF07["RNF-07<br/>Sesion local"]
+  RNF08["RNF-08<br/>Geolocalizacion"]
+
+  Mobile(("Mobile Device<br/>Android / iOS"))
+  Link1(["Enlace<br/>App ↔ Backend<br/>HTTPS REST"])
+  Backend(("Backend Spring Boot<br/>Azure Container Apps"))
+  FStorage(("Firebase Storage"))
+  FCM(("Firebase Cloud<br/>Messaging"))
+  OSM(("Nominatim<br/>OpenStreetMap"))
+
+  RNF01 --> Mobile
+  RNF07 --> Mobile
+  RNF02 --> Link1
+  RNF04 --> Link1
+  RNF03 --> Backend
+  RNF05 --> FStorage
+  RNF06 --> FCM
+  RNF08 --> OSM
+```
+
+> Nota: el diagrama completo de despliegue se encuentra en la **seccion 10** y es responsabilidad del equipo. Los RNF de esta seccion ya estan alineados con los nodos y enlaces que ese diagrama incluira.
+
+### 6.4 Verificacion de los RNF
+
+Cada RNF se validara con una de las siguientes tecnicas durante las iteraciones del proyecto:
+
+| Tecnica | Aplicada a |
+|---|---|
+| Smoke tests automaticos en CI (Android + iOS) | RNF-01 |
+| Pruebas de carga con `k6` o `Apache JMeter` contra el backend | RNF-02, RNF-03 |
+| Inspeccion de cabeceras TLS y revision manual de endpoints | RNF-04 |
+| Medicion manual de tiempos de subida y entrega | RNF-05, RNF-06 |
+| Test de integracion sobre `flutter_secure_storage` y verificacion de TTL | RNF-07 |
+| Pruebas de campo con dispositivos reales en distintos puntos de Lima | RNF-08 |
+
+
+
+## 7. Diagrama de casos de uso
+> Insertar imagen o enlace cuando este listo.
+
+## 8. Descripcion de casos de uso
+> Completar con tablas o formato acordado.
+
+## 9. Mockups
+> Insertar imagenes o enlaces.
+
+## 10. Diagrama de despliegue
+> Insertar imagen o enlace cuando este listo.
+
+## 11. Instalacion y ejecucion del proyecto
 
 Ejecutar los siguientes comandos desde la raiz del proyecto:
 
@@ -493,3 +432,33 @@ Para verificar el estado del codigo:
 flutter analyze
 flutter test
 ```
+
+## 12. Estructura base del proyecto
+
+```text
+lib/
+  main.dart
+  app.dart
+  core/
+    constants/
+    theme/
+    utils/
+  features/
+    auth/
+      presentation/
+    home/
+      presentation/
+    reports/
+      data/
+      domain/
+      presentation/
+    map/
+      presentation/
+    profile/
+      presentation/
+  shared/
+    widgets/
+```
+
+## 13. Pendientes
+> Completar por el equipo con tareas futuras, acuerdos y observaciones.
