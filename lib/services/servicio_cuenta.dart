@@ -14,6 +14,9 @@ class ServicioCuenta {
       if (c.correo.toLowerCase() == req.correo.toLowerCase()) {
         throw Exception('El correo ya esta registrado');
       }
+      if (c.dni == req.dni) {
+      throw Exception('El DNI ya esta registrado');
+      }
     }
     final nuevaId = (_store.cuentas.map((c) => c.id).fold<int>(0, (a, b) => a > b ? a : b)) + 1;
     final cuenta = CuentaResponse(
