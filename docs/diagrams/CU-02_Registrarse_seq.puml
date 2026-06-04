@@ -2,34 +2,34 @@
 title CU-02 · Registrarse
 skinparam maxMessageSize 160
 autonumber
-actor Ciudadano
-boundary "Vista 01 Login" as V1
-boundary "Vista 07 Registro" as V7
-control "Backend (Ruby)" as Backend
-database "Base de Datos (SQLite)" as DB
 
-note over V7: Vista pendiente de diseno (CU futuro)
+actor Ciudadano
+boundary "Vista 01 Login\n(LoginScreen)" as V1
+boundary "Vista 07 Registro\n(RegisterScreen)" as V7
+participant "ServicioCuenta" as SvcCuenta
+database "LocalStore\n(cuentas.json)" as DB
 
 group Flujo Principal y Escenarios alternativos
-    Ciudadano -> V1: Clic en "Registrarse"
-    V1 -> V7: Redirige a la vista Registro
-    Ciudadano -> V7: Ingresa nombre, apellido, dni, telefono,\ncorreo, usuario y contrasena
-    Ciudadano -> V7: Clic en "Registrarse"
-    V7 -> Backend: Envia datos de registro
-    Backend -> DB: Query(SELECT cuenta WHERE usuario OR correo)
-    DB --> Backend: Retorna coincidencias
+    Ciudadano -> V1: clic en "Registrarse"
+    V1 -> V7: Get.toNamed(/register)
+    Ciudadano -> V7: Ingresa nombres, apellidos, DNI, telefono,\ncorreo, usuario y contrasena
+    Ciudadano -> V7: clic "Registrarse"
+    V7 -> V7: valida que todos los campos no esten vacios
+    V7 -> SvcCuenta: crearCuenta(CrearCuentaRequest)
+    SvcCuenta -> DB: busca cuenta con mismo usuario\no mismo correo
+    DB --> SvcCuenta: coincidencias
 
     alt Datos validos y unicos
-        Backend -> DB: Query(INSERT persona, cuenta, ciudadano)
-        DB --> Backend: Confirma insercion
-        Backend --> V7: Cuenta creada (envia correo de confirmacion)
-        V7 --> Ciudadano: Muestra mensaje de exito
+        SvcCuenta -> DB: agrega CuentaResponse\n(tipoCuenta = CIUDADANO · id autoincrement)
+        DB --> SvcCuenta: cuenta creada
+        SvcCuenta --> V7: exito
+        V7 -> V7: AppToast.success\nGet.offAllNamed(/login)
+        V7 --> Ciudadano: Redirige a Vista 01 Login
     else Datos invalidos o incompletos (Escenario 1)
-        Backend --> V7: Notifica datos invalidos
-        V7 --> Ciudadano: Muestra error y solicita corregir
+        V7 --> Ciudadano: AppToast.error "Completa todos los campos"
     else Usuario o correo ya registrado (Escenario 2)
-        Backend --> V7: Notifica usuario/correo ya registrado
-        V7 --> Ciudadano: Muestra error y sugiere usar otro
+        SvcCuenta --> V7: Exception con el motivo
+        V7 --> Ciudadano: AppToast.error con el motivo
     end
 end
 @enduml

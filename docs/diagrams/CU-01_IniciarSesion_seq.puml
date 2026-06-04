@@ -1,39 +1,47 @@
 @startuml
-title CU-01 · Iniciar sesion
+title CU-01 · Iniciar Sesion
 skinparam maxMessageSize 160
 autonumber
+
 actor Usuario
-boundary "Vista 01 Login" as V1
-boundary "Vista 02 Inicio" as V2
-boundary "Vista 01 Cola de reportes" as VC
-boundary "Vista 01 Mis asignaciones" as VM
-control "Backend (Ruby)" as Backend
-database "Base de Datos (SQLite)" as DB
+boundary "Vista 01 Login\n(LoginScreen)" as V1
+boundary "Vista 02 Inicio\n(InicioScreen)" as V2
+boundary "Vista 01 Cola de reportes\n(HomeScreenOperador)" as VC
+boundary "Vista 01 Mis asignaciones\n(HomeScreenTecnico)" as VM
+control "AuthController" as AuthCtrl
+participant "ServicioAuth" as SvcAuth
+database "LocalStore\n(cuentas.json)" as DB
 
 group Flujo Principal y Escenarios alternativos
-    Usuario -> V1: Ingresa usuario y contrasena, clic "Iniciar sesion"
-    V1 -> Backend: Solicita autenticacion (credenciales)
-    Backend -> DB: Query(SELECT cuenta WHERE usuario)
-    DB --> Backend: Retorna datos de la cuenta
+    Usuario -> V1: Ingresa usuario y contrasena\nclic "Iniciar sesion"
+    V1 -> AuthCtrl: login(usuario, pass)
+    AuthCtrl -> SvcAuth: login(usuario, pass)
+    SvcAuth -> DB: busca cuenta por usuario\n(case-insensitive)
+    DB --> SvcAuth: CuentaResponse
 
     alt Credenciales validas
-        Backend --> V1: Retorna token, datos de usuario y rol
+        SvcAuth -> SvcAuth: valida contrasena (case-sensitive)
+        SvcAuth --> AuthCtrl: AuthLoginResponse + tipoCuenta
+        AuthCtrl -> AuthCtrl: GetStorage.write(UsuarioAutenticado)\nTTL 24h
+        AuthCtrl --> V1: exito + tipoCuenta
         alt Rol Ciudadano
-            V1 -> V2: Redirige a la vista Inicio
-            V2 --> Usuario: Muestra la vista Inicio
+            V1 -> V2: Get.offAllNamed(/main)
+            V2 --> Usuario: Muestra Vista 02 Inicio
         else Rol Operador de Oficina Municipal
-            V1 -> VC: Redirige a la vista Cola de reportes
-            VC --> Usuario: Muestra la cola de reportes
+            V1 -> VC: Get.offAllNamed(/operador)
+            VC --> Usuario: Muestra Cola de reportes
         else Rol Tecnico de Campo Municipal
-            V1 -> VM: Redirige a la vista Mis asignaciones
-            VM --> Usuario: Muestra las asignaciones
+            V1 -> VM: Get.offAllNamed(/tecnico)
+            VM --> Usuario: Muestra Mis asignaciones
         end
     else Credenciales incorrectas (Escenario 1)
-        Backend --> V1: Notifica credenciales incorrectas
-        V1 --> Usuario: Muestra error e invita a reintentar
+        SvcAuth --> AuthCtrl: Exception "Usuario o contrasena incorrectos"
+        AuthCtrl --> V1: error
+        V1 --> Usuario: AppToast.error · muestra error e invita a reintentar
     else Usuario no registrado (Escenario 2)
-        Backend --> V1: Notifica que el usuario no existe
-        V1 --> Usuario: Muestra error y sugiere registrarse
+        SvcAuth --> AuthCtrl: Exception "El usuario no esta registrado"
+        AuthCtrl --> V1: error
+        V1 --> Usuario: AppToast.error · muestra error y sugiere registrarse
     end
 end
 @enduml

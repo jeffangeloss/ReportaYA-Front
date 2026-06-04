@@ -2,47 +2,62 @@
 title CU-08 · Atender reportes asignados
 skinparam maxMessageSize 160
 autonumber
+
 actor "Tecnico de Campo Municipal" as Tecnico
-boundary "Vista 01 Mis asignaciones" as V1
-boundary "Vista 02 Informacion" as V2
-boundary "Vista 03 Evidencia" as V3
-control "Backend (Ruby)" as Backend
-database "Base de Datos (SQLite)" as DB
+boundary "Vista 01 Mis asignaciones\n(HomeScreenTecnico)" as V1
+boundary "Vista 02 Informacion\n(EjecutarReporteScreen · Tab Informacion)" as V2
+boundary "Vista 03 Evidencia\n(EjecutarReporteScreen · Tab Evidencia)" as V3
+control "TecnicoReportesController" as TRCtrl
+participant "ServicioReportes" as SvcR
+database "LocalStore\n(reportes.json · fotos.json\nhistorial.json)" as DB
 
 group Flujo Principal y Escenario 1: Carga de asignaciones
     Tecnico -> V1: Accede a Mis asignaciones
-    V1 -> Backend: Solicita reportes asignados y contadores
-    Backend -> DB: Query(SELECT asignaciones WHERE tecnico_id)
-    DB --> Backend: Retorna datos
+    V1 -> TRCtrl: cargar(cuentaId)\n[addPostFrameCallback en initState]
+    TRCtrl -> SvcR: obtenerAsignadosATecnico(tecnicoId)
+    SvcR -> DB: filtra por tecnicoAsignadoId\nordena desc por fechaActualizacion
+    DB --> SvcR: List<ReporteResponse>
+    SvcR --> TRCtrl: asignaciones (REVISION + FINALIZADO)
+    TRCtrl --> V1: RxList + contadores (porAtender · resueltos)
 
     alt Hay reportes asignados
-        Backend --> V1: Retorna listado y 2 contadores
-        V1 --> Tecnico: Muestra las asignaciones
+        V1 --> Tecnico: seccion "MIS ASIGNACIONES" (estado REVISION)\nseccion "RESUELTOS" (estado FINALIZADO)
     else Sin reportes asignados (Escenario 1)
-        Backend --> V1: Notifica que no hay asignaciones
-        V1 --> Tecnico: Muestra lista vacia
+        V1 --> Tecnico: Muestra "No tienes reportes asignados."
     end
 end
 
 group Flujo Principal: Ejecucion del trabajo de campo
-    Tecnico -> V1: Clic en un reporte
-    V1 -> V2: Redirige a la vista Informacion
-    V2 -> Backend: Solicita detalle y cronologia (ID)
-    Backend -> DB: Query(SELECT detalle e historial)
-    DB --> Backend: Retorna datos
-    Backend --> V2: Retorna detalle del reporte
-    V2 --> Tecnico: Muestra la informacion del reporte
-    Tecnico -> V2: Clic en "Iniciar trabajo de campo"
-    V2 -> V3: Redirige a la vista Evidencia
-    Tecnico -> V3: Escribe comentarios y adjunta fotos (max 5)
-    Tecnico -> V3: Clic en "Finalizar reporte"
-    V3 -> Backend: Envia comentario y fotos de la solucion
-    Backend -> DB: Query(UPDATE estado = Finalizado, comentario_resolucion, fecha_cierre)
-    Backend -> DB: Query(INSERT fotos [FINAL])
-    Backend -> DB: Query(INSERT historial_estados [Revision -> Finalizado])
-    DB --> Backend: Confirma
-    Backend --> V3: Estado actualizado y notifica al ciudadano
-    V3 -> V1: Redirige a Mis asignaciones
-    V1 --> Tecnico: Muestra mensaje de exito
+    Tecnico -> V1: clic en un reporte (estado REVISION)
+    V1 -> V2: Get.to(EjecutarReporteScreen(reporteId))
+
+    V2 -> SvcR: obtenerFotos(reporteId, tipo: INICIAL)
+    SvcR -> DB: fotosDe(reporteId, INICIAL)
+    DB --> V2: List<Foto> del ciudadano
+    V2 --> Tecnico: Tab Informacion · titulo, descripcion\nMapPinView(lat, lng) · boton "Iniciar trabajo de campo"
+    note over V2: Si estado == FINALIZADO muestra callout\nde solo lectura sin boton de accion
+
+    Tecnico -> V2: clic "Iniciar trabajo de campo"
+    V2 -> V3: TabController.animateTo(1)\ncambia al Tab Evidencia
+
+    V3 --> Tecnico: FotosStrip INICIAL del ciudadano\ncampo de comentario · selector de fotos (0-5)\nboton "Finalizar reporte"
+
+    Tecnico -> V3: escribe comentario de la solucion
+    Tecnico -> V3: agrega fotos de la solucion (max 5)
+    Tecnico -> V3: clic "Finalizar reporte"
+    V3 -> V3: valida comentario no vacio
+
+    V3 -> TRCtrl: finalizar(reporteId, comentario, urlsFotos)
+    TRCtrl -> SvcR: finalizarReporte(id, comentario, urlsFotos)
+    SvcR -> DB: copyWith(estado = FINALIZADO\ncomentarioResolucion = comentario\nfechaCierre = now())
+    SvcR -> DB: agrega Fotos\n(tipo = FINAL · por cada url)
+    SvcR -> DB: registrarCambioEstado\n(REVISION -> FINALIZADO)
+    DB --> SvcR: ReporteResponse FINALIZADO
+    SvcR --> TRCtrl: ReporteResponse actualizado
+    TRCtrl -> SvcR: obtenerAsignadosATecnico(tecnicoId)\n[recarga lista]
+    SvcR --> TRCtrl: lista actualizada
+    TRCtrl --> V3: AppToast.success "Reporte finalizado!"
+    V3 -> V3: Get.back() → regresa a Vista 01
+    V3 --> Tecnico: reporte aparece en seccion "RESUELTOS"
 end
 @enduml

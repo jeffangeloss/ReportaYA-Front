@@ -2,46 +2,50 @@
 title CU-03 · Recuperar contrasena
 skinparam maxMessageSize 160
 autonumber
-actor Usuario
-boundary "Vista 01 Login" as V1
-boundary "Vista 08 Recuperar contrasena" as V8
-boundary "Vista 09 Restablecer contrasena" as V9
-control "Backend (Ruby)" as Backend
-database "Base de Datos (SQLite)" as DB
 
-note over V8, V9: Vistas pendientes de diseno (CU futuro)
+actor Usuario
+boundary "Vista 01 Login\n(LoginScreen)" as V1
+boundary "Vista 08 Recuperar contrasena\n(RecoverPasswordScreen)" as V8
+boundary "Vista 09 Restablecer contrasena\n(ResetPasswordScreen)" as V9
+participant "ServicioAuth" as SvcAuth
+database "LocalStore\n(cuentas.json)" as DB
 
 group Flujo Principal y Escenario 1: Solicitud de recuperacion
-    Usuario -> V1: Clic en "Olvidaste tu contrasena?"
-    V1 -> V8: Redirige a la vista Recuperar contrasena
-    Usuario -> V8: Ingresa correo y clic "Enviar"
-    V8 -> Backend: Solicita restablecimiento (correo)
-    Backend -> DB: Query(SELECT cuenta WHERE correo)
-    DB --> Backend: Retorna datos
+    Usuario -> V1: clic en "Olvidaste tu contrasena?"
+    V1 -> V8: Get.toNamed(/recover-password)
+    Usuario -> V8: Ingresa correo electronico y clic "Enviar"
+    V8 -> SvcAuth: solicitarRecuperacion(correo)
+    SvcAuth -> DB: busca cuenta por correo\n(ignore case)
+    DB --> SvcAuth: existe / no existe
 
     alt Correo asociado a una cuenta
-        Backend -> DB: Query(INSERT token de restablecimiento)
-        DB --> Backend: Confirma
-        Backend --> V8: Envia enlace de restablecimiento al correo
-        V8 --> Usuario: Informa que se envio el enlace
-    else Correo no asociado (Escenario 1)
-        Backend --> V8: Notifica que el correo no esta asociado
-        V8 --> Usuario: Muestra error y solicita otro correo
+        SvcAuth --> V8: ok
+        V8 -> V8: muestra AlertDialog\n(simula llegada del enlace al correo)
+        note over V8: En entrega 3/4 se envia correo real\nmediante Firebase Auth
+        Usuario -> V8: clic "Abrir enlace" en el AlertDialog
+        V8 -> V9: Get.toNamed(/reset-password)\narguments: correo
+    else Correo no asociado a ninguna cuenta (Escenario 1)
+        SvcAuth --> V8: Exception "Correo no asociado a ninguna cuenta"
+        V8 --> Usuario: AppToast.error con el motivo
     end
 end
 
 group Flujo Principal y Escenario 2: Restablecimiento
-    Usuario -> V9: Abre el enlace, ingresa nueva contrasena y confirmacion
-    Usuario -> V9: Clic en "Restablecer contrasena"
-    V9 -> Backend: Envia nueva contrasena (token)
-    alt Contrasenas coinciden
-        Backend -> DB: Query(UPDATE contrasena_hash)
-        DB --> Backend: Confirma
-        Backend --> V9: Contrasena restablecida
-        V9 --> Usuario: Muestra exito y redirige a Login
+    Usuario -> V9: Ingresa nueva contrasena y confirmacion
+    Usuario -> V9: clic "Restablecer contrasena"
+    V9 -> SvcAuth: restablecerContrasena(correo, nuevaPass, confirmacion)
+    SvcAuth -> SvcAuth: valida que nuevaPass == confirmacion
+    SvcAuth -> SvcAuth: valida longitud minima 6 caracteres
+
+    alt Contrasenas validas
+        SvcAuth -> DB: cuentas[i].contrasena = nuevaPass
+        DB --> SvcAuth: ok
+        SvcAuth --> V9: exito
+        V9 -> V9: AppToast.success\nGet.offAllNamed(/login)
+        V9 --> Usuario: Redirige a Vista 01 Login
     else Contrasenas no coinciden (Escenario 2)
-        Backend --> V9: Notifica que las contrasenas no coinciden
-        V9 --> Usuario: Muestra error
+        SvcAuth --> V9: Exception "Las contrasenas no coinciden"
+        V9 --> Usuario: AppToast.error con el motivo
     end
 end
 @enduml

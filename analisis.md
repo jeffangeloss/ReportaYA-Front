@@ -105,8 +105,10 @@ Define las constantes de dominio como clases con `static const String`:
 
 Cada servicio recibe datos de la pantalla/controller, opera sobre `LocalStore` y devuelve objetos de modelo. En la entrega 3/4 solo cambia la implementación interna (LocalStore → HTTP), no las firmas públicas.
 
-### `ServicioAuth` — `CU-01`
+### `ServicioAuth` — `CU-01 / CU-03`
 - `login(usuario, password)` → busca en `LocalStore.cuentas` por usuario (case-insensitive), valida contraseña, retorna `AuthLoginResponse` con un token simulado `'local-token-XXX'`.
+- `solicitarRecuperacion(correo)` → valida que el correo exista en `LocalStore.cuentas` (case-insensitive). Lanza excepción si no se encuentra. No envía correo real (simulado en la UI con `AlertDialog`).
+- `restablecerContrasena(correo, nuevaPassword, confirmacion)` → valida que las contraseñas coincidan y tengan mínimo 6 caracteres, luego actualiza la entrada correspondiente en `LocalStore.cuentas` con la nueva contraseña.
 - No implementa refresh de token ni logout en el servidor (solo limpia en cliente).
 
 ### `ServicioCuenta` — `CU-02`
@@ -139,8 +141,7 @@ Es el servicio más completo. Todas sus operaciones simulan latencia con `Future
 - No implementa disponibilidad real (carga de trabajo, estado libre/ocupado).
 
 ### `ServicioGeocoding` — `CU-04`
-- `obtenerDireccion(lat, lng)` → devuelve una `DireccionCompleta` con valores hardcoded de Lima.
-- En entrega 3/4 se conectará a Nominatim/Google Maps Geocoding API.
+- `obtenerDireccion(lat, lng)` → llama a la API pública de **Nominatim (OpenStreetMap)** via HTTP con `User-Agent` requerido por la política OSM. Devuelve calle, distrito, ciudad y `direccionCompleta` reales. Timeout de 6 s con fallback silencioso a coordenadas si no hay red.
 
 ---
 
@@ -177,7 +178,7 @@ Todos registrados como permanentes en `main()` via `Get.put(..., permanent: true
 - Getters reactivos: `pendientes` (REVISION), `completados` (FINALIZADO), `porAtender`, `resueltos`.
 
 ### `TabsController`
-- Definido dentro de `main_tabs.dart` (no en un archivo propio).
+- Definido en `lib/controllers/tabs_controller.dart` (archivo propio).
 - Controla el índice activo del `IndexedStack` del ciudadano.
 - `go(int i)` cambia la pestaña activa. `MapScreen` escucha este observable mediante un `Worker` para recargarse automáticamente.
 
@@ -190,8 +191,10 @@ Todos registrados como permanentes en `main()` via `Get.put(..., permanent: true
 | Pantalla | Rol | Descripción |
 |---|---|---|
 | `SplashScreen` | Todos | Lee el `AuthState` y redirige según rol. Muestra spinner mientras verifica. |
-| `LoginScreen` | Todos | Formulario usuario + contraseña. Redirige a `mainTabs`, `homeOperador` o `homeTecnico` según `tipoCuenta`. |
+| `LoginScreen` | Todos | Formulario usuario + contraseña. Redirige a `mainTabs`, `homeOperador` o `homeTecnico` según `tipoCuenta`. Botón "¿Olvidaste tu contraseña?" navega a `RecoverPasswordScreen`. |
 | `RegisterScreen` | Ciudadano | 7 campos. Llama directamente a `ServicioCuenta` (sin controller). Tras éxito usa `Get.offAllNamed(AppRoutes.login)` para garantizar navegación limpia al login. |
+| `RecoverPasswordScreen` | Todos | Vista 08 CU-03. Campo de correo electrónico. Llama a `ServicioAuth.solicitarRecuperacion()`; si el correo existe muestra un `AlertDialog` que simula el envío de enlace y al confirmar navega a `ResetPasswordScreen` pasando el correo como `arguments`. |
+| `ResetPasswordScreen` | Todos | Vista 09 CU-03. Recibe el correo por `Get.arguments`. Campos: nueva contraseña + confirmación. Valida coincidencia y mínimo 6 caracteres. Llama a `ServicioAuth.restablecerContrasena()` que actualiza `LocalStore`. Redirige al login con pila limpia. |
 
 ### Flujo Ciudadano (`MainTabs`)
 
@@ -200,11 +203,11 @@ Usa `IndexedStack` — las 4 pestañas se mantienen vivas en memoria:
 | Pestaña | Pantalla | CU | Qué hace |
 |---|---|---|---|
 | 0 Inicio | `InicioScreen` | CU-05 | Saludo, 2 accesos rápidos (Reportar / Mis reportes), últimos 5 reportes del ciudadano. |
-| 1 Mapa | `MapScreen` | CU-05 | Lista de todos los reportes con leyenda de colores por estado. **Se recarga automáticamente cada vez que el usuario activa este tab** (Worker sobre `TabsController.index`). Toca → `DetalleScreen`. |
-| 2 Reportar | `ReportScreen` | CU-04 | Formulario de alta: título, tipo, descripción, ubicación (hardcoded), fotos (contador). Tras envío recarga `ReportesController` y redirige a pestaña Mis reportes. |
+| 1 Mapa | `MapScreen` | CU-05 | **`FlutterMap` real con OSM**. Marcadores de color por estado con ícono del tipo de problema. Leyenda flotante. Se recarga automáticamente al activar el tab (Worker sobre `TabsController.index`). Tap en marcador → `DetalleScreen`. |
+| 2 Reportar | `ReportScreen` | CU-04 | Formulario de alta: título, tipo, descripción. **`MapPickerView` interactivo**: el usuario toca el mapa para colocar el pin; geocoding real a Nominatim devuelve la dirección. Fotos (contador). Tras envío recarga `ReportesController` y redirige a pestaña Mis reportes. |
 | 3 Mis reportes | `MisReportesScreen` | CU-05 | Lista propia del ciudadano con chips de estado + buscador por título. Toca → `DetalleScreen`. |
 
-**`DetalleScreen`** — CU-05: vista de solo lectura del reporte. Carga todas las fotos del reporte (INICIAL y FINAL) + historial de estados. Muestra contenido extra según estado:
+**`DetalleScreen`** — CU-05: vista de solo lectura del reporte. Carga todas las fotos del reporte (INICIAL y FINAL) + historial de estados. Muestra `MapPinView` con la ubicación real del reporte. Muestra contenido extra según estado:
 - `PENDIENTE` → callout informativo.
 - `REVISION` → nombre del técnico asignado (o "Sin asignar").
 - `FINALIZADO` → técnico asignado, comentario de resolución, `FotosStrip` de fotos FINAL.
@@ -215,7 +218,7 @@ Usa `IndexedStack` — las 4 pestañas se mantienen vivas en memoria:
 | Pantalla | CU | Qué hace |
 |---|---|---|
 | `HomeScreenOperador` | CU-06/07 | Cola de todos los reportes con chips de filtro por estado y 3 contadores (Pendiente / En revisión / Finalizado). Toca → `GestionReportesScreen`. |
-| `GestionReportesScreen` | CU-06/07/08 | Carga fotos `INICIAL` y `FINAL` del reporte al entrar. Muestra el detalle completo. Acciones condicionales por estado: **PENDIENTE** → botones Aceptar / Rechazar; **REVISION** → botón Asignar/Reasignar Técnico (bottom sheet); **FINALIZADO** → callout verde + comentario del técnico + `FotosStrip` de fotos FINAL; **RECHAZADO** → callout con motivo. Rechazar navega de vuelta a la cola con `Get.until`. |
+| `GestionReportesScreen` | CU-06/07/08 | Carga fotos `INICIAL` y `FINAL` del reporte al entrar. Muestra el detalle completo con **`MapPinView`** real de la ubicación. Acciones condicionales por estado: **PENDIENTE** → botones Aceptar / Rechazar; **REVISION** → botón Asignar/Reasignar Técnico (bottom sheet); **FINALIZADO** → callout verde + comentario del técnico + `FotosStrip` de fotos FINAL; **RECHAZADO** → callout con motivo. Rechazar navega de vuelta a la cola con `Get.until`. |
 
 ### Flujo Técnico
 
@@ -225,7 +228,7 @@ Usa `IndexedStack` — las 4 pestañas se mantienen vivas en memoria:
 | `EjecutarReporteScreen` | CU-08 | 2 pestañas con comportamiento diferente según `r.estado`: |
 
 **Pestaña Información (`EjecutarReporteScreen`):**
-- Muestra estado, datos del reporte, mapa placeholder.
+- Muestra estado, datos del reporte, **`MapPinView`** real con la ubicación del incidente.
 - Si `REVISION`: botón "Iniciar trabajo de campo" que lleva al tab Evidencia.
 - Si `FINALIZADO`: callout informativo en lugar del botón (el proceso no se puede reiniciar).
 
@@ -242,6 +245,8 @@ Usa `IndexedStack` — las 4 pestañas se mantienen vivas en memoria:
 |---|---|---|
 | `ReportCard` | `InicioScreen`, `MisReportesScreen`, `HomeScreenOperador`, `HomeScreenTecnico` | Tarjeta reutilizable con barra de color por estado, ícono de tipo, dirección, fecha y `EstadoPill`. Acepta flags `mostrarTecnico` y `usarFechaActualizacion`. |
 | `EstadoPill` | `ReportCard`, `DetalleScreen`, `GestionReportesScreen`, `EjecutarReporteScreen` | Chip con fondo del color del estado y texto en mayúsculas. |
+| `MapPinView` | `DetalleScreen`, `GestionReportesScreen`, `EjecutarReporteScreen` | Mapa OSM de solo lectura (`InteractiveFlag.none`) con un pin de color configurable. Altura y zoom configurables. |
+| `MapPickerView` | `ReportScreen` | Mapa OSM interactivo. Tap coloca un marcador y llama `onLocationPicked(lat, lng)`. Muestra overlay de instrucción mientras no hay pin seleccionado. |
 | `FotosStrip` | `DetalleScreen`, `GestionReportesScreen`, `EjecutarReporteScreen` | Tira horizontal de `FotoThumb`. Muestra un placeholder si la lista está vacía. |
 | `FotoThumb` | Dentro de `FotosStrip` | Miniatura que abre visor fullscreen (`InteractiveViewer`) al tocar. |
 | `AppColors` | Toda la app | Fuente única de colores, gradientes, mapeo `estado → Color` y `tipo → IconData`. |
@@ -265,8 +270,10 @@ Usa `IndexedStack` — las 4 pestañas se mantienen vivas en memoria:
 | Ruta | Pantalla | Quién navega allí |
 |---|---|---|
 | `/` | `SplashScreen` | App start |
-| `/login` | `LoginScreen` | Splash, logout, registro exitoso |
+| `/login` | `LoginScreen` | Splash, logout, registro exitoso, restablecimiento exitoso |
 | `/register` | `RegisterScreen` | LoginScreen |
+| `/recover-password` | `RecoverPasswordScreen` | LoginScreen (botón "¿Olvidaste tu contraseña?") |
+| `/reset-password` | `ResetPasswordScreen` | RecoverPasswordScreen (via `arguments: correo`) |
 | `/main` | `MainTabs` | Login (ciudadano) |
 | `/operador` | `HomeScreenOperador` | Login (operador), `Get.until` tras rechazar reporte |
 | `/tecnico` | `HomeScreenTecnico` | Login (técnico) |
@@ -320,11 +327,18 @@ main()
 
 ---
 
-### CU-03 — Recuperar contraseña ❌ No implementado
+### CU-03 — Recuperar contraseña ✅ Implementado (simulado)
 
-- El botón "¿Olvidaste tu contraseña?" en `LoginScreen` llama a `AppToast.info('Función no implementada aún')`.
-- Faltan las vistas **08 Recuperar contraseña** y **09 Restablecer contraseña**.
-- Requiere backend o Firebase Auth para el envío de correo.
+| Punto del flujo | Estado |
+|---|---|
+| Vista 08 — formulario de correo electrónico | ✅ `RecoverPasswordScreen` |
+| Validación de que el correo existe en el sistema | ✅ Busca en `LocalStore.cuentas` |
+| Simulación de envío de enlace | ✅ `AlertDialog` que simula llegada del correo |
+| Vista 09 — formulario nueva contraseña + confirmación | ✅ `ResetPasswordScreen` |
+| Validación: contraseñas coinciden y mínimo 6 caracteres | ✅ |
+| Actualización de contraseña en el sistema | ✅ Muta `LocalStore.cuentas[index]` |
+| Redirección a login tras restablecer | ✅ `Get.offAllNamed(AppRoutes.login)` |
+| Envío de correo electrónico real | ❌ Simulado con `AlertDialog` (requiere backend/Firebase) |
 
 ---
 
@@ -335,7 +349,7 @@ main()
 | Formulario título / tipo / descripción | ✅ |
 | Reporte creado en PENDIENTE con fotos INICIAL | ✅ |
 | Redirección a Mis reportes tras envío | ✅ |
-| Selección de ubicación en mapa interactivo | ❌ Hardcoded a `(-12.08530, -77.03760)` |
+| Selección de ubicación en mapa interactivo | ✅ `MapPickerView` real (OSM). El usuario toca el mapa para colocar el pin |
 | Adjuntar fotos reales (cámara / galería) | ❌ `_fotos` es un contador entero; se guardan paths de assets de muestra |
 | Upload de fotos a Firebase Storage | ❌ Sin integración |
 | Validación de longitud/formato de campos | ❌ Solo valida "no vacío" |
@@ -352,11 +366,11 @@ main()
 | Fotos FINAL del técnico en Detalle (cuando FINALIZADO) | ✅ |
 | Cronología de cambios de estado | ✅ |
 | Mis reportes con filtro por estado y buscador | ✅ |
-| Vista Mapa con lista de reportes y leyenda de colores | ✅ |
+| Vista Mapa con leyenda de colores | ✅ |
 | Mapa se recarga automáticamente al navegar al tab | ✅ (Worker sobre TabsController.index) |
-| Mapa interactivo real con marcadores por lat/lng | ❌ Es una lista de tiles, no un mapa real |
+| Mapa real con marcadores de color por estado e ícono por tipo | ✅ `FlutterMap` + OSM. Tap en marcador → `DetalleScreen` |
+| Mapa real en `DetalleScreen` | ✅ `MapPinView` con pin de color por estado |
 | Notificaciones push de cambio de estado | ❌ Sin FCM |
-| Mapa en `DetalleScreen` | ❌ Placeholder de ícono estático |
 
 ---
 
@@ -370,7 +384,7 @@ main()
 | Rechazar reporte con motivo | ✅ |
 | Redirigir a Cola tras rechazar | ✅ |
 | Ver fotos FINAL y comentario del técnico cuando FINALIZADO | ✅ |
-| Mapa de ubicación en vista Gestión | ❌ Placeholder estático |
+| Mapa de ubicación en vista Gestión | ✅ `MapPinView` real con pin de color por estado |
 | Notificación al ciudadano (aceptado/rechazado) | ❌ Sin FCM |
 
 ---
@@ -400,7 +414,7 @@ main()
 | Vista de solo lectura (comentario + fotos FINAL) cuando FINALIZADO | ✅ |
 | Finalizar reporte (REVISION → FINALIZADO) | ✅ |
 | Adjuntar fotos de solución reales | ❌ Contador entero, paths de assets de muestra |
-| Mapa de ubicación en EjecutarReporteScreen | ❌ Placeholder estático |
+| Mapa de ubicación en EjecutarReporteScreen | ✅ `MapPinView` real con pin en la ubicación del incidente |
 | Notificación al ciudadano | ❌ Sin FCM |
 
 ---
@@ -412,13 +426,11 @@ main()
 | **Backend REST** | Todos los servicios usan `LocalStore`. En entrega 3/4 se reemplazan por llamadas HTTP (Dio/http). Los modelos y firmas de servicio ya están diseñados para eso. |
 | **Persistencia entre sesiones** | `LocalStore` se re-siembra en cada arranque. Los datos creados en sesión se pierden al cerrar la app. |
 | **Picker de imágenes real** | `image_picker` no está integrado. Las fotos son assets de muestra con un contador entero. |
-| **Mapa real** | Sin `google_maps_flutter` / `flutter_map`. La vista de mapa es una lista y los mapas en pantallas de detalle son placeholders. |
-| **GPS / geolocalización** | Sin `geolocator`. La coordenada es hardcoded. |
-| **Geocoding real** | `ServicioGeocoding` devuelve dirección hardcoded. En entrega 3/4 conectar a Nominatim o Google Geocoding. |
+| **GPS / geolocalización** | Sin `geolocator`. La coordenada se selecciona tocando el mapa, no se obtiene automáticamente del dispositivo. |
 | **Notificaciones push** | Ningún flujo notifica al ciudadano ni al técnico. Requiere Firebase Messaging (FCM). |
 | **Validación de formularios** | Solo valida "no vacío". Faltan: formato email, longitud DNI, longitud mínima de contraseña, longitud máxima de descripción. |
 | **Manejo de errores de red** | Los servicios locales no fallan (excepto por excepción lógica). Con backend real habrá que manejar timeouts, 401, 500. |
 | **Seguridad del token** | El token es la cadena literal `'local-token-XXX'`. En entrega 3/4 debe ser un JWT real con validación. |
 | **Contraseña en texto plano en JSON** | `cuentas.json` tiene contraseñas en claro. En producción deben almacenarse con hash. |
 | **Disponibilidad de técnicos** | `ServicioTecnicos.obtenerDisponibles()` devuelve todos los activos sin considerar carga de trabajo. |
-| **CU-03 — Recuperar contraseña** | Vistas 08 y 09 no implementadas. Botón en login muestra toast de "no implementado". |
+| **Envío de correo real (CU-03)** | La recuperación de contraseña está implementada localmente pero el envío de correo electrónico es simulado con un `AlertDialog`. Requiere backend o Firebase Auth para enviar el enlace real. |

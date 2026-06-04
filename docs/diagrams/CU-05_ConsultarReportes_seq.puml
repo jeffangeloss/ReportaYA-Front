@@ -1,72 +1,94 @@
 @startuml
-skinparam maxMessageSize 150
+title CU-05 · Consultar Reportes
+skinparam maxMessageSize 160
 autonumber
 
 actor Ciudadano
-boundary "Vista 02 Inicio" as V2
-boundary "Vista 03 Mis reportes" as V3
-boundary "Vista 05 Detalle" as V5
-boundary "Vista 06 Mapa" as V6
-control "Backend (SpringBoot)" as Backend
-database "Base de Datos (SQL)" as DB
+boundary "Vista 02 Inicio\n(InicioScreen)" as V2
+boundary "Vista 03 Mis Reportes\n(MisReportesScreen)" as V3
+boundary "Vista 05 Detalle\n(DetalleScreen)" as V5
+boundary "Vista 06 Mapa\n(MapScreen)" as V6
+control "ReportesController" as RCtrl
+control "TabsController" as TCtrl
+participant "ServicioReportes" as SvcR
+database "LocalStore\n(reportes.json\nfotos.json · historial.json)" as DB
 
-group Flujo Principal y Escenario 1: Carga de Inicio
-    Ciudadano -> V2: Accede a la vista de Inicio
-    V2 -> Backend: Solicita lista de reportes recientes
-    Backend -> DB: Query(SELECT reportes recientes)
-    DB --> Backend: Retorna datos
-    
+group Flujo Principal y Escenario 1: Carga de Vista Inicio
+    Ciudadano -> V2: Accede a la Vista 02 Inicio
+    V2 -> RCtrl: cargarReportes(cuentaId)\n[addPostFrameCallback en initState]
+    RCtrl -> SvcR: obtenerRecientes(cuentaId, limit=5)
+    SvcR -> DB: filtra reportes por cuentaId\nordena desc por fechaCreacion · toma primeros 5
+    DB --> SvcR: List<ReporteResponse>
+    SvcR --> RCtrl: reportes recientes
+    RCtrl --> V2: RxList actualizada (Obx reacciona automáticamente)
+
     alt Hay reportes recientes
-        Backend --> V2: Retorna listado de reportes
         V2 --> Ciudadano: Muestra listado (título, tipo, estado, fecha)
     else Sin reportes recientes (Escenario 1)
-        Backend --> V2: Notifica que no hay reportes
         V2 --> Ciudadano: Muestra lista vacía y sugiere crear reporte
     end
 end
 
 group Escenario 2: Ver detalle desde "Inicio"
-    Ciudadano -> V2: Clic en un reporte del listado
-    V2 -> V5: Redirige a la vista Detalle
-    V5 -> Backend: Solicita detalle del reporte (ID)
-    Backend -> DB: Query(SELECT detalle completo)
-    DB --> Backend: Retorna datos completos
-    Backend --> V5: Retorna detalle del reporte
-    V5 --> Ciudadano: Muestra detalle general (título, estado, fecha, fotos, cronología, etc.)
-    
-    alt Estado == Pendiente
-        V5 --> Ciudadano: Muestra mensaje "Pendiente de revisión por oficina municipal"
-    else Estado == Revision
-        V5 --> Ciudadano: Muestra nombre del técnico asignado o "Sin asignar técnico"
-    else Estado == Finalizado
-        V5 --> Ciudadano: Muestra técnico, comentario de resolución y fotos de resolución
-    else Estado == Rechazado
-        V5 --> Ciudadano: Muestra comentario de rechazo del operador
+    Ciudadano -> V2: tap en un reporte del listado
+    V2 -> V5: Get.to(DetalleScreen(reporte: r))
+
+    V5 -> SvcR: obtenerFotos(reporteId)
+    SvcR -> DB: fotosDe(reporteId, tipo: null)
+    DB --> SvcR: List<Foto> (INICIAL + FINAL)
+
+    V5 -> SvcR: obtenerHistorialEstados(reporteId)
+    SvcR -> DB: historialDe(reporteId)\nordena por fechaCambio asc
+    DB --> SvcR: List<HistorialEstado>
+    SvcR --> V5: fotos + historial de estados
+
+    V5 --> Ciudadano: MapPinView(lat, lng) + FotosStrip INICIAL + cronología
+
+    alt Estado == PENDIENTE
+        V5 --> Ciudadano: Callout "Pendiente de revisión por la oficina municipal"
+    else Estado == REVISION
+        V5 --> Ciudadano: KeyValue "Técnico asignado: tecnicoNombre\n(o Sin asignar técnico)"
+    else Estado == FINALIZADO
+        V5 --> Ciudadano: técnico asignado + comentarioResolucion\n+ FotosStrip(tipo=FINAL)
+    else Estado == RECHAZADO
+        V5 --> Ciudadano: Callout "Motivo: comentarioResolucion"
     end
 end
 
-group Escenario 3: Ver detalle desde "Mis reportes"
-    Ciudadano -> V2: Clic en botón "Mis reportes"
-    V2 -> V3: Redirige a la vista Mis reportes
-    V3 -> Backend: Solicita reportes creados por el usuario
-    Backend -> DB: Query(SELECT reportes WHERE user_id)
-    DB --> Backend: Retorna datos
-    Backend --> V3: Retorna listado de reportes del usuario
-    V3 --> Ciudadano: Muestra listado con filtros de estado y barra de búsqueda
-    Ciudadano -> V3: Filtra/Busca y hace clic en un reporte
-    V3 -> V5: Redirige a la vista Detalle (Inicia flujo de carga de detalle)
+group Escenario 3: Consulta desde "Mis Reportes"
+    Ciudadano -> V2: tap acceso rápido "Mis Reportes"
+    V2 -> TCtrl: go(3)
+    TCtrl --> V3: activa índice 3 del IndexedStack
+
+    V3 -> RCtrl: cargarReportes(cuentaId)\n[initState · solo si lista vacía]
+    RCtrl -> SvcR: obtenerReportesPorCuenta(cuentaId)
+    SvcR -> DB: filtra por cuentaId\nordena desc por fechaCreacion
+    DB --> SvcR: List<ReporteResponse>
+    SvcR --> RCtrl: lista completa del ciudadano
+    RCtrl --> V3: RxList<ReporteResponse> (Obx reacciona)
+    V3 --> Ciudadano: listado con chips de estado y búsqueda por título
+
+    Ciudadano -> V3: filtra por estado / busca por título
+    V3 -> V3: filtrar(estado, busqueda)\nen memoria sobre la RxList
+
+    Ciudadano -> V3: tap en un reporte
+    V3 -> V5: Get.to(DetalleScreen(reporte: r))\n[continúa flujo Escenario 2]
 end
 
-group Escenario 4: Ver detalle desde el mapa interactivo
-    Ciudadano -> V2: Clic en el mapa interactivo
-    V2 -> V6: Redirige a la vista Mapa
-    V6 -> Backend: Solicita reportes con coordenadas geográficas
-    Backend -> DB: Query(SELECT reportes con ubicación)
-    DB --> Backend: Retorna datos geolocalizados
-    Backend --> V6: Retorna listado geográfico
-    V6 --> Ciudadano: Muestra mapa con íconos y colores según estado/tipo
-    Ciudadano -> V6: Clic en un reporte del mapa
-    V6 -> V5: Redirige a la vista Detalle (Inicia flujo de carga de detalle)
+group Escenario 4: Mapa de Incidencias
+    Ciudadano -> TCtrl: go(1) — activa tab Mapa
+    TCtrl --> V6: Worker ever(index → 1) dispara _cargar()
+
+    V6 -> SvcR: obtenerParaMapa()
+    SvcR -> DB: retorna todos los reportes\nsin filtro de cuentaId
+    DB --> SvcR: List<ReporteResponse>
+    SvcR --> V6: lista completa con ubicaciones (lat/lng)
+
+    V6 -> V6: calcula centroide de coordenadas válidas\n→ MapOptions.initialCenter (FlutterMap + OSM)
+    V6 --> Ciudadano: Mapa real con MarkerLayer\n(color por estado · ícono por tipoProblema)
+
+    Ciudadano -> V6: tap en un marcador
+    V6 -> V5: Get.to(DetalleScreen(reporte: r))\n[continúa flujo Escenario 2]
 end
 
 @enduml
