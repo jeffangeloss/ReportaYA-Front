@@ -15,17 +15,15 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _usuarioCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _loading = false;
 
   Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
     final usuario = _usuarioCtrl.text.trim();
     final password = _passwordCtrl.text;
-    if (usuario.isEmpty || password.isEmpty) {
-      AppToast.error('Todos los campos son obligatorios');
-      return;
-    }
     setState(() => _loading = true);
     try {
       final auth = Get.find<AuthController>();
@@ -68,9 +66,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -110,6 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
+                ),
               ),
             ],
           ),
@@ -119,10 +120,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _input(TextEditingController ctrl, String hint, {bool obscure = false}) {
-    return TextField(
+    return TextFormField(
       controller: ctrl,
       obscureText: obscure,
       autocorrect: false,
+      validator: (value) => (value == null || value.trim().isEmpty) ? 'Este campo es obligatorio' : null,
       decoration: InputDecoration(
         hintText: hint,
         filled: true,
