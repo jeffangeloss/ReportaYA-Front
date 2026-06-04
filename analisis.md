@@ -316,7 +316,7 @@ main()
 | Validación de unicidad de usuario y correo | ✅ |
 | Creación de cuenta CIUDADANO en LocalStore | ✅ |
 | Redirección a Login tras registro exitoso (pila limpia) | ✅ |
-| Validación de formato/longitud de campos | ❌ Solo valida "no vacío" |
+| Validación de formato/longitud de campos | ✅ Validación de campos vacios, DNI, teléfono, correo y contrseña |
 
 ---
 

@@ -104,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 12),
                     TextButton(
-                      onPressed: () => AppToast.info('Función no implementada aún'),
+                      onPressed: () => Get.toNamed(AppRoutes.recoverPassword),
                       child: const Text('¿Olvidaste tu contraseña?',
                           style: TextStyle(color: Color(0xFFA27EFF))),
                     ),

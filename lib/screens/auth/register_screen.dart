@@ -29,6 +29,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
         return;
       }
     }
+
+    final dni = _c['dni']!.text.trim();
+    if (dni.length != 8 || int.tryParse(dni) == null) {
+      AppToast.error('El DNI debe tener exactamente 8 dígitos numéricos');
+      return;
+    }
+
+    final telefono = _c['telefono']!.text.trim();
+    if (telefono.length != 9 || int.tryParse(telefono) == null) {
+      AppToast.error('El teléfono debe tener exactamente 9 dígitos numéricos');
+      return;
+    }
+
+    final correo = _c['correo']!.text.trim();
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(correo)) {
+      AppToast.error('Ingresa un correo electrónico válido');
+      return;
+    }
+
+    final contrasena = _c['contrasena']!.text;
+    if (contrasena.length < 6) {
+      AppToast.error('La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
     setState(() => _loading = true);
     try {
       await _service.crearCuenta(CrearCuentaRequest(
