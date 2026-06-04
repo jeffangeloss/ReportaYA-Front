@@ -50,4 +50,14 @@ class AccountService {
       );
     }
   }
+  Future<GenericResponse<Account>> register(Account account) async {
+    // Simulando retraso de red
+    await Future.delayed(const Duration(milliseconds: 500));
+    return GenericResponse(
+      success: true,
+      data: account,
+      message: 'Cuenta creada exitosamente',
+      error: null,
+    );
+  }
 }

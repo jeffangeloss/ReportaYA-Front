@@ -5,6 +5,7 @@ import 'package:reportaya/models/account.dart';
 import 'package:reportaya/services/account_services.dart';
 
 class LogInController extends GetxController {
+  final loginFormKey = GlobalKey<FormState>();
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -17,8 +18,7 @@ class LogInController extends GetxController {
   }
 
   void login(BuildContext context) async {
-    if (usernameController.text.isNotEmpty &&
-        passwordController.text.isNotEmpty) {
+    if (loginFormKey.currentState!.validate()) {
       Account account = Account.login(
         username: usernameController.text,
         passwordHash: passwordController.text,
@@ -32,11 +32,7 @@ class LogInController extends GetxController {
       } else {
         _showError(context, response.message);
       }
-    } else {
-      _showError(context, 'Todos los campos son obligatorios');
     }
-
-    return;
   }
 
   void _showError(BuildContext context, String message) {

@@ -3,6 +3,8 @@ import 'package:reportaya/pages/log_in/log_in_page.dart';
 import 'package:reportaya/pages/start/start_page.dart';
 import './configs/theme.dart';
 
+import 'package:reportaya/pages/register/register_page.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -24,6 +26,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/log-in': (context) => LogInPage(),
         '/start': (context) => const StartPage(),
+        '/register': (context) => const RegisterPage(),
       },
     );
   }

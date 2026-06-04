@@ -55,9 +55,11 @@ class _LogInPageState extends State<LogInPage> {
           ),
         ),
 
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        child: Form(
+          key: control.loginFormKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             Text('Iniciar Sesión',
               style: textTheme.headlineMedium?.copyWith(
               color: colors.primary,
@@ -73,8 +75,9 @@ class _LogInPageState extends State<LogInPage> {
           SizedBox(height: 32),
           
           //User
-          TextField(
+          TextFormField(
             controller: control.usernameController,
+            validator: (value) => (value == null || value.trim().isEmpty) ? 'Ingresa tu usuario' : null,
             decoration: InputDecoration(
               labelText: "Usuario",
               labelStyle: TextStyle(
@@ -88,9 +91,10 @@ class _LogInPageState extends State<LogInPage> {
           SizedBox(height: 20),
 
           //Password
-          TextField(
+          TextFormField(
             controller: control.passwordController,
             obscureText: control.isPasswordHidden,
+            validator: (value) => (value == null || value.isEmpty) ? 'Ingresa tu contraseña' : null,
             decoration: InputDecoration(
               labelText: "Contraseña",
               labelStyle: TextStyle(
@@ -119,7 +123,23 @@ class _LogInPageState extends State<LogInPage> {
 
         _loginButton(context, colors, textTheme),
 
+        SizedBox(height: 16),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('¿No tienes cuenta? ', style: TextStyle(color: colors.onSurface)),
+            InkWell(
+              onTap: () {
+                Navigator.pushNamed(context, '/register');
+              },
+              child: Text('Regístrate aquí', style: TextStyle(color: colors.primary, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+
         ],),
+        ),
     );
   }
 
