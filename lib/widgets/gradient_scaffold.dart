@@ -18,6 +18,8 @@ class GradientScaffold extends StatelessWidget {
     final gradient = colors ?? AppColors.ciudadanoGradient;
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: gradient,
