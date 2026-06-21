@@ -4,7 +4,6 @@ import '../../controllers/auth_controller.dart';
 import '../../controllers/reportes_controller.dart';
 import '../../models/models.dart';
 import '../../services/servicio_geocoding.dart';
-import '../../services/servicio_reportes.dart';
 import '../../widgets/app_colors.dart';
 import '../../widgets/custom_toast.dart';
 import '../../widgets/map_view.dart';
@@ -21,8 +20,8 @@ class ReportScreen extends StatefulWidget {
 
 class _ReportScreenState extends State<ReportScreen> {
   final _auth = Get.find<AuthController>();
-  final _service = ServicioReportes();
-  final _geo = ServicioGeocoding();
+  final _reportes = Get.find<ReportesController>();
+  final _geo = ServicioGeocoding(); // frontend: geocodifica coordenadas del mapa
 
   final _tituloCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
@@ -47,7 +46,7 @@ class _ReportScreenState extends State<ReportScreen> {
     if (_lat == null) { AppToast.error('Selecciona una ubicacion en el mapa'); return; }
     setState(() => _enviando = true);
     try {
-      await _service.crearReporte(
+      await _reportes.crearReporte(
         CrearReporteRequest(
           titulo: _tituloCtrl.text.trim(),
           descripcion: _descCtrl.text.trim(),
@@ -59,7 +58,6 @@ class _ReportScreenState extends State<ReportScreen> {
         urlsFotos: List.filled(_fotos, 'assets/img/sample/generic_inicial.png'),
       );
       AppToast.success('Reporte enviado!');
-      await Get.find<ReportesController>().cargarReportes(_auth.cuentaId);
       _reset();
       Get.find<TabsController>().go(3);
     } catch (e) {

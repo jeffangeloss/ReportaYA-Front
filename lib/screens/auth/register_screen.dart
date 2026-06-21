@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../controllers/auth_controller.dart';
 import '../../models/models.dart';
 import '../../routes/app_routes.dart';
-import '../../services/servicio_cuenta.dart';
 import '../../widgets/app_colors.dart';
 import '../../widgets/custom_toast.dart';
 import '../../widgets/gradient_scaffold.dart';
@@ -16,7 +16,7 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _service = ServicioCuenta();
+  final _auth = Get.find<AuthController>();
   final _c = <String, TextEditingController>{
     for (final k in ['nombres', 'apellidos', 'dni', 'telefono', 'correo', 'usuario', 'contrasena'])
       k: TextEditingController()
@@ -28,7 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() => _loading = true);
     try {
-      await _service.crearCuenta(CrearCuentaRequest(
+      await _auth.registrar(CrearCuentaRequest(
         usuario: _c['usuario']!.text.trim(),
         contrasena: _c['contrasena']!.text,
         nombres: _c['nombres']!.text.trim(),

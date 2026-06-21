@@ -50,9 +50,8 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return GradientScaffold(
-      colors: AppColors.ciudadanoGradient,
-      body: SafeArea(
-        child: SingleChildScrollView(
+      colors: const [Color(0xFFA27EFF), Color(0xFFD4C4FF), Colors.white],
+      body: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
@@ -114,7 +113,6 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ],
           ),
-        ),
       ),
     );
   }

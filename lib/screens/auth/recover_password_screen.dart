@@ -1,7 +1,7 @@
 // lib/screens/auth/recover_password_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../services/servicio_auth.dart';
+import '../../controllers/auth_controller.dart';
 import '../../widgets/app_colors.dart';
 import '../../widgets/custom_toast.dart';
 import '../../widgets/gradient_scaffold.dart';
@@ -15,7 +15,7 @@ class RecoverPasswordScreen extends StatefulWidget {
 }
 
 class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
-  final _authService = ServicioAuth();
+  final _auth = Get.find<AuthController>();
   final _correoCtrl = TextEditingController();
   bool _loading = false;
 
@@ -28,7 +28,7 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
 
     setState(() => _loading = true);
     try {
-      await _authService.solicitarRecuperacion(correo);
+      await _auth.solicitarRecuperacion(correo);
       
       // Popup para simular la llegada del correo. cambiar en entrega final
       Get.dialog(

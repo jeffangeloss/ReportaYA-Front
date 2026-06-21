@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/tecnico_reportes_controller.dart';
 import '../../models/models.dart';
-import '../../services/servicio_reportes.dart';
 import '../../utils/fechas.dart';
 import '../../widgets/app_colors.dart';
 import '../../widgets/custom_toast.dart';
@@ -22,30 +21,16 @@ class EjecutarReporteScreen extends StatefulWidget {
 class _EjecutarReporteScreenState extends State<EjecutarReporteScreen>
     with SingleTickerProviderStateMixin {
   final _ctrl = Get.find<TecnicoReportesController>();
-  final _service = ServicioReportes();
   late final TabController _tabs;
-  late ReporteResponse r;
 
   final _comentarioCtrl = TextEditingController();
-  List<Foto> _fotosIniciales = [];
-  List<Foto> _fotosFinales = [];
   int _fotos = 0;
-  bool _busy = false;
-
-  bool get _esFinalizado => r.estado == EstadoReporte.FINALIZADO;
 
   @override
   void initState() {
     super.initState();
     _tabs = TabController(length: 2, vsync: this);
-    r = _ctrl.asignaciones.firstWhere((x) => x.id == widget.reporteId);
-    _cargarFotos();
-  }
-
-  Future<void> _cargarFotos() async {
-    final iniciales = await _service.obtenerFotos(r.id, tipo: TipoFoto.INICIAL);
-    final finales = await _service.obtenerFotos(r.id, tipo: TipoFoto.FINAL);
-    if (mounted) setState(() { _fotosIniciales = iniciales; _fotosFinales = finales; });
+    _ctrl.iniciarEjecucion(widget.reporteId);
   }
 
   @override
@@ -60,36 +45,43 @@ class _EjecutarReporteScreenState extends State<EjecutarReporteScreen>
       AppToast.error('Escribe el comentario de la solucion');
       return;
     }
-    setState(() => _busy = true);
     final urls = List.filled(_fotos, 'assets/img/sample/generic_final.png');
-    await _ctrl.finalizar(r.id, _comentarioCtrl.text.trim(), urls);
-    AppToast.success('Reporte finalizado!');
+    await _ctrl.finalizarGestion(_comentarioCtrl.text.trim(), urls);
     await Future.delayed(const Duration(milliseconds: 500));
     Get.back();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F4F8),
-      appBar: AppBar(
-        backgroundColor: AppColors.tecnicoPrimary,
-        foregroundColor: Colors.white,
-        title: const Text('Ejecutar Reporte'),
-        bottom: TabBar(
-          controller: _tabs,
-          indicatorColor: Colors.white,
-          tabs: const [Tab(text: 'Informacion'), Tab(text: 'Evidencia')],
+    return Obx(() {
+      final r = _ctrl.reporteActual.value;
+      if (r == null) {
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      }
+      return Scaffold(
+        backgroundColor: const Color(0xFFF4F4F8),
+        appBar: AppBar(
+          backgroundColor: AppColors.tecnicoPrimary,
+          foregroundColor: Colors.white,
+          title: const Text('Ejecutar Reporte'),
+          bottom: TabBar(
+            controller: _tabs,
+            indicatorColor: Colors.white,
+            tabs: const [Tab(text: 'Informacion'), Tab(text: 'Evidencia')],
+          ),
         ),
-      ),
-      body: AbsorbPointer(
-        absorbing: _busy,
-        child: TabBarView(controller: _tabs, children: [_infoTab(), _evidenciaTab()]),
-      ),
-    );
+        body: AbsorbPointer(
+          absorbing: _ctrl.busy.value,
+          child: TabBarView(
+            controller: _tabs,
+            children: [_infoTab(r), _evidenciaTab(r)],
+          ),
+        ),
+      );
+    });
   }
 
-  Widget _infoTab() {
+  Widget _infoTab(ReporteResponse r) {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -114,7 +106,7 @@ class _EjecutarReporteScreenState extends State<EjecutarReporteScreen>
           height: 150,
         ),
         const SizedBox(height: 16),
-        if (!_esFinalizado)
+        if (r.estado != EstadoReporte.FINALIZADO)
           WideButton('Iniciar trabajo de campo', AppColors.tecnicoPrimary, () => _tabs.animateTo(1), icon: Icons.play_arrow)
         else
           InfoCallout('Reporte ya finalizado. Consulta el tab Evidencia para ver los detalles.',
@@ -123,17 +115,17 @@ class _EjecutarReporteScreenState extends State<EjecutarReporteScreen>
     );
   }
 
-  Widget _evidenciaTab() {
+  Widget _evidenciaTab(ReporteResponse r) {
+    final esFinalizado = r.estado == EstadoReporte.FINALIZADO;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         const Text('Fotos del incidente',
             style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF444444))),
         const SizedBox(height: 6),
-        FotosStrip(fotos: _fotosIniciales, vacioTexto: 'Sin fotos del ciudadano', height: 96),
+        FotosStrip(fotos: _ctrl.fotosIniciales, vacioTexto: 'Sin fotos del ciudadano', height: 96),
         const SizedBox(height: 14),
-        if (_esFinalizado) ...[
-          // Vista de solo lectura: el reporte ya fue resuelto
+        if (esFinalizado) ...[
           const InfoCallout('Reporte finalizado. A continuacion se muestra la resolucion registrada.',
               color: AppColors.estadoFinalizado, bg: Color(0xFFEAFAF0), fg: Color(0xFF2C7A4F)),
           const SizedBox(height: 14),
@@ -144,18 +136,14 @@ class _EjecutarReporteScreenState extends State<EjecutarReporteScreen>
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-            child: Text(
-              r.comentarioResolucion ?? '-',
-              style: const TextStyle(fontSize: 13.5),
-            ),
+            child: Text(r.comentarioResolucion ?? '-', style: const TextStyle(fontSize: 13.5)),
           ),
           const SizedBox(height: 14),
           const Text('Fotos de la solucion',
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF444444))),
           const SizedBox(height: 6),
-          FotosStrip(fotos: _fotosFinales, vacioTexto: 'Sin fotos de resolucion', height: 96),
+          FotosStrip(fotos: _ctrl.fotosFinales, vacioTexto: 'Sin fotos de resolucion', height: 96),
         ] else ...[
-          // Formulario de resolucion activo
           const InfoCallout(
             'Registra la evidencia de la solucion y finaliza el reporte. El ciudadano sera notificado.',
             color: AppColors.tecnicoPrimary, bg: Color(0xFFEAFAF0), fg: Color(0xFF2C7A4F),
@@ -196,7 +184,7 @@ class _EjecutarReporteScreenState extends State<EjecutarReporteScreen>
             ],
           ),
           const SizedBox(height: 22),
-          WideButton('Finalizar reporte', AppColors.tecnicoPrimary, _busy ? null : _finalizar, icon: Icons.check),
+          WideButton('Finalizar reporte', AppColors.tecnicoPrimary, _ctrl.busy.value ? null : _finalizar, icon: Icons.check),
         ],
       ],
     );

@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../models/models.dart';
 import '../services/servicio_reportes.dart';
+import '../widgets/custom_toast.dart';
 
 /// Estado de la cola del operador (vistas 01 Cola y 02 Gestion).
 class OperadorReportesController extends GetxController {
@@ -10,11 +11,21 @@ class OperadorReportesController extends GetxController {
   final RxBool loading = false.obs;
   final RxnString error = RxnString();
 
-  int get pendientes => reportes.where((r) => r.estado == EstadoReporte.PENDIENTE).length;
-  int get enRevision => reportes.where((r) => r.estado == EstadoReporte.REVISION).length;
-  int get finalizados => reportes.where((r) => r.estado == EstadoReporte.FINALIZADO).length;
+  // --- Estado de la pantalla Gestion (Vista 02) ---
+  final Rx<ReporteResponse?> reporteActual = Rx(null);
+  final RxList<Foto> fotosIniciales = <Foto>[].obs;
+  final RxList<Foto> fotosFinales = <Foto>[].obs;
+  final RxBool busy = false.obs;
+
+  int get pendientes =>
+      reportes.where((r) => r.estado == EstadoReporte.PENDIENTE).length;
+  int get enRevision =>
+      reportes.where((r) => r.estado == EstadoReporte.REVISION).length;
+  int get finalizados =>
+      reportes.where((r) => r.estado == EstadoReporte.FINALIZADO).length;
 
   Future<void> cargar() async {
+    // llama al servicio para obtener la lista de reportes y actualiza el estado
     try {
       loading.value = true;
       error.value = null;
@@ -48,5 +59,46 @@ class OperadorReportesController extends GetxController {
     final r = await _service.asignarTecnico(id, tecnico);
     await cargar();
     return r;
+  }
+
+  // --- Acciones de la pantalla Gestion ---
+
+  Future<void> iniciarGestion(int id) async {
+    reporteActual.value = reportes.firstWhere((x) => x.id == id);
+    busy.value = true;
+    final ini = await _service.obtenerFotos(id, tipo: TipoFoto.INICIAL);
+    final fin = await _service.obtenerFotos(id, tipo: TipoFoto.FINAL);
+    fotosIniciales.assignAll(ini);
+    fotosFinales.assignAll(fin);
+    busy.value = false;
+  }
+
+  Future<void> aceptarGestion() async {
+    final id = reporteActual.value?.id;
+    if (id == null) return;
+    busy.value = true;
+    final upd = await aceptar(id);
+    reporteActual.value = upd;
+    busy.value = false;
+    AppToast.success('Reporte aceptado. Ahora en Revision.');
+  }
+
+  Future<void> rechazarGestion(String motivo) async {
+    final id = reporteActual.value?.id;
+    if (id == null) return;
+    busy.value = true;
+    await rechazar(id, motivo);
+    busy.value = false;
+    AppToast.success('Reporte rechazado.');
+  }
+
+  Future<void> asignarGestion(TecnicoResponse tecnico) async {
+    final id = reporteActual.value?.id;
+    if (id == null) return;
+    busy.value = true;
+    final upd = await asignar(id, tecnico);
+    reporteActual.value = upd;
+    busy.value = false;
+    AppToast.success('Tecnico asignado: ${tecnico.nombreCompleto}');
   }
 }

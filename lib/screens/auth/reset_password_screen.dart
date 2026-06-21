@@ -1,7 +1,7 @@
 // lib/screens/auth/reset_password_screen.dart
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../services/servicio_auth.dart';
+import '../../controllers/auth_controller.dart';
 import '../../widgets/app_colors.dart';
 import '../../widgets/custom_toast.dart';
 import '../../widgets/gradient_scaffold.dart';
@@ -15,7 +15,7 @@ class ResetPasswordScreen extends StatefulWidget {
 }
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
-  final _authService = ServicioAuth();
+  final _auth = Get.find<AuthController>();
   final _passCtrl = TextEditingController();
   final _confirmPassCtrl = TextEditingController();
   late final String _correo;
@@ -43,7 +43,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     setState(() => _loading = true);
     try {
-      await _authService.restablecerContrasena(_correo, nuevaPass, confirmacion);
+      await _auth.restablecerContrasena(_correo, nuevaPass, confirmacion);
       AppToast.success('Contraseña restablecida con éxito');
       await Future.delayed(const Duration(milliseconds: 600));
       Get.offAllNamed(AppRoutes.login);

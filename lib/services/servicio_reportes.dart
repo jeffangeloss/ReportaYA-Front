@@ -17,11 +17,6 @@ class ServicioReportes {
     return list;
   }
 
-  Future<List<ReporteResponse>> obtenerRecientes(int cuentaId, {int limit = 5}) async {
-    final list = await obtenerReportesPorCuenta(cuentaId);
-    return list.take(limit).toList();
-  }
-
   Future<List<ReporteResponse>> obtenerTodos({String? estado}) async {
     await Future.delayed(const Duration(milliseconds: 250));
     final list = _store.reportes
@@ -48,12 +43,6 @@ class ServicioReportes {
     return list;
   }
 
-  Future<ReporteResponse?> obtenerDetalle(int id) async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    final i = _store.indexReporte(id);
-    return i >= 0 ? _store.reportes[i] : null;
-  }
-
   Future<List<HistorialEstado>> obtenerHistorialEstados(int reporteId) async {
     await Future.delayed(const Duration(milliseconds: 150));
     return _store.historialDe(reporteId);
@@ -61,22 +50,6 @@ class ServicioReportes {
 
   Future<List<Foto>> obtenerFotos(int reporteId, {String? tipo}) async {
     return _store.fotosDe(reporteId, tipo: tipo);
-  }
-
-  Future<Map<String, int>> contarPorEstado() async {
-    final map = {for (final e in EstadoReporte.values) e: 0};
-    for (final r in _store.reportes) {
-      map[r.estado] = (map[r.estado] ?? 0) + 1;
-    }
-    return map;
-  }
-
-  Future<Map<String, int>> contarPorEstadoTecnico(int tecnicoId) async {
-    final map = {EstadoReporte.REVISION: 0, EstadoReporte.FINALIZADO: 0};
-    for (final r in _store.reportes.where((r) => r.tecnicoAsignadoId == tecnicoId)) {
-      map[r.estado] = (map[r.estado] ?? 0) + 1;
-    }
-    return map;
   }
 
   // ---------------- Escritura ----------------

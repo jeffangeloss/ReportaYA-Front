@@ -6,8 +6,7 @@ import '../services/servicio_auth.dart';
 
 enum AuthState { checking, authenticated, unauthenticated }
 
-/// CU-01. Sesion local con persistencia en GetStorage (TTL 24h).
-/// Sin Firebase ni HTTP: el login consulta el almacen local via ServicioAuth.
+/// CU-01/02/03. Sesion local con persistencia en GetStorage (TTL 24h).
 class AuthController extends GetxController {
   static const String _storageKey = 'auth_user';
   final GetStorage _box = GetStorage();
@@ -48,6 +47,8 @@ class AuthController extends GetxController {
     }
   }
 
+  // --- CU-01 Login ---
+
   Future<AuthLoginResponse> login(String usuarioInput, String password) async {
     try {
       estado.value = AuthState.checking;
@@ -74,5 +75,27 @@ class AuthController extends GetxController {
     usuario.value = null;
     estado.value = AuthState.unauthenticated;
     await _box.remove(_storageKey);
+  }
+
+  // --- CU-02 Registro ---
+
+  Future<void> registrar(CrearCuentaRequest req) async {
+    await _auth.crearCuenta(req);
+  }
+
+  // --- CU-03 Recuperar contraseña ---
+
+  Future<void> solicitarRecuperacion(String correo) async {
+    await _auth.solicitarRecuperacion(correo);
+  }
+
+  Future<void> restablecerContrasena(
+    String correo,
+    String nueva,
+    String confirmacion,
+  ) async {
+    if (nueva != confirmacion) throw Exception('Las contraseñas no coinciden');
+    if (nueva.length < 6) throw Exception('La contraseña debe tener al menos 6 caracteres');
+    await _auth.restablecerContrasena(correo, nueva);
   }
 }

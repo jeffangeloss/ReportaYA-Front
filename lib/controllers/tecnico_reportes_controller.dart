@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../models/models.dart';
 import '../services/servicio_reportes.dart';
+import '../widgets/custom_toast.dart';
 
 /// Estado de las asignaciones del tecnico (vistas 01/02/03, CU-08).
 class TecnicoReportesController extends GetxController {
@@ -19,6 +20,12 @@ class TecnicoReportesController extends GetxController {
   List<ReporteResponse> get completados =>
       asignaciones.where((r) => r.estado == EstadoReporte.FINALIZADO).toList();
 
+  // --- Estado de la pantalla Ejecutar (Vistas 02/03) ---
+  final Rx<ReporteResponse?> reporteActual = Rx(null);
+  final RxList<Foto> fotosIniciales = <Foto>[].obs;
+  final RxList<Foto> fotosFinales = <Foto>[].obs;
+  final RxBool busy = false.obs;
+
   Future<void> cargar(int tecnicoId) async {
     _tecnicoId = tecnicoId;
     loading.value = true;
@@ -31,5 +38,27 @@ class TecnicoReportesController extends GetxController {
     final r = await _service.finalizarReporte(id, comentario, urlsFotos);
     await cargar(_tecnicoId);
     return r;
+  }
+
+  // --- Acciones de la pantalla Ejecutar ---
+
+  Future<void> iniciarEjecucion(int id) async {
+    reporteActual.value = asignaciones.firstWhere((x) => x.id == id);
+    busy.value = true;
+    final ini = await _service.obtenerFotos(id, tipo: TipoFoto.INICIAL);
+    final fin = await _service.obtenerFotos(id, tipo: TipoFoto.FINAL);
+    fotosIniciales.assignAll(ini);
+    fotosFinales.assignAll(fin);
+    busy.value = false;
+  }
+
+  Future<void> finalizarGestion(String comentario, List<String> urls) async {
+    final id = reporteActual.value?.id;
+    if (id == null) return;
+    busy.value = true;
+    final upd = await finalizar(id, comentario, urls);
+    reporteActual.value = upd;
+    busy.value = false;
+    AppToast.success('Reporte finalizado!');
   }
 }
