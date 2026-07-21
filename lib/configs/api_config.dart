@@ -13,10 +13,15 @@ class ApiConfig {
   /// - iOS Simulator / Desktop / Web: localhost (127.0.0.1)
   static const String _override =
       String.fromEnvironment('API_BASE_URL', defaultValue: '');
+  static const String _productionUrl =
+      'https://reportaya-backend.onrender.com/api';
 
   static String get baseUrl {
     if (_override.isNotEmpty) {
       return _override;
+    }
+    if (kReleaseMode) {
+      return _productionUrl;
     }
     if (kIsWeb) {
       return 'http://localhost:8081/api';
