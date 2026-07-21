@@ -40,19 +40,19 @@ class ReporteResponse {
 
   factory ReporteResponse.fromJson(Map<String, dynamic> json) {
     return ReporteResponse(
-      id: json['id'] as int,
-      titulo: json['titulo'] as String,
-      descripcion: json['descripcion'] as String,
-      cuentaId: json['cuentaId'] as int,
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      titulo: json['titulo'] as String? ?? '',
+      descripcion: json['descripcion'] as String? ?? '',
+      cuentaId: (json['cuentaId'] as num?)?.toInt() ?? 0,
       nombreCiudadano: json['nombreCiudadano'] as String?,
       estado: json['estado'] as String? ?? EstadoReporte.PENDIENTE,
       tipoProblema: json['tipoProblema'] as String?,
       ubicacion: Ubicacion.fromJson(json['ubicacion'] as Map<String, dynamic>),
-      fechaCreacion: json['fechaCreacion'] as String? ?? '',
-      fechaActualizacion: json['fechaActualizacion'] as String? ?? '',
+      fechaCreacion: json['fechaCreacion']?.toString() ?? '',
+      fechaActualizacion: json['fechaActualizacion']?.toString() ?? '',
       comentarioResolucion: json['comentarioResolucion'] as String?,
-      fechaCierre: json['fechaCierre'] as String?,
-      tecnicoAsignadoId: json['tecnicoAsignadoId'] as int?,
+      fechaCierre: json['fechaCierre']?.toString(),
+      tecnicoAsignadoId: (json['tecnicoAsignadoId'] as num?)?.toInt(),
       tecnicoNombre: json['tecnicoNombre'] as String?,
     );
   }
@@ -152,10 +152,10 @@ class HistorialEstado {
   });
 
   factory HistorialEstado.fromJson(Map<String, dynamic> json) => HistorialEstado(
-        id: json['id'] as int,
-        reporteId: json['reporteId'] as int,
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        reporteId: (json['reporteId'] as num?)?.toInt() ?? 0,
         estadoAnterior: json['estadoAnterior'] as String?,
-        estadoNuevo: json['estadoNuevo'] as String,
-        fechaCambio: json['fechaCambio'] as String,
+        estadoNuevo: json['estadoNuevo'] as String? ?? '',
+        fechaCambio: json['fechaCambio']?.toString() ?? '',
       );
 }
