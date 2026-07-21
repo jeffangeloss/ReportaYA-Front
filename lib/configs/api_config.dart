@@ -2,10 +2,22 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 
 class ApiConfig {
-  /// Retorna la URL base del backend adaptada según la plataforma de ejecución.
-  /// - Android Emulator: requiere usar 10.0.2.2 para comunicarse con el localhost de la máquina host.
-  /// - iOS Simulator / Desktop / Web: se comunican directamente con localhost (127.0.0.1).
+  /// URL base del backend.
+  ///
+  /// Para apuntar al backend DESPLEGADO (nube/túnel), se pasa en build/run:
+  ///   flutter run   --dart-define=API_BASE_URL=https://tu-backend.com/api
+  ///   flutter build --dart-define=API_BASE_URL=https://tu-backend.com/api
+  ///
+  /// Si no se define, cae al backend local según la plataforma (desarrollo):
+  /// - Android Emulator: 10.0.2.2 (localhost del host)
+  /// - iOS Simulator / Desktop / Web: localhost (127.0.0.1)
+  static const String _override =
+      String.fromEnvironment('API_BASE_URL', defaultValue: '');
+
   static String get baseUrl {
+    if (_override.isNotEmpty) {
+      return _override;
+    }
     if (kIsWeb) {
       return 'http://localhost:8081/api';
     }
