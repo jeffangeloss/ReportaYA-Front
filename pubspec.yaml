@@ -1,5 +1,5 @@
 name: reportaya
-description: "ReportaYA - app movil de gestion de reportes urbanos (Flutter). Entrega 2: front con datos locales (JSON)."
+description: "ReportaYA - app movil de gestion de reportes urbanos (Flutter). Integrada con el backend REST (auth, reportes, fotos)."
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -23,13 +23,14 @@ dependencies:
   flutter_map: ^7.0.2
   latlong2: ^0.9.0
 
-  # HTTP para geocoding Nominatim
+  # HTTP para geocoding Nominatim y llamadas REST
   http: ^1.2.0
 
-  # --- Pendientes para la entrega 3/4 (backend real, GPS, camara) ---
-  # dio: ^5.7.0
+  # Captura de fotos (camara / galeria) para la evidencia de reportes
+  image_picker: ^1.1.2
+
+  # --- Pendientes para siguientes entregas ---
   # geolocator: ^13.0.1
-  # image_picker: ^1.1.2
   # webview_flutter: ^4.10.0
 
 dev_dependencies:
