@@ -80,7 +80,20 @@ class ApiClient {
       dynamic errorMsg;
       try {
         final Map<String, dynamic> body = jsonDecode(utf8.decode(response.bodyBytes));
+        // 1) Mensaje limpio del backend ({"error": "..."} o {"message": "..."}).
         errorMsg = body['error'] ?? body['message'];
+        // 2) Si viene el formato de validacion por defecto de Spring
+        //    ({"error":"Bad Request","errors":[{"defaultMessage":"..."}]}),
+        //    priorizar el mensaje de campo real sobre el "Bad Request" generico.
+        final errors = body['errors'];
+        if (errors is List && errors.isNotEmpty) {
+          final first = errors.first;
+          if (first is Map && first['defaultMessage'] != null) {
+            errorMsg = first['defaultMessage'];
+          } else if (first is String) {
+            errorMsg = first;
+          }
+        }
       } catch (_) {
         // Fallback si no es un JSON válido
       }

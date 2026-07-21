@@ -65,40 +65,62 @@ class OperadorReportesController extends GetxController {
 
   Future<void> iniciarGestion(int id) async {
     reporteActual.value = reportes.firstWhere((x) => x.id == id);
+    // Limpia fotos de un reporte previo para no mostrar datos obsoletos.
+    fotosIniciales.clear();
+    fotosFinales.clear();
     busy.value = true;
-    final ini = await _service.obtenerFotos(id, tipo: TipoFoto.INICIAL);
-    final fin = await _service.obtenerFotos(id, tipo: TipoFoto.FINAL);
-    fotosIniciales.assignAll(ini);
-    fotosFinales.assignAll(fin);
-    busy.value = false;
+    try {
+      fotosIniciales.assignAll(await _service.obtenerFotos(id, tipo: TipoFoto.INICIAL));
+      fotosFinales.assignAll(await _service.obtenerFotos(id, tipo: TipoFoto.FINAL));
+    } catch (_) {
+      // Si fallan las fotos, se muestran vacias; nunca se congela la pantalla.
+    } finally {
+      busy.value = false; // siempre se libera, incluso ante un error
+    }
   }
 
   Future<void> aceptarGestion() async {
     final id = reporteActual.value?.id;
     if (id == null) return;
     busy.value = true;
-    final upd = await aceptar(id);
-    reporteActual.value = upd;
-    busy.value = false;
-    AppToast.success('Reporte aceptado. Ahora en Revision.');
+    try {
+      reporteActual.value = await aceptar(id);
+      AppToast.success('Reporte aceptado. Ahora en Revision.');
+    } catch (e) {
+      AppToast.error(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      busy.value = false;
+    }
   }
 
-  Future<void> rechazarGestion(String motivo) async {
+  /// Devuelve true si el rechazo fue exitoso (la pantalla decide navegar).
+  Future<bool> rechazarGestion(String motivo) async {
     final id = reporteActual.value?.id;
-    if (id == null) return;
+    if (id == null) return false;
     busy.value = true;
-    await rechazar(id, motivo);
-    busy.value = false;
-    AppToast.success('Reporte rechazado.');
+    try {
+      await rechazar(id, motivo);
+      AppToast.success('Reporte rechazado.');
+      return true;
+    } catch (e) {
+      AppToast.error(e.toString().replaceFirst('Exception: ', ''));
+      return false;
+    } finally {
+      busy.value = false;
+    }
   }
 
   Future<void> asignarGestion(TecnicoResponse tecnico) async {
     final id = reporteActual.value?.id;
     if (id == null) return;
     busy.value = true;
-    final upd = await asignar(id, tecnico);
-    reporteActual.value = upd;
-    busy.value = false;
-    AppToast.success('Tecnico asignado: ${tecnico.nombreCompleto}');
+    try {
+      reporteActual.value = await asignar(id, tecnico);
+      AppToast.success('Tecnico asignado: ${tecnico.nombreCompleto}');
+    } catch (e) {
+      AppToast.error(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      busy.value = false;
+    }
   }
 }

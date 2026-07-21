@@ -6,6 +6,7 @@ import '../../utils/fechas.dart';
 import '../../widgets/app_colors.dart';
 import '../../widgets/custom_toast.dart';
 import '../../widgets/estado_pill.dart';
+import '../../widgets/foto_picker.dart';
 import '../../widgets/foto_view.dart';
 import '../../widgets/map_view.dart';
 import '../../widgets/common/detail_widgets.dart';
@@ -24,7 +25,12 @@ class _EjecutarReporteScreenState extends State<EjecutarReporteScreen>
   late final TabController _tabs;
 
   final _comentarioCtrl = TextEditingController();
-  int _fotos = 0;
+  List<FotoLocal> _fotos = [];
+
+  static const _demoAssetsFinal = [
+    'assets/img/sample/generic_final.png',
+    'assets/img/sample/semaforo_fin_1.png',
+  ];
 
   @override
   void initState() {
@@ -41,12 +47,20 @@ class _EjecutarReporteScreenState extends State<EjecutarReporteScreen>
   }
 
   Future<void> _finalizar() async {
-    if (_comentarioCtrl.text.trim().isEmpty) {
+    final comentario = _comentarioCtrl.text.trim();
+    if (comentario.isEmpty) {
       AppToast.error('Escribe el comentario de la solucion');
       return;
     }
-    final urls = List.filled(_fotos, 'assets/img/sample/generic_final.png');
-    await _ctrl.finalizarGestion(_comentarioCtrl.text.trim(), urls);
+    // El backend exige minimo 10 caracteres; se valida aqui para dar un mensaje
+    // claro antes de enviar (evita el "Bad Request" generico).
+    if (comentario.length < 10) {
+      AppToast.error('El comentario debe tener al menos 10 caracteres');
+      return;
+    }
+    final fotosBase64 = _fotos.map((f) => f.toBase64()).toList();
+    final ok = await _ctrl.finalizarGestion(_comentarioCtrl.text.trim(), fotosBase64);
+    if (!ok) return;
     await Future.delayed(const Duration(milliseconds: 500));
     Get.back();
   }
@@ -162,26 +176,13 @@ class _EjecutarReporteScreenState extends State<EjecutarReporteScreen>
             ),
           ),
           const SizedBox(height: 14),
-          Text('Fotos de la solucion ($_fotos/5)',
+          Text('Fotos de la solucion (${_fotos.length}/5)',
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF444444))),
           const SizedBox(height: 6),
-          Row(
-            children: [
-              ...List.generate(_fotos, (i) => Container(
-                    width: 56, height: 56, margin: const EdgeInsets.only(right: 8),
-                    decoration: BoxDecoration(color: const Color(0xFF2F5D3A), borderRadius: BorderRadius.circular(10)),
-                    child: const Icon(Icons.image, color: Colors.white54, size: 20),
-                  )),
-              if (_fotos < 5)
-                GestureDetector(
-                  onTap: () => setState(() => _fotos++),
-                  child: Container(
-                    width: 56, height: 56,
-                    decoration: BoxDecoration(color: const Color(0xFFEDEDF2), borderRadius: BorderRadius.circular(10)),
-                    child: const Icon(Icons.add, color: Color(0xFF9AA0AB)),
-                  ),
-                ),
-            ],
+          FotoPickerField(
+            accent: AppColors.tecnicoPrimary,
+            demoAssets: _demoAssetsFinal,
+            onChanged: (fotos) => setState(() => _fotos = fotos),
           ),
           const SizedBox(height: 22),
           WideButton('Finalizar reporte', AppColors.tecnicoPrimary, _ctrl.busy.value ? null : _finalizar, icon: Icons.check),

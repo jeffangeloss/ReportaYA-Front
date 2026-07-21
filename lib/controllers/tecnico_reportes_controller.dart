@@ -34,8 +34,8 @@ class TecnicoReportesController extends GetxController {
     loading.value = false;
   }
 
-  Future<ReporteResponse> finalizar(int id, String comentario, List<String> urlsFotos) async {
-    final r = await _service.finalizarReporte(id, comentario, urlsFotos);
+  Future<ReporteResponse> finalizar(int id, String comentario, List<String> fotosBase64) async {
+    final r = await _service.finalizarReporte(id, comentario, fotosBase64);
     await cargar(_tecnicoId);
     return r;
   }
@@ -44,21 +44,34 @@ class TecnicoReportesController extends GetxController {
 
   Future<void> iniciarEjecucion(int id) async {
     reporteActual.value = asignaciones.firstWhere((x) => x.id == id);
+    // Limpia fotos de un reporte previo para no mostrar datos obsoletos.
+    fotosIniciales.clear();
+    fotosFinales.clear();
     busy.value = true;
-    final ini = await _service.obtenerFotos(id, tipo: TipoFoto.INICIAL);
-    final fin = await _service.obtenerFotos(id, tipo: TipoFoto.FINAL);
-    fotosIniciales.assignAll(ini);
-    fotosFinales.assignAll(fin);
-    busy.value = false;
+    try {
+      fotosIniciales.assignAll(await _service.obtenerFotos(id, tipo: TipoFoto.INICIAL));
+      fotosFinales.assignAll(await _service.obtenerFotos(id, tipo: TipoFoto.FINAL));
+    } catch (_) {
+      // Si fallan las fotos, se muestran vacias; nunca se congela la pantalla.
+    } finally {
+      busy.value = false; // siempre se libera, incluso ante un error
+    }
   }
 
-  Future<void> finalizarGestion(String comentario, List<String> urls) async {
+  /// Devuelve true si la finalizacion fue exitosa (la pantalla decide navegar).
+  Future<bool> finalizarGestion(String comentario, List<String> fotosBase64) async {
     final id = reporteActual.value?.id;
-    if (id == null) return;
+    if (id == null) return false;
     busy.value = true;
-    final upd = await finalizar(id, comentario, urls);
-    reporteActual.value = upd;
-    busy.value = false;
-    AppToast.success('Reporte finalizado!');
+    try {
+      reporteActual.value = await finalizar(id, comentario, fotosBase64);
+      AppToast.success('Reporte finalizado!');
+      return true;
+    } catch (e) {
+      AppToast.error(e.toString().replaceFirst('Exception: ', ''));
+      return false;
+    } finally {
+      busy.value = false;
+    }
   }
 }

@@ -2,7 +2,50 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../models/models.dart';
 
-/// Miniatura de foto (Image.asset) con visor a pantalla completa al tocar.
+/// Construye la imagen de una foto segun su origen: las fotos reales vienen del
+/// backend como URL http(s) de Firebase Storage (Image.network); las de demo o
+/// placeholders pueden ser rutas de asset (Image.asset).
+Widget _fotoImage(
+  String url, {
+  double? width,
+  double? height,
+  required BoxFit fit,
+  required Widget error,
+}) {
+  final esRemota = url.startsWith('http://') || url.startsWith('https://');
+  if (esRemota) {
+    return Image.network(
+      url,
+      width: width,
+      height: height,
+      fit: fit,
+      errorBuilder: (_, _, _) => error,
+      loadingBuilder: (context, child, progress) {
+        if (progress == null) return child;
+        return Container(
+          width: width,
+          height: height,
+          color: const Color(0xFFE6E2F0),
+          alignment: Alignment.center,
+          child: const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        );
+      },
+    );
+  }
+  return Image.asset(
+    url,
+    width: width,
+    height: height,
+    fit: fit,
+    errorBuilder: (_, _, _) => error,
+  );
+}
+
+/// Miniatura de foto (asset o network) con visor a pantalla completa al tocar.
 class FotoThumb extends StatelessWidget {
   final Foto foto;
   final double width;
@@ -20,12 +63,12 @@ class FotoThumb extends StatelessWidget {
       onTap: () => _abrirVisor(foto),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(10),
-        child: Image.asset(
+        child: _fotoImage(
           foto.url,
           width: width,
           height: height,
           fit: BoxFit.cover,
-          errorBuilder: (_, _, _) => Container(
+          error: Container(
             width: width,
             height: height,
             color: const Color(0xFFE6E2F0),
@@ -57,10 +100,10 @@ void _abrirVisor(Foto foto) {
           ),
           Flexible(
             child: InteractiveViewer(
-              child: Image.asset(
+              child: _fotoImage(
                 foto.url,
                 fit: BoxFit.contain,
-                errorBuilder: (_, _, _) => const Padding(
+                error: const Padding(
                   padding: EdgeInsets.all(40),
                   child: Icon(
                     Icons.image_not_supported_outlined,
