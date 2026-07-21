@@ -52,12 +52,12 @@ class ReportesController extends GetxController {
   Future<void> crearReporte(
     CrearReporteRequest req, {
     String? nombreCiudadano,
-    List<String> urlsFotos = const [],
+    List<String> fotosBase64 = const [],
   }) async {
     await _service.crearReporte(
       req,
       nombreCiudadano: nombreCiudadano,
-      urlsFotos: urlsFotos,
+      fotosBase64: fotosBase64,
     );
     if (_cuentaId != 0) await cargarReportes(_cuentaId);
   }
@@ -66,10 +66,17 @@ class ReportesController extends GetxController {
 
   Future<void> cargarDetalle(int reporteId) async {
     loadingDetalle.value = true;
-    final h = await _service.obtenerHistorialEstados(reporteId);
-    final f = await _service.obtenerFotos(reporteId);
-    historial.assignAll(h);
-    fotosDetalle.assignAll(f);
-    loadingDetalle.value = false;
+    // Limpia datos de un detalle previo para no mostrar informacion obsoleta.
+    historial.clear();
+    fotosDetalle.clear();
+    try {
+      historial.assignAll(await _service.obtenerHistorialEstados(reporteId));
+      fotosDetalle.assignAll(await _service.obtenerFotos(reporteId));
+    } catch (_) {
+      // Ante un fallo, se muestra el detalle sin historial/fotos en vez de un
+      // spinner infinito.
+    } finally {
+      loadingDetalle.value = false; // siempre se libera
+    }
   }
 }

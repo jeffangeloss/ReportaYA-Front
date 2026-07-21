@@ -2,6 +2,11 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- image_picker: permisos requeridos por iOS para camara y galeria. -->
+	<key>NSCameraUsageDescription</key>
+	<string>ReportaYA usa la camara para adjuntar fotos de la incidencia.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>ReportaYA accede a tus fotos para adjuntar evidencia a los reportes.</string>
 	<!-- Permite HTTP plano hacia el backend en LAN (demo/prototipo).
 	     iOS bloquea HTTP por defecto (ATS); en produccion usar HTTPS y quitar esto. -->
 	<key>NSAppTransportSecurity</key>

@@ -6,6 +6,7 @@ import '../../models/models.dart';
 import '../../services/servicio_geocoding.dart';
 import '../../widgets/app_colors.dart';
 import '../../widgets/custom_toast.dart';
+import '../../widgets/foto_picker.dart';
 import '../../widgets/map_view.dart';
 import '../../widgets/common/gradient_header.dart';
 import '../../widgets/common/detail_widgets.dart';
@@ -29,8 +30,19 @@ class _ReportScreenState extends State<ReportScreen> {
   double? _lat, _lng;
   String? _direccion;
   bool _geocodificando = false;
-  int _fotos = 0;
+  List<FotoLocal> _fotos = [];
+  int _pickerVersion = 0; // cambia su key para reiniciar el selector al enviar
   bool _enviando = false;
+
+  static const _demoAssetsInicial = [
+    'assets/img/sample/poste_1.png',
+    'assets/img/sample/semaforo_1.png',
+    'assets/img/sample/basura_1.png',
+    'assets/img/sample/hueco_1.png',
+    'assets/img/sample/hueco_2.png',
+    'assets/img/sample/vidrio_1.png',
+    'assets/img/sample/generic_inicial.png',
+  ];
 
   Future<void> _onUbicacionSeleccionada(double lat, double lng) async {
     setState(() { _lat = lat; _lng = lng; _geocodificando = true; });
@@ -55,7 +67,7 @@ class _ReportScreenState extends State<ReportScreen> {
           ubicacion: CrearUbicacionRequest(latitud: _lat!, longitud: _lng!, direccion: _direccion),
         ),
         nombreCiudadano: _auth.usuario.value?.nombre,
-        urlsFotos: List.filled(_fotos, 'assets/img/sample/generic_inicial.png'),
+        fotosBase64: _fotos.map((f) => f.toBase64()).toList(),
       );
       AppToast.success('Reporte enviado!');
       _reset();
@@ -73,7 +85,8 @@ class _ReportScreenState extends State<ReportScreen> {
     setState(() {
       _tipo = TipoProblema.INFRAESTRUCTURA;
       _lat = null; _lng = null; _direccion = null;
-      _fotos = 0;
+      _fotos = [];
+      _pickerVersion++; // fuerza un selector nuevo y vacio
     });
   }
 
@@ -143,24 +156,12 @@ class _ReportScreenState extends State<ReportScreen> {
                     ),
                   ),
                 const SizedBox(height: 14),
-                _label('Fotos ($_fotos/5)'),
-                Row(
-                  children: [
-                    ...List.generate(_fotos, (i) => Container(
-                          width: 56, height: 56, margin: const EdgeInsets.only(right: 8),
-                          decoration: BoxDecoration(color: const Color(0xFF5B4636), borderRadius: BorderRadius.circular(10)),
-                          child: const Icon(Icons.image, color: Colors.white54, size: 20),
-                        )),
-                    if (_fotos < 5)
-                      GestureDetector(
-                        onTap: () => setState(() => _fotos++),
-                        child: Container(
-                          width: 56, height: 56,
-                          decoration: BoxDecoration(color: const Color(0xFFEDEDF2), borderRadius: BorderRadius.circular(10)),
-                          child: const Icon(Icons.add, color: Color(0xFF9AA0AB)),
-                        ),
-                      ),
-                  ],
+                _label('Fotos (${_fotos.length}/5)'),
+                FotoPickerField(
+                  key: ValueKey(_pickerVersion),
+                  accent: AppColors.primary,
+                  demoAssets: _demoAssetsInicial,
+                  onChanged: (fotos) => setState(() => _fotos = fotos),
                 ),
                 const SizedBox(height: 22),
                 WideButton('Enviar reporte', AppColors.primary, _enviando ? null : _enviar, icon: Icons.send),

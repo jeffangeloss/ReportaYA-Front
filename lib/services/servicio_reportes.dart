@@ -109,31 +109,30 @@ class ServicioReportes {
   Future<ReporteResponse> crearReporte(
     CrearReporteRequest req, {
     String? nombreCiudadano,
-    List<String> urlsFotos = const [],
+    List<String> fotosBase64 = const [],
   }) async {
     // 1. Crear el reporte base
     final res = await _client.post('/reportes', req.toJson());
     final reporte = ReporteResponse.fromJson(res);
 
-    // 2. Subir fotos asociadas si las hay
-    for (final url in urlsFotos) {
-      String base64Str = url;
-      // Validar si es una cadena base64 real
-      if (!base64Str.startsWith('data:image') && !base64Str.contains('/') && base64Str.length > 50) {
-        // Es base64
-      } else {
-        // Enviar imagen transparente dummy de 1x1 si viene una ruta de asset local
-        base64Str = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-      }
-
+    // 2. Subir las fotos reales (base64). El backend las decodifica y sube a
+    //    Firebase Storage, devolviendo la URL publica.
+    for (final base64Str in fotosBase64) {
       await _client.post('/reportes/${reporte.id}/fotos', {
-        'archivoBase64': base64Str,
+        'archivoBase64': _limpiarBase64(base64Str),
         'tipo': 'INICIAL',
         'descripcion': 'Foto del incidente',
       });
     }
 
     return reporte;
+  }
+
+  /// Quita el prefijo "data:image/...;base64," si viniera, dejando solo la
+  /// carga util que el backend puede decodificar.
+  String _limpiarBase64(String value) {
+    final idx = value.indexOf(',');
+    return (value.startsWith('data:') && idx != -1) ? value.substring(idx + 1) : value;
   }
 
   Future<ReporteResponse> aceptarReporte(int id) async {
@@ -168,19 +167,13 @@ class ServicioReportes {
   Future<ReporteResponse> finalizarReporte(
     int id,
     String comentarioResolucion,
-    List<String> urlsFotos,
+    List<String> fotosBase64,
   ) async {
     final int tecnicoId = _getLoggedUserId();
 
-    final List<Map<String, dynamic>> fotosJson = urlsFotos.map((url) {
-      String base64Str = url;
-      if (!base64Str.startsWith('data:image') && !base64Str.contains('/') && base64Str.length > 50) {
-        // Es base64
-      } else {
-        base64Str = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-      }
+    final List<Map<String, dynamic>> fotosJson = fotosBase64.map((base64Str) {
       return {
-        'archivoBase64': base64Str,
+        'archivoBase64': _limpiarBase64(base64Str),
         'tipo': 'FINAL',
         'descripcion': 'Foto de finalizacion de incidencia',
       };

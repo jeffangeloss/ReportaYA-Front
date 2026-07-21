@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../controllers/operador_reportes_controller.dart';
 import '../../../controllers/tecnicos_controller.dart';
-import '../../../models/models.dart';
 import '../../../widgets/app_colors.dart';
 import '../../../widgets/custom_toast.dart';
 import '../../../widgets/foto_view.dart';
@@ -66,8 +65,8 @@ class _GestionReportesScreenState extends State<GestionReportesScreen> {
                 return;
               }
               Get.back();
-              await _ctrl.rechazarGestion(motivo);
-              Get.back();
+              final ok = await _ctrl.rechazarGestion(motivo);
+              if (ok) Get.back();
             },
             child: const Text(
               'Confirmar rechazo',
