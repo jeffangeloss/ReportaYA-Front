@@ -16,6 +16,7 @@ class ResetPasswordScreen extends StatefulWidget {
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _auth = Get.find<AuthController>();
+  final _codigoCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _confirmPassCtrl = TextEditingController();
   late final String _correo;
@@ -33,17 +34,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   Future<void> _restablecer() async {
+    final codigo = _codigoCtrl.text.trim();
     final nuevaPass = _passCtrl.text;
     final confirmacion = _confirmPassCtrl.text;
 
-    if (nuevaPass.isEmpty || confirmacion.isEmpty) {
+    if (codigo.isEmpty || nuevaPass.isEmpty || confirmacion.isEmpty) {
       AppToast.error('Completa todos los campos');
       return;
     }
 
     setState(() => _loading = true);
     try {
-      await _auth.restablecerContrasena(_correo, nuevaPass, confirmacion);
+      await _auth.restablecerContrasena(codigo, nuevaPass, confirmacion);
       AppToast.success('Contraseña restablecida con éxito');
       await Future.delayed(const Duration(milliseconds: 600));
       Get.offAllNamed(AppRoutes.login);
@@ -83,6 +85,18 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
                     ),
                     const SizedBox(height: 20),
+                    TextField(
+                      controller: _codigoCtrl,
+                      textCapitalization: TextCapitalization.characters,
+                      decoration: InputDecoration(
+                        labelText: 'Código del correo',
+                        hintText: 'Ej: A3F9K2',
+                        filled: true,
+                        fillColor: const Color(0xFFF5F5F5),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     TextField(
                       controller: _passCtrl,
                       obscureText: true,

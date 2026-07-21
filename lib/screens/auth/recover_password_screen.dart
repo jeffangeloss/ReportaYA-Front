@@ -33,16 +33,15 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
       // Popup para simular la llegada del correo. cambiar en entrega final
       Get.dialog(
         AlertDialog(
-          title: const Text('Simulación de Correo'),
-          content: Text('Se ha enviado un enlace de restablecimiento a $correo.'),
+          title: const Text('Revisa tu correo'),
+          content: Text('Enviamos un código de 6 caracteres a $correo. Ingrésalo en la siguiente pantalla junto con tu nueva contraseña.'),
           actions: [
             TextButton(
               onPressed: () {
                 Get.back(); // Cierra dialog
-                // Redirigir a Reset Password pasando el correo
                 Get.toNamed(AppRoutes.resetPassword, arguments: correo);
               },
-              child: const Text('Abrir enlace'),
+              child: const Text('Ingresar código'),
             )
           ],
         ),

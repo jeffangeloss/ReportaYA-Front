@@ -82,34 +82,52 @@ class _HomeScreenOperadorState extends State<HomeScreenOperador> {
           Expanded(
             // GetX observa cambios
             child: Obx(() {
-              if (_ctrl.loading.value) // ← Vigila loading
-                return const Center(child: CircularProgressIndicator());
               final list = _ctrl.filtrar(
                 _filtro.value,
               ); //filtra reportes segun estado seleccionado
-              if (list.isEmpty) {
-                return const Center(
-                  child: Text(
-                    'No hay reportes en este estado.', // Si no hay reportes en ese estado, muestra mensaje
-                    style: TextStyle(color: Color(0xFF9AA0AB)),
-                  ),
-                );
+              // Solo en la primera carga (aun sin datos) mostramos el spinner
+              // central. En recargas posteriores mantenemos la lista visible y
+              // dejamos que el RefreshIndicator muestre su propio spinner.
+              if (_ctrl.loading.value && _ctrl.reportes.isEmpty) {
+                return const Center(child: CircularProgressIndicator());
               }
-              return ListView(
-                // Lista de reportes filtrada, cada item es un ReportCard que al tocarlo va a la pantalla de gestion del reporte
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
-                children: list
-                    .map(
-                      (r) => ReportCard(
-                        reporte: r,
-                        mostrarTecnico: r.estado == EstadoReporte.REVISION,
-                        usarFechaActualizacion: true,
-                        onTap: () => Get.to(
-                          () => GestionReportesScreen(reporteId: r.id),
-                        ), //navi
+              // Pull-to-refresh: deslizar hacia abajo vuelve a llamar a cargar().
+              // Util para la demo IoT: el poste crea reportes mientras el panel
+              // esta abierto, y asi aparecen sin cerrar sesion.
+              return RefreshIndicator(
+                onRefresh: _ctrl.cargar,
+                child: list.isEmpty
+                    // Estado vacio scrollable, para poder refrescar igual.
+                    ? ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: const [
+                          SizedBox(height: 120),
+                          Center(
+                            child: Text(
+                              'No hay reportes en este estado.', // Si no hay reportes en ese estado, muestra mensaje
+                              style: TextStyle(color: Color(0xFF9AA0AB)),
+                            ),
+                          ),
+                        ],
+                      )
+                    : ListView(
+                        // Lista de reportes filtrada, cada item es un ReportCard que al tocarlo va a la pantalla de gestion del reporte
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
+                        children: list
+                            .map(
+                              (r) => ReportCard(
+                                reporte: r,
+                                mostrarTecnico:
+                                    r.estado == EstadoReporte.REVISION,
+                                usarFechaActualizacion: true,
+                                onTap: () => Get.to(
+                                  () => GestionReportesScreen(reporteId: r.id),
+                                ), //navi
+                              ),
+                            )
+                            .toList(),
                       ),
-                    )
-                    .toList(),
               );
             }),
           ),

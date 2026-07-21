@@ -1,12 +1,26 @@
-import '../data/local_store.dart';
 import '../models/models.dart';
+import 'api_client.dart';
 
-/// Listado de tecnicos disponibles (CU-07). Fuente local.
+/// Listado de tecnicos disponibles (CU-07) contra el backend real.
 class ServicioTecnicos {
-  final LocalStore _store = LocalStore.instance;
+  final ApiClient _api = ApiClient.instance;
 
   Future<List<TecnicoResponse>> obtenerDisponibles() async {
-    await Future.delayed(const Duration(milliseconds: 200));
-    return _store.tecnicos.where((t) => t.activo).toList();
+    final items = await _api.fetchAllPages('/api/tecnicos');
+    // TecnicoDTO trae {id, usuario, nombres, apellidos, correo} pero NO dni ni
+    // telefono; se construye a mano con esos campos vacios para no romper el
+    // modelo (activo se asume true: los tecnicos listados estan activos).
+    return items
+        .map((j) => TecnicoResponse(
+              id: j['id'] as int,
+              usuario: (j['usuario'] as String?) ?? '',
+              nombres: (j['nombres'] as String?) ?? '',
+              apellidos: (j['apellidos'] as String?) ?? '',
+              dni: (j['dni'] as String?) ?? '',
+              telefono: (j['telefono'] as String?) ?? '',
+              correo: (j['correo'] as String?) ?? '',
+              activo: (j['activo'] as bool?) ?? true,
+            ))
+        .toList();
   }
 }

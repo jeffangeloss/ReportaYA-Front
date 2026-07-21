@@ -90,12 +90,13 @@ class AuthController extends GetxController {
   }
 
   Future<void> restablecerContrasena(
-    String correo,
+    String codigo,
     String nueva,
     String confirmacion,
   ) async {
+    if (codigo.trim().isEmpty) throw Exception('Ingresa el código que te llegó al correo');
     if (nueva != confirmacion) throw Exception('Las contraseñas no coinciden');
     if (nueva.length < 6) throw Exception('La contraseña debe tener al menos 6 caracteres');
-    await _auth.restablecerContrasena(correo, nueva);
+    await _auth.restablecerContrasena(codigo.trim(), nueva);
   }
 }
