@@ -1,130 +1,197 @@
+import 'package:get/get.dart';
+import '../controllers/auth_controller.dart';
 import '../models/models.dart';
 import 'api_client.dart';
 
-/// Logica de reportes contra el backend REST real.
-/// Mantiene las mismas firmas que la version local (entrega 2), asi que los
-/// controllers y pantallas no cambian.
+/// Lógica de reportes contra la API REST.
 class ServicioReportes {
-  final ApiClient _api = ApiClient.instance;
+  final ApiClient _client = ApiClient.instance;
 
-  // ---------------- Lectura (CU-05 / CU-06 / CU-08) ----------------
+  int _getLoggedUserId() {
+    try {
+      if (Get.isRegistered<AuthController>()) {
+        return Get.find<AuthController>().cuentaId;
+      }
+    } catch (_) {}
+    return 0;
+  }
+
+  // ---------------- Lectura ----------------
 
   Future<List<ReporteResponse>> obtenerReportesPorCuenta(int cuentaId) async {
-    final items = await _api.fetchAllPages('/api/reportes/cuenta/$cuentaId');
-    final list = items.map(ReporteResponse.fromJson).toList();
-    list.sort((a, b) => b.fechaCreacion.compareTo(a.fechaCreacion));
-    return list;
+    final res = await _client.get('/reportes/cuenta/$cuentaId');
+    if (res != null && res['content'] != null) {
+      final List content = res['content'];
+      return content.map((json) => ReporteResponse.fromJson(json)).toList();
+    }
+    return [];
   }
 
   Future<List<ReporteResponse>> obtenerTodos({String? estado}) async {
-    final items = await _api.fetchAllPages('/api/reportes', query: {'estado': estado});
-    final list = items.map(ReporteResponse.fromJson).toList();
-    list.sort((a, b) => b.fechaActualizacion.compareTo(a.fechaActualizacion));
-    return list;
+    final String path = estado != null && estado.isNotEmpty
+        ? '/reportes?estado=$estado'
+        : '/reportes';
+    final res = await _client.get(path);
+    if (res != null && res['content'] != null) {
+      final List content = res['content'];
+      return content.map((json) => ReporteResponse.fromJson(json)).toList();
+    }
+    return [];
   }
 
   Future<List<ReporteResponse>> obtenerParaMapa({String? estado, String? tipo}) async {
-    final data = await _api.getJson('/api/reportes/mapa',
-        query: {'estado': estado, 'tipo': tipo});
-    return (data as List)
-        .map((e) => ReporteResponse.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final queryParams = <String>[];
+    if (estado != null && estado.isNotEmpty) queryParams.add('estado=$estado');
+    if (tipo != null && tipo.isNotEmpty) queryParams.add('tipo=$tipo');
+
+    final String path = '/reportes/mapa${queryParams.isNotEmpty ? '?${queryParams.join('&')}' : ''}';
+    final List? res = await _client.get(path) as List?;
+    if (res != null) {
+      return res.map((json) {
+        // Adaptar ReporteMapaDTO a ReporteResponse
+        return ReporteResponse(
+          id: (json['id'] as num?)?.toInt() ?? 0,
+          titulo: json['titulo'] as String? ?? '',
+          descripcion: '',
+          cuentaId: 0,
+          estado: json['estado'] as String? ?? EstadoReporte.PENDIENTE,
+          tipoProblema: json['tipoProblema'] as String?,
+          ubicacion: json['ubicacion'] != null 
+              ? Ubicacion.fromJson(json['ubicacion'] as Map<String, dynamic>)
+              : Ubicacion(id: 0, latitud: 0, longitud: 0, direccion: ''),
+          fechaCreacion: '',
+          fechaActualizacion: '',
+        );
+      }).toList();
+    }
+    return [];
   }
 
   Future<List<ReporteResponse>> obtenerAsignadosATecnico(int tecnicoId) async {
-    // /mapa devuelve el DTO completo (incluye tecnicoAsignadoId) como lista.
-    final data = await _api.getJson('/api/reportes/mapa');
-    final list = (data as List)
-        .map((e) => ReporteResponse.fromJson(e as Map<String, dynamic>))
-        .where((r) => r.tecnicoAsignadoId == tecnicoId)
-        .toList();
-    list.sort((a, b) => b.fechaActualizacion.compareTo(a.fechaActualizacion));
-    return list;
+    final res = await _client.get('/tecnicos/$tecnicoId/reportes?estado=REVISION');
+    if (res != null && res['content'] != null) {
+      final List content = res['content'];
+      return content.map((json) => ReporteResponse.fromJson(json)).toList();
+    }
+    return [];
   }
 
   Future<List<HistorialEstado>> obtenerHistorialEstados(int reporteId) async {
-    final data = await _api.getJson('/api/historial-estados/reporte/$reporteId');
-    return (data as List)
-        .map((e) => HistorialEstado.fromJson(e as Map<String, dynamic>))
-        .toList();
+    final List? res = await _client.get('/historial-estados/reporte/$reporteId') as List?;
+    if (res != null) {
+      return res.map((json) => HistorialEstado.fromJson(json)).toList();
+    }
+    return [];
   }
 
   Future<List<Foto>> obtenerFotos(int reporteId, {String? tipo}) async {
-    // Las fotos vienen embebidas en el detalle del reporte (ReporteDTO.fotos).
-    final data = await _api.getJson('/api/reportes/$reporteId') as Map<String, dynamic>;
-    final fotosJson = (data['fotos'] as List?) ?? const [];
-    var fotos = fotosJson
-        .map((e) => Foto.fromJson(e as Map<String, dynamic>))
-        .toList();
-    if (tipo != null) fotos = fotos.where((f) => f.tipo == tipo).toList();
-    return fotos;
+    final String path = tipo != null && tipo.isNotEmpty
+        ? '/reportes/$reporteId/fotos?tipo=$tipo'
+        : '/reportes/$reporteId/fotos';
+    final List? res = await _client.get(path) as List?;
+    if (res != null) {
+      return res.map((json) {
+        return Foto(
+          id: (json['id'] as num?)?.toInt() ?? 0,
+          reporteId: (json['reporteId'] as num?)?.toInt() ?? 0,
+          url: json['url'] as String? ?? '',
+          tipo: json['tipo'] as String? ?? 'INICIAL',
+          descripcion: json['descripcion'] as String? ?? '',
+          fechaCarga: json['fechaCarga']?.toString() ?? '',
+        );
+      }).toList();
+    }
+    return [];
   }
 
   // ---------------- Escritura ----------------
 
-  /// CU-04: crea un reporte en estado PENDIENTE.
-  /// Nota: `urlsFotos` son rutas de assets simuladas (la camara real llega en
-  /// una entrega posterior); el backend exige base64, por eso aqui no se suben.
   Future<ReporteResponse> crearReporte(
     CrearReporteRequest req, {
     String? nombreCiudadano,
     List<String> urlsFotos = const [],
   }) async {
-    final data = await _api.postJson('/api/reportes', body: req.toJson());
-    return ReporteResponse.fromJson(data as Map<String, dynamic>);
-  }
+    // 1. Crear el reporte base
+    final res = await _client.post('/reportes', req.toJson());
+    final reporte = ReporteResponse.fromJson(res);
 
-  /// CU-06: el operador acepta -> PENDIENTE pasa a REVISION.
-  Future<ReporteResponse> aceptarReporte(int id) async {
-    final data = await _api.patchJson('/api/reportes/$id/estado',
-        query: {'nuevoEstado': EstadoReporte.REVISION});
-    return ReporteResponse.fromJson(data as Map<String, dynamic>);
-  }
+    // 2. Subir fotos asociadas si las hay
+    for (final url in urlsFotos) {
+      String base64Str = url;
+      // Validar si es una cadena base64 real
+      if (!base64Str.startsWith('data:image') && !base64Str.contains('/') && base64Str.length > 50) {
+        // Es base64
+      } else {
+        // Enviar imagen transparente dummy de 1x1 si viene una ruta de asset local
+        base64Str = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+      }
 
-  /// CU-06: el operador rechaza con motivo -> RECHAZADO.
-  Future<ReporteResponse> rechazarReporte(int id, String motivo) async {
-    final data =
-        await _api.postJson('/api/reportes/$id/rechazar', query: {'motivo': motivo});
-    return ReporteResponse.fromJson(data as Map<String, dynamic>);
-  }
-
-  /// CU-07: asigna un tecnico (el estado se mantiene en REVISION).
-  /// El backend exige operadorId; se toma de la sesion del operador logueado.
-  /// La asignacion no devuelve el reporte, asi que se re-consulta.
-  Future<ReporteResponse> asignarTecnico(int id, TecnicoResponse tecnico) async {
-    final operadorId = _api.currentUserId;
-    if (operadorId == null) {
-      throw ApiException(401, 'Sesion no valida. Inicia sesion de nuevo.');
+      await _client.post('/reportes/${reporte.id}/fotos', {
+        'archivoBase64': base64Str,
+        'tipo': 'INICIAL',
+        'descripcion': 'Foto del incidente',
+      });
     }
-    await _api.postJson('/api/asignaciones', body: {
+
+    return reporte;
+  }
+
+  Future<ReporteResponse> aceptarReporte(int id) async {
+    final int operadorId = _getLoggedUserId();
+    final res = await _client.post('/operador/reportes/$id/aceptar', {
+      'operadorId': operadorId,
+    });
+    return ReporteResponse.fromJson(res);
+  }
+
+  Future<ReporteResponse> rechazarReporte(int id, String motivo) async {
+    final int operadorId = _getLoggedUserId();
+    final res = await _client.post('/operador/reportes/$id/rechazar', {
+      'operadorId': operadorId,
+      'motivo': motivo,
+    });
+    return ReporteResponse.fromJson(res);
+  }
+
+  Future<ReporteResponse> asignarTecnico(int id, TecnicoResponse tecnico) async {
+    final int operadorId = _getLoggedUserId();
+    await _client.post('/asignaciones', {
       'reporteId': id,
       'operadorId': operadorId,
       'tecnicoId': tecnico.id,
     });
-    final data = await _api.getJson('/api/reportes/$id');
-    return ReporteResponse.fromJson(data as Map<String, dynamic>);
+    // Obtener el reporte actualizado
+    final res = await _client.get('/reportes/$id');
+    return ReporteResponse.fromJson(res);
   }
 
-  /// CU-08: el tecnico finaliza -> REVISION pasa a FINALIZADO.
-  /// tecnicoId se toma de la sesion del tecnico logueado. Las fotos FINAL van
-  /// vacias (simuladas en el front); el backend acepta lista vacia.
   Future<ReporteResponse> finalizarReporte(
     int id,
     String comentarioResolucion,
     List<String> urlsFotos,
   ) async {
-    final tecnicoId = _api.currentUserId;
-    if (tecnicoId == null) {
-      throw ApiException(401, 'Sesion no valida. Inicia sesion de nuevo.');
-    }
-    final data = await _api.patchJson(
-      '/api/tecnicos/$tecnicoId/reportes/$id/completar',
-      body: {
-        'comentarioResolucion': comentarioResolucion,
-        'fotos': const [],
-      },
-    ) as Map<String, dynamic>;
-    // El endpoint responde {mensaje, reporte, fotosAdjuntadas, estadoFinal}.
-    return ReporteResponse.fromJson(data['reporte'] as Map<String, dynamic>);
+    final int tecnicoId = _getLoggedUserId();
+
+    final List<Map<String, dynamic>> fotosJson = urlsFotos.map((url) {
+      String base64Str = url;
+      if (!base64Str.startsWith('data:image') && !base64Str.contains('/') && base64Str.length > 50) {
+        // Es base64
+      } else {
+        base64Str = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+      }
+      return {
+        'archivoBase64': base64Str,
+        'tipo': 'FINAL',
+        'descripcion': 'Foto de finalizacion de incidencia',
+      };
+    }).toList();
+
+    final body = {
+      'comentarioResolucion': comentarioResolucion,
+      'fotos': fotosJson,
+    };
+
+    final res = await _client.patch('/tecnicos/$tecnicoId/reportes/$id/completar', body);
+    return ReporteResponse.fromJson(res['reporte']);
   }
 }

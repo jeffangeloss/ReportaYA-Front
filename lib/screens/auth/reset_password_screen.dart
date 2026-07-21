@@ -34,7 +34,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   Future<void> _restablecer() async {
-    final codigo = _codigoCtrl.text.trim();
+    final codigo = _codigoCtrl.text.trim().toUpperCase(); // el codigo se genera en mayusculas
     final nuevaPass = _passCtrl.text;
     final confirmacion = _confirmPassCtrl.text;
 

@@ -1,48 +1,83 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../configs/api_config.dart';
 import '../models/models.dart';
-import 'api_client.dart';
 
-/// Servicio de cuenta y autenticacion (CU-01, CU-02, CU-03) contra el backend
-/// REST real. Mantiene las mismas firmas que la version local (entrega 2).
+/// Servicio de cuenta y autenticacion (CU-01, CU-02, CU-03).
+/// Conexión real con el backend mediante peticiones REST HTTP.
 class ServicioAuth {
-  final ApiClient _api = ApiClient.instance;
-
   // --- CU-01 Login ---
 
   Future<AuthLoginResponse> login(String usuario, String password) async {
-    final data = await _api.postJson(
-      '/api/auth/login',
-      body: {'usuario': usuario, 'password': password},
-      auth: false, // el login es publico y aun no hay token
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/auth/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'usuario': usuario,
+        'password': password,
+      }),
     );
-    return AuthLoginResponse.fromJson(data as Map<String, dynamic>);
+
+    final Map<String, dynamic> body = jsonDecode(response.body);
+
+    if (response.statusCode == 200) {
+      return AuthLoginResponse.fromJson(body);
+    } else {
+      final errorMsg = body['error'] ?? body['message'] ?? 'Error al iniciar sesión';
+      throw Exception(errorMsg);
+    }
   }
 
   // --- CU-02 Registro ---
 
   Future<CuentaResponse> crearCuenta(CrearCuentaRequest req) async {
-    final data = await _api.postJson('/api/cuenta', body: req.toJson(), auth: false);
-    return CuentaResponse.fromJson(data as Map<String, dynamic>);
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/cuenta'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(req.toJson()),
+    );
+
+    final Map<String, dynamic> body = jsonDecode(response.body);
+
+    if (response.statusCode == 201) {
+      return CuentaResponse.fromJson(body);
+    } else {
+      final errorMsg = body['error'] ?? body['message'] ?? 'Error al crear la cuenta';
+      throw Exception(errorMsg);
+    }
   }
 
   // --- CU-03 Recuperar contraseña ---
 
   Future<void> solicitarRecuperacion(String correo) async {
-    await _api.postJson('/api/auth/recuperar-password',
-        body: {'correo': correo}, auth: false);
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/auth/recuperar-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'correo': correo}),
+    );
+
+    if (response.statusCode != 200) {
+      final Map<String, dynamic> body = jsonDecode(response.body);
+      final errorMsg = body['error'] ?? body['message'] ?? 'Error al solicitar la recuperación';
+      throw Exception(errorMsg);
+    }
   }
 
-  /// CU-03: completa el reset con el CODIGO de 6 caracteres que llego al correo.
-  /// POST /api/auth/restablecer-password {token, password}
-  Future<void> restablecerContrasena(String codigo, String nuevaPassword) async {
-    await _api.postJson(
-      '/api/auth/restablecer-password',
-      body: {
-        // el codigo se genera en mayusculas; normalizamos por si lo escriben/pegan distinto
-        'token': codigo.trim().toUpperCase(),
-        'password': nuevaPassword,
-        'nuevaContrasena': nuevaPassword, // por si el backend usa esa clave
-      },
-      auth: false,
+  /// Restablece la contraseña usando el token de recuperación y la nueva contraseña.
+  Future<void> restablecerContrasena(String token, String nuevaPassword) async {
+    final response = await http.post(
+      Uri.parse('${ApiConfig.baseUrl}/auth/restablecer-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'token': token,
+        'nuevaContrasena': nuevaPassword,
+      }),
     );
+
+    if (response.statusCode != 200) {
+      final Map<String, dynamic> body = jsonDecode(response.body);
+      final errorMsg = body['error'] ?? body['message'] ?? 'Error al restablecer la contraseña';
+      throw Exception(errorMsg);
+    }
   }
 }
