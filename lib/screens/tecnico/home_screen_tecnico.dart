@@ -55,11 +55,6 @@ class _HomeScreenTecnicoState extends State<HomeScreenTecnico> {
                   value: _ctrl.porAtender,
                   color: AppColors.estadoRevision,
                 ),
-                CounterCard(
-                  label: 'Resueltos',
-                  value: _ctrl.resueltos,
-                  color: AppColors.estadoFinalizado,
-                ),
               ],
             ),
           ),
