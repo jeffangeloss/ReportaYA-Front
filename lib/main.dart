@@ -8,7 +8,6 @@ import 'controllers/reportes_controller.dart';
 import 'controllers/operador_reportes_controller.dart';
 import 'controllers/tecnicos_controller.dart';
 import 'controllers/tecnico_reportes_controller.dart';
-import 'data/local_store.dart';
 import 'routes/app_routes.dart';
 
 Future<void> main() async {
@@ -16,9 +15,7 @@ Future<void> main() async {
   await GetStorage.init();
   await initializeDateFormatting('es', null);
 
-  // Siembra el almacen local desde los JSON (datos "quemados").
-  await LocalStore.instance.seed();
-
+  // Los datos ahora vienen del backend REST (ver lib/services/*, ApiClient).
   // Controladores globales (Ciudadano + Operador + Tecnico).
   Get.put(AuthController(), permanent: true);
   Get.put(ReportesController(), permanent: true);

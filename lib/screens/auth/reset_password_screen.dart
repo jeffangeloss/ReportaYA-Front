@@ -16,45 +16,36 @@ class ResetPasswordScreen extends StatefulWidget {
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _auth = Get.find<AuthController>();
+  final _codigoCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _confirmPassCtrl = TextEditingController();
-  String? _token;
-  String? _correo;
+  late final String _correo;
   bool _loading = false;
 
   @override
   void initState() {
     super.initState();
-    // 1. Extrae el token desde los query parameters (?token=...) o arguments
-    _token = Get.parameters['token'] ?? 
-        (Get.arguments is Map && (Get.arguments as Map).containsKey('token') 
-            ? (Get.arguments as Map)['token'] 
-            : null);
-            
-    // 2. Extrae el correo si se navega de forma interna
-    _correo = Get.parameters['correo'] ?? 
-        (Get.arguments is Map && (Get.arguments as Map).containsKey('correo') 
-            ? (Get.arguments as Map)['correo'] 
-            : (Get.arguments is String ? Get.arguments as String : null));
+    // Correo obtenido
+    if (Get.arguments != null) {
+      _correo = Get.arguments as String;
+    } else {
+      _correo = '';
+    }
   }
 
   Future<void> _restablecer() async {
+    final codigo = _codigoCtrl.text.trim().toUpperCase(); // el codigo se genera en mayusculas
     final nuevaPass = _passCtrl.text;
     final confirmacion = _confirmPassCtrl.text;
 
-    if (_token == null || _token!.isEmpty) {
-      AppToast.error('Token de recuperación no válido o ausente');
-      return;
-    }
-
-    if (nuevaPass.isEmpty || confirmacion.isEmpty) {
+    if (codigo.isEmpty || nuevaPass.isEmpty || confirmacion.isEmpty) {
       AppToast.error('Completa todos los campos');
       return;
     }
 
     setState(() => _loading = true);
     try {
-      await _auth.restablecerContrasena(_token!, nuevaPass, confirmacion);
+      await _auth.restablecerContrasena(codigo, nuevaPass, confirmacion);
       AppToast.success('Contraseña restablecida con éxito');
       await Future.delayed(const Duration(milliseconds: 600));
       Get.offAllNamed(AppRoutes.login);
@@ -67,19 +58,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_token == null || _token!.isEmpty) {
-      return const Scaffold(
-        body: Center(
-          child: Padding(
-            padding: EdgeInsets.all(20.0),
-            child: Text(
-              'Enlace de restablecimiento inválido, incompleto o expirado.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ),
-        ),
-      );
+    if (_correo.isEmpty) {
+      return const Scaffold(body: Center(child: Text('Acceso inválido')));
     }
 
     return GradientScaffold(
@@ -100,13 +80,23 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
                 child: Column(
                   children: [
-                    if (_correo != null && _correo!.isNotEmpty) ...[
-                      Text(
-                        'Restableciendo contraseña para: $_correo',
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+                    Text(
+                      'Restableciendo contraseña para: $_correo',
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: _codigoCtrl,
+                      textCapitalization: TextCapitalization.characters,
+                      decoration: InputDecoration(
+                        labelText: 'Código del correo',
+                        hintText: 'Ej: A3F9K2',
+                        filled: true,
+                        fillColor: const Color(0xFFF5F5F5),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                       ),
-                      const SizedBox(height: 20),
-                    ],
+                    ),
+                    const SizedBox(height: 12),
                     TextField(
                       controller: _passCtrl,
                       obscureText: true,

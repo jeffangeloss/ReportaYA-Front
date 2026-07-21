@@ -18,8 +18,6 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
   final _auth = Get.find<AuthController>();
   final _correoCtrl = TextEditingController();
   bool _loading = false;
-  bool _enviado = false;
-  String _correoIngresado = '';
 
   Future<void> _enviarSolicitud() async {
     final correo = _correoCtrl.text.trim();
@@ -31,24 +29,24 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
     setState(() => _loading = true);
     try {
       await _auth.solicitarRecuperacion(correo);
-      setState(() {
-        _enviado = true;
-        _correoIngresado = correo;
-      });
-      AppToast.success('Correo enviado con éxito');
-    } catch (e) {
-      AppToast.error(e.toString().replaceFirst('Exception: ', ''));
-    } finally {
-      setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _reenviarCorreo() async {
-    if (_correoIngresado.isEmpty) return;
-    setState(() => _loading = true);
-    try {
-      await _auth.solicitarRecuperacion(_correoIngresado);
-      AppToast.success('Correo reenviado con éxito');
+      
+      // Popup para simular la llegada del correo. cambiar en entrega final
+      Get.dialog(
+        AlertDialog(
+          title: const Text('Revisa tu correo'),
+          content: Text('Enviamos un código de 6 caracteres a $correo. Ingrésalo en la siguiente pantalla junto con tu nueva contraseña.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Get.back(); // Cierra dialog
+                Get.toNamed(AppRoutes.resetPassword, arguments: correo);
+              },
+              child: const Text('Ingresar código'),
+            )
+          ],
+        ),
+        barrierDismissible: false,
+      );
     } catch (e) {
       AppToast.error(e.toString().replaceFirst('Exception: ', ''));
     } finally {
@@ -67,177 +65,53 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
             children: [
               Row(
                 children: [
-                  IconButton(
-                    onPressed: () {
-                      if (_enviado) {
-                        setState(() {
-                          _enviado = false;
-                        });
-                      } else {
-                        Get.back();
-                      }
-                    },
-                    icon: const Icon(Icons.arrow_back, color: Colors.white),
-                  ),
-                  Text(
-                    _enviado ? 'Verifica tu bandeja' : 'Recuperar contraseña',
-                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
+                  IconButton(onPressed: Get.back, icon: const Icon(Icons.arrow_back, color: Colors.white)),
+                  const Text('Recuperar contraseña', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
                 ],
               ),
               const SizedBox(height: 30),
               Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    )
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Ingresa el correo electrónico asociado a tu cuenta para restablecer tu contraseña.',
+                      style: TextStyle(color: Color(0xFF6C757D), fontSize: 14),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: _correoCtrl,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        labelText: 'Correo electrónico',
+                        filled: true,
+                        fillColor: const Color(0xFFF5F5F5),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: _loading ? null : _enviarSolicitud,
+                        child: _loading
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : const Text('Enviar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+                      ),
+                    ),
                   ],
                 ),
-                child: _enviado ? _buildSuccessView() : _buildRequestForm(),
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-  Widget _buildRequestForm() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Ingresa el correo electrónico asociado a tu cuenta para recibir un enlace de restablecimiento.',
-          style: TextStyle(color: Color(0xFF6C757D), fontSize: 14, height: 1.5),
-        ),
-        const SizedBox(height: 24),
-        TextField(
-          controller: _correoCtrl,
-          keyboardType: TextInputType.emailAddress,
-          decoration: InputDecoration(
-            labelText: 'Correo electrónico',
-            prefixIcon: const Icon(Icons.email_outlined, color: AppColors.primary),
-            filled: true,
-            fillColor: const Color(0xFFF8F9FA),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            ),
-            onPressed: _loading ? null : _enviarSolicitud,
-            child: _loading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                  )
-                : const Text(
-                    'Enviar enlace',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-          ),
-        ),
-      ],
-    );
-  }
-  Widget _buildSuccessView() {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFE8F5E9),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.mark_email_read_outlined,
-            color: Color(0xFF2E7D32),
-            size: 48,
-          ),
-        ),
-        const SizedBox(height: 24),
-        const Text(
-          '¡Correo enviado con éxito!',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF212529),
-          ),
-        ),
-        const SizedBox(height: 12),
-        RichText(
-          textAlign: TextAlign.center,
-          text: TextSpan(
-            style: const TextStyle(color: Color(0xFF6C757D), fontSize: 14, height: 1.5),
-            children: [
-              const TextSpan(text: 'Hemos enviado las instrucciones para restablecer tu contraseña al correo '),
-              TextSpan(
-                text: _correoIngresado,
-                style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
-              ),
-              const TextSpan(text: '. Revisa tu bandeja de entrada.'),
-            ],
-          ),
-        ),
-        const SizedBox(height: 32),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            ),
-            onPressed: () => Get.offAllNamed(AppRoutes.login),
-            child: const Text(
-              'Volver al inicio de sesión',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-          ),
-        ),
-        const SizedBox(height: 20),
-        TextButton(
-          onPressed: _loading ? null : _reenviarCorreo,
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.primary,
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          ),
-          child: _loading
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
-                )
-              : const Text(
-                  '¿No recibiste el correo? Reenviar correo',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-        ),
-      ],
     );
   }
 }
