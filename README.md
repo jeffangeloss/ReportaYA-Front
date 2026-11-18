@@ -493,3 +493,14 @@ Para verificar el estado del codigo:
 flutter analyze
 flutter test
 ```
+
+### 10.1 Elegir el backend
+
+La app se conecta al backend en este orden:
+
+1. **El servidor elegido en la app**: en la pantalla de login, toca `Servidor: ...` y elige *Nube (Render)*, *Mi PC* u otra dirección (`IP:8081`). Se guarda en el teléfono y tiene un botón *Probar*.
+2. **El de compilación**: `flutter build apk --release --dart-define=API_BASE_URL=http://192.168.18.8:8081/api`.
+3. Sin `--dart-define`: release usa Render; debug usa `10.0.2.2:8081` (emulador Android) o `localhost:8081`.
+
+Si el backend rechaza el token (venció o cambiaste de servidor), la app cierra la sesión y vuelve al login.
+Las listas recorren todas las páginas del backend (antes solo se leían los primeros 10 registros).

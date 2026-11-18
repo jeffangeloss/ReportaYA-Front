@@ -104,7 +104,7 @@ class _ReportScreenState extends State<ReportScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _label('Titulo'),
-                _input(_tituloCtrl, 'Ej. Hueco en la pista'),
+                _input(_tituloCtrl, 'Ej. Hueco en la pista', maxLength: 120),
                 const SizedBox(height: 14),
                 _label('Tipo de problema'),
                 Wrap(
@@ -124,7 +124,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 ),
                 const SizedBox(height: 14),
                 _label('Descripcion detallada'),
-                _input(_descCtrl, 'Describe la incidencia con detalle', maxLines: 4),
+                _input(_descCtrl, 'Describe la incidencia con detalle', maxLines: 4, maxLength: 1000),
                 const SizedBox(height: 14),
                 _label('Ubicacion — toca el mapa para marcar'),
                 MapPickerView(
@@ -178,9 +178,11 @@ class _ReportScreenState extends State<ReportScreen> {
         child: Text(t, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF444444))),
       );
 
-  Widget _input(TextEditingController c, String hint, {int maxLines = 1}) => TextField(
+  // maxLength alineado a las columnas del backend (titulo 255, descripcion 1000).
+  Widget _input(TextEditingController c, String hint, {int maxLines = 1, int? maxLength}) => TextField(
         controller: c,
         maxLines: maxLines,
+        maxLength: maxLength,
         decoration: InputDecoration(
           hintText: hint,
           filled: true, fillColor: Colors.white,

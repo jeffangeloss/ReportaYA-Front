@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import '../routes/app_routes.dart';
+import '../widgets/custom_toast.dart';
 import '../models/models.dart';
 import '../services/servicio_auth.dart';
 
@@ -77,10 +79,26 @@ class AuthController extends GetxController {
     await _box.remove(_storageKey);
   }
 
+  bool _cerrandoSesion = false;
+
+  /// El backend rechazó el token (venció, o se cambió de servidor): se cierra
+  /// la sesión y se vuelve al login una sola vez, aunque fallen varias peticiones.
+  Future<void> sesionExpirada() async {
+    if (_cerrandoSesion || usuario.value == null) return;
+    _cerrandoSesion = true;
+    try {
+      await logout();
+      AppToast.info('Tu sesión expiró. Inicia sesión nuevamente.');
+      Get.offAllNamed(AppRoutes.login);
+    } finally {
+      _cerrandoSesion = false;
+    }
+  }
+
   // --- CU-02 Registro ---
 
-  Future<void> registrar(CrearCuentaRequest req) async {
-    await _auth.crearCuenta(req);
+  Future<CuentaResponse> registrar(CrearCuentaRequest req) async {
+    return _auth.crearCuenta(req);
   }
 
   // --- CU-03 Recuperar contraseña ---

@@ -51,7 +51,7 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
 
     try {
       await _auth.solicitarRecuperacion(correo);
-      AppToast.success('Te enviamos un codigo a tu correo');
+      AppToast.success('Si el correo esta registrado, te enviamos un codigo.');
       Get.toNamed(AppRoutes.resetPassword, arguments: correo);
     } catch (e) {
       setState(() => _error = e.toString().replaceFirst('Exception: ', ''));

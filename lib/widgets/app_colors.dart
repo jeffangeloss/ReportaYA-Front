@@ -4,6 +4,8 @@ import '../models/enums.dart';
 class AppColors {
   static const Color primary = Color(0xFFA27EFF);
   static const Color secondary = Color(0xFF6A9FFF);
+  static const Color textPrimary = Color(0xFF1F1F29);
+  static const Color error = Color(0xFFDC2626);
   static const Color tecnicoPrimary = Color(0xFF4CAF50);
   static const Color tecnicoSecondary = Color(0xFF45A049);
 

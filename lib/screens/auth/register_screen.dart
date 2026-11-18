@@ -28,7 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() => _loading = true);
     try {
-      await _auth.registrar(CrearCuentaRequest(
+      final cuenta = await _auth.registrar(CrearCuentaRequest(
         usuario: _c['usuario']!.text.trim(),
         contrasena: _c['contrasena']!.text,
         nombres: _c['nombres']!.text.trim(),
@@ -37,8 +37,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         telefono: _c['telefono']!.text.trim(),
         correo: _c['correo']!.text.trim(),
       ));
-      AppToast.success('Cuenta creada! Ya puedes iniciar sesion.');
-      await Future.delayed(const Duration(milliseconds: 600));
+      // Si el servidor exige verificar el correo, la cuenta nace inactiva
+      // (el login devolveria 403); si no, ya se puede entrar.
+      AppToast.success(cuenta.activo
+          ? 'Cuenta creada. Ya puedes iniciar sesion.'
+          : 'Cuenta creada. Revisa tu correo y abre el enlace de activacion antes de iniciar sesion.');
+      await Future.delayed(const Duration(milliseconds: 1800));
       Get.offAllNamed(AppRoutes.login);
     } catch (e) {
       AppToast.error(e.toString().replaceFirst('Exception: ', ''));

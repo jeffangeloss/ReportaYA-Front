@@ -67,8 +67,9 @@ class _HomeScreenTecnicoState extends State<HomeScreenTecnico> {
           ),
           Expanded(
             child: Obx(() {
-              if (_ctrl.loading.value)
+              if (_ctrl.loading.value) {
                 return const Center(child: CircularProgressIndicator());
+              }
               final pendientes = _ctrl.pendientes;
               final completados = _ctrl.completados;
               if (pendientes.isEmpty && completados.isEmpty) {

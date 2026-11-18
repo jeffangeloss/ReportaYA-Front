@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../widgets/custom_toast.dart';
 import '../models/models.dart';
 import '../services/servicio_tecnicos.dart';
 
@@ -11,7 +12,12 @@ class TecnicosController extends GetxController {
 
   Future<void> cargar() async {
     loading.value = true;
-    tecnicos.assignAll(await _service.obtenerDisponibles());
-    loading.value = false;
+    try {
+      tecnicos.assignAll(await _service.obtenerDisponibles());
+    } catch (e) {
+      AppToast.error(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      loading.value = false;
+    }
   }
 }

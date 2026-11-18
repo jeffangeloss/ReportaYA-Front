@@ -1,3 +1,5 @@
+// Los nombres en MAYUSCULAS replican los enums del backend (contrato de la API).
+// ignore_for_file: constant_identifier_names
 /// Catalogos del dominio ReportaYA, alineados a los CU refinados.
 /// Solo 4 estados, sin prioridad y sin paso de auditoria.
 library;

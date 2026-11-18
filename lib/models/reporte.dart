@@ -127,15 +127,6 @@ class CrearReporteRequest {
       };
 }
 
-/// Filtros de listado (CU-05 / CU-06). Sin prioridad.
-class FiltrosReporte {
-  String? estado;
-  String? tipoProblema;
-  String? busqueda;
-
-  FiltrosReporte({this.estado, this.tipoProblema, this.busqueda});
-}
-
 class HistorialEstado {
   final int id;
   final int reporteId;

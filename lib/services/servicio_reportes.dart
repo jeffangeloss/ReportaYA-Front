@@ -18,25 +18,18 @@ class ServicioReportes {
 
   // ---------------- Lectura ----------------
 
+  // El backend pagina de 10 en 10: se recorren todas las páginas.
   Future<List<ReporteResponse>> obtenerReportesPorCuenta(int cuentaId) async {
-    final res = await _client.get('/reportes/cuenta/$cuentaId');
-    if (res != null && res['content'] != null) {
-      final List content = res['content'];
-      return content.map((json) => ReporteResponse.fromJson(json)).toList();
-    }
-    return [];
+    final content = await _client.getTodasLasPaginas('/reportes/cuenta/$cuentaId');
+    return content.map((json) => ReporteResponse.fromJson(json)).toList();
   }
 
   Future<List<ReporteResponse>> obtenerTodos({String? estado}) async {
     final String path = estado != null && estado.isNotEmpty
         ? '/reportes?estado=$estado'
         : '/reportes';
-    final res = await _client.get(path);
-    if (res != null && res['content'] != null) {
-      final List content = res['content'];
-      return content.map((json) => ReporteResponse.fromJson(json)).toList();
-    }
-    return [];
+    final content = await _client.getTodasLasPaginas(path);
+    return content.map((json) => ReporteResponse.fromJson(json)).toList();
   }
 
   Future<List<ReporteResponse>> obtenerParaMapa({String? estado, String? tipo}) async {
@@ -67,13 +60,19 @@ class ServicioReportes {
     return [];
   }
 
+  /// Asignaciones del técnico: por atender (REVISION) y completadas (FINALIZADO).
+  /// Antes solo se pedía REVISION, así que "Completados" siempre salía vacío.
+  /// Se pide por estado (y no sin filtro) para funcionar también con el backend
+  /// desplegado anterior, que devuelve vacío si no se indica estado.
   Future<List<ReporteResponse>> obtenerAsignadosATecnico(int tecnicoId) async {
-    final res = await _client.get('/tecnicos/$tecnicoId/reportes?estado=REVISION');
-    if (res != null && res['content'] != null) {
-      final List content = res['content'];
-      return content.map((json) => ReporteResponse.fromJson(json)).toList();
-    }
-    return [];
+    final porEstado = await Future.wait([
+      _client.getTodasLasPaginas('/tecnicos/$tecnicoId/reportes?estado=${EstadoReporte.REVISION}'),
+      _client.getTodasLasPaginas('/tecnicos/$tecnicoId/reportes?estado=${EstadoReporte.FINALIZADO}'),
+    ]);
+    return porEstado
+        .expand((lista) => lista)
+        .map((json) => ReporteResponse.fromJson(json))
+        .toList();
   }
 
   Future<List<HistorialEstado>> obtenerHistorialEstados(int reporteId) async {

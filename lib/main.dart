@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'configs/api_config.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'controllers/auth_controller.dart';
@@ -13,6 +14,7 @@ import 'routes/app_routes.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+  ApiConfig.cargar(); // servidor elegido en la app (PC local o nube)
   await initializeDateFormatting('es', null);
 
   // Los datos ahora vienen del backend REST (ver lib/services/*, ApiClient).

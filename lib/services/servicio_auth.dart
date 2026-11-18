@@ -1,83 +1,46 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import '../configs/api_config.dart';
-import '../models/models.dart';
+import '../models/auth.dart';
+import '../models/cuenta.dart';
+import 'api_client.dart';
 
-/// Servicio de cuenta y autenticacion (CU-01, CU-02, CU-03).
-/// Conexión real con el backend mediante peticiones REST HTTP.
+/// Servicio de cuenta y autenticación (CU-01, CU-02, CU-03).
+/// Usa ApiClient sin token (rutas públicas) para compartir tiempos límite y
+/// mensajes de error con el resto de la app.
 class ServicioAuth {
+  final ApiClient _client = ApiClient.instance;
+
   // --- CU-01 Login ---
-
   Future<AuthLoginResponse> login(String usuario, String password) async {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/auth/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'usuario': usuario,
-        'password': password,
-      }),
+    final res = await _client.post(
+      '/auth/login',
+      {'usuario': usuario, 'password': password},
+      auth: false,
     );
-
-    final Map<String, dynamic> body = jsonDecode(response.body);
-
-    if (response.statusCode == 200) {
-      return AuthLoginResponse.fromJson(body);
-    } else {
-      final errorMsg = body['error'] ?? body['message'] ?? 'Error al iniciar sesión';
-      throw Exception(errorMsg);
+    if (res is! Map<String, dynamic>) {
+      throw Exception('Respuesta inesperada del servidor al iniciar sesión');
     }
+    return AuthLoginResponse.fromJson(res);
   }
 
   // --- CU-02 Registro ---
-
   Future<CuentaResponse> crearCuenta(CrearCuentaRequest req) async {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/cuenta'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(req.toJson()),
-    );
-
-    final Map<String, dynamic> body = jsonDecode(response.body);
-
-    if (response.statusCode == 201) {
-      return CuentaResponse.fromJson(body);
-    } else {
-      final errorMsg = body['error'] ?? body['message'] ?? 'Error al crear la cuenta';
-      throw Exception(errorMsg);
+    final res = await _client.post('/cuenta', req.toJson(), auth: false);
+    if (res is! Map<String, dynamic>) {
+      throw Exception('Respuesta inesperada del servidor al crear la cuenta');
     }
+    return CuentaResponse.fromJson(res);
   }
 
   // --- CU-03 Recuperar contraseña ---
-
   Future<void> solicitarRecuperacion(String correo) async {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/auth/recuperar-password'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'correo': correo}),
-    );
-
-    if (response.statusCode != 200) {
-      final Map<String, dynamic> body = jsonDecode(response.body);
-      final errorMsg = body['error'] ?? body['message'] ?? 'Error al solicitar la recuperación';
-      throw Exception(errorMsg);
-    }
+    await _client.post('/auth/recuperar-password', {'correo': correo}, auth: false);
   }
 
-  /// Restablece la contraseña usando el token de recuperación y la nueva contraseña.
+  /// Restablece la contraseña usando el código de recuperación.
   Future<void> restablecerContrasena(String token, String nuevaPassword) async {
-    final response = await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/auth/restablecer-password'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'token': token,
-        'nuevaContrasena': nuevaPassword,
-      }),
+    await _client.post(
+      '/auth/restablecer-password',
+      {'token': token, 'nuevaContrasena': nuevaPassword},
+      auth: false,
     );
-
-    if (response.statusCode != 200) {
-      final Map<String, dynamic> body = jsonDecode(response.body);
-      final errorMsg = body['error'] ?? body['message'] ?? 'Error al restablecer la contraseña';
-      throw Exception(errorMsg);
-    }
   }
 }

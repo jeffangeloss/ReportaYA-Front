@@ -12,7 +12,7 @@ import 'package:flutter/services.dart'
         TextInputFormatter,
         TextEditingValue;
 
-import '../../configs/colors.dart';
+import '../../widgets/app_colors.dart';
 
 /// Longitud del codigo de verificacion (6 caracteres alfanumericos).
 const int kResetCodeLength = 6;

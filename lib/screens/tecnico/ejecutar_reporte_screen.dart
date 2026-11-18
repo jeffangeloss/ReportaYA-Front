@@ -169,6 +169,7 @@ class _EjecutarReporteScreenState extends State<EjecutarReporteScreen>
           TextField(
             controller: _comentarioCtrl,
             maxLines: 4,
+            maxLength: 1000, // el backend acepta entre 10 y 1000 caracteres
             decoration: InputDecoration(
               hintText: 'Describe el trabajo realizado',
               filled: true, fillColor: Colors.white,

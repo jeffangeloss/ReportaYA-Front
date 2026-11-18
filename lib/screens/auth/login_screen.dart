@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../configs/api_config.dart';
 import '../../controllers/auth_controller.dart';
 import '../../models/enums.dart';
 import '../../routes/app_routes.dart';
 import '../../widgets/app_colors.dart';
 import '../../widgets/custom_toast.dart';
 import '../../widgets/gradient_scaffold.dart';
+import '../../widgets/servidor_dialog.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -106,6 +108,17 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () => Get.toNamed(AppRoutes.recoverPassword),
                       child: const Text('¿Olvidaste tu contraseña?',
                           style: TextStyle(color: Color(0xFFA27EFF))),
+                    ),
+                    // Permite elegir PC local o nube sin recompilar el APK.
+                    TextButton.icon(
+                      onPressed: _loading
+                          ? null
+                          : () async {
+                              if (await mostrarDialogoServidor()) setState(() {});
+                            },
+                      icon: const Icon(Icons.dns_outlined, size: 16, color: AppColors.primary),
+                      label: Text('Servidor: ${ApiConfig.descripcionCorta}',
+                          style: const TextStyle(color: Color(0xFF6B7280), fontSize: 12.5)),
                     ),
                   ],
                 ),

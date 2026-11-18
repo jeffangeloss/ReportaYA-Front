@@ -29,9 +29,14 @@ class TecnicoReportesController extends GetxController {
   Future<void> cargar(int tecnicoId) async {
     _tecnicoId = tecnicoId;
     loading.value = true;
-    final list = await _service.obtenerAsignadosATecnico(tecnicoId);
-    asignaciones.assignAll(list);
-    loading.value = false;
+    try {
+      final list = await _service.obtenerAsignadosATecnico(tecnicoId);
+      asignaciones.assignAll(list);
+    } catch (e) {
+      AppToast.error(e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      loading.value = false; // antes quedaba en true si la petición fallaba
+    }
   }
 
   Future<ReporteResponse> finalizar(int id, String comentario, List<String> fotosBase64) async {

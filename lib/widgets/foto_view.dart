@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../configs/api_config.dart';
 import '../models/models.dart';
 
 /// Construye la imagen de una foto segun su origen: las fotos reales vienen del
@@ -12,6 +13,10 @@ Widget _fotoImage(
   required BoxFit fit,
   required Widget error,
 }) {
+  // Las fotos del backend llegan como URL absoluta, o relativas al servidor
+  // (/media/..., uploads/...) en versiones anteriores: se resuelven contra la
+  // dirección del backend actual. Las de demo son assets.
+  url = ApiConfig.resolverUrlFoto(url);
   final esRemota = url.startsWith('http://') || url.startsWith('https://');
   if (esRemota) {
     return Image.network(

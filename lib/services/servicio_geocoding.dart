@@ -47,8 +47,6 @@ class ServicioGeocoding {
             (address['city'] ?? address['town'] ?? 'Lima').toString();
         final dpto = (address['state'] ?? 'Lima').toString();
         final pais = (address['country'] ?? 'Peru').toString();
-        final display = data['display_name'] as String? ??
-            'Ubicacion ($lat, $lng)';
 
         return DireccionCompleta(
           calle: calle,
@@ -83,7 +81,7 @@ class ServicioGeocoding {
 
   String _formatear(String? calle, String distrito, String ciudad) {
     final parts = <String>[
-      if (calle != null) calle,
+      ?calle,
       distrito,
       ciudad,
     ];
